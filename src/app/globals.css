@@ -1354,3 +1354,105 @@ body {
   overflow-x: hidden;
   max-width: 100vw;
 }
+
+/* --------------------------------------------------------------------------
+   16. Luxury Glassmorphism & Hero Section Sequential Reveal Enhancements
+   -------------------------------------------------------------------------- */
+@keyframes heroEntranceAnim {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-animate-1 {
+  animation: heroEntranceAnim 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+}
+.hero-animate-2 {
+  animation: heroEntranceAnim 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+.hero-animate-3 {
+  animation: heroEntranceAnim 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+}
+.hero-animate-4 {
+  animation: heroEntranceAnim 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+}
+.hero-animate-5 {
+  animation: heroEntranceAnim 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
+}
+.hero-animate-6 {
+  animation: heroEntranceAnim 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both;
+}
+.hero-animate-7 {
+  animation: heroEntranceAnim 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.65s both;
+}
+
+/* Crystal-Clear Glassmorphism Button: Become a Creator */
+.btn-glass-creator {
+  background: rgba(22, 17, 24, 0.50);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1.5px solid rgba(255, 122, 51, 0.55);
+  box-shadow: 0 4px 20px rgba(255, 109, 41, 0.20), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-glass-creator:hover {
+  border-color: rgba(255, 122, 51, 0.85);
+  box-shadow: 0 6px 28px rgba(255, 109, 41, 0.35), inset 0 1px 1.5px rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+.btn-glass-creator:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 12px rgba(255, 109, 41, 0.25);
+}
+
+/* Vibrant Luxury Gradient Button: Book Now */
+.btn-orange-lux {
+  background: linear-gradient(135deg, #FF7A33 0%, #FF5E1E 50%, #FFA033 100%);
+  box-shadow: 0 8px 28px rgba(255, 94, 30, 0.42), inset 0 1px 1.5px rgba(255, 255, 255, 0.45);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-orange-lux:hover {
+  box-shadow: 0 12px 36px rgba(255, 94, 30, 0.55), inset 0 1px 2px rgba(255, 255, 255, 0.55);
+  transform: translateY(-1px);
+}
+.btn-orange-lux:active {
+  transform: scale(0.97);
+  box-shadow: 0 4px 16px rgba(255, 94, 30, 0.35);
+}
+
+/* Animated subtle orange accent line beneath statistics */
+@keyframes statLineSweepAnim {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+.animate-stat-line-sweep {
+  animation: statLineSweepAnim 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-animate-1,
+  .hero-animate-2,
+  .hero-animate-3,
+  .hero-animate-4,
+  .hero-animate-5,
+  .hero-animate-6,
+  .hero-animate-7,
+  .animate-stat-line-sweep {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
