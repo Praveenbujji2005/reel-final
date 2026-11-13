@@ -48,8 +48,8 @@ export async function POST(request) {
 
     // Determine target folder
     let targetFolder = 'images';
-    if (isVideo || customFolder === 'videos' || customFolder === 'hero') {
-      targetFolder = 'hero';
+    if (customFolder === 'hero-videos' || isVideo || customFolder === 'videos' || customFolder === 'hero') {
+      targetFolder = 'hero-videos';
     } else if (customFolder && typeof customFolder === 'string' && /^[a-zA-Z0-9_-]+$/.test(customFolder)) {
       targetFolder = customFolder;
     }
@@ -59,6 +59,7 @@ export async function POST(request) {
     const ext = path.extname(originalName) || (isVideo ? '.mp4' : '.jpg');
     const baseName = path.basename(originalName, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
     const uniqueFilename = `${Date.now()}_${baseName}${ext}`;
+    const storagePath = `${targetFolder}/${uniqueFilename}`;
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
@@ -66,7 +67,7 @@ export async function POST(request) {
     // 1. Primary Cloud Storage: Upload to Firebase Cloud Storage
     if (isFirebaseConfigured && storage) {
       try {
-        const storageRef = ref(storage, `${targetFolder}/${uniqueFilename}`);
+        const storageRef = ref(storage, storagePath);
         const metadata = {
           contentType: file.type || (isVideo ? 'video/mp4' : 'image/jpeg'),
           customMetadata: {
@@ -81,7 +82,10 @@ export async function POST(request) {
         return NextResponse.json({
           success: true,
           url: downloadUrl,
+          downloadUrl,
+          storagePath,
           filename: uniqueFilename,
+          originalName: file.name || '',
           size: file.size,
           mimeType: file.type,
           storage: 'firebase_storage',

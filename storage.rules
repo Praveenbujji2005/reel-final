@@ -21,6 +21,12 @@ service firebase.storage {
       allow delete: if true;
     }
 
+    match /hero-videos/{allPaths=**} {
+      allow read: if true;
+      allow write: if isValidMedia();
+      allow delete: if true;
+    }
+
     match /hero/{allPaths=**} {
       allow read: if true;
       allow write: if isValidMedia();

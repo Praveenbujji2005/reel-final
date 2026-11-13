@@ -450,52 +450,63 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
                 </div>
               )}
 
-              {/* Autoplaying Vertical Reel Video (Zero Info Overlays, Pure Cinematic Visual) */}
-              <video
-                ref={(el) => {
-                  if (el) cardVideoRefs.current[index] = el;
-                }}
-                src={reel.videoUrl || reel.videoSrc}
-                poster={posterSrc}
-                autoPlay
-                muted={unmutedIndex !== index}
-                loop
-                playsInline
-                webkit-playsinline="true"
-                x5-playsinline="true"
-                preload="metadata"
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 z-10 pointer-events-none"
-              />
+              {/* Media Rendering: Video if mediaType === 'video' (or has videoUrl/videoSrc), Image otherwise */}
+              {reel.mediaType === 'image' || (!reel.videoUrl && !reel.videoSrc) ? (
+                <img
+                  src={reel.imageUrl || reel.poster || posterSrc}
+                  alt={reel.title || 'ReelXpress Visual'}
+                  loading="lazy"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 z-10 pointer-events-none"
+                />
+              ) : (
+                <video
+                  ref={(el) => {
+                    if (el) cardVideoRefs.current[index] = el;
+                  }}
+                  src={reel.videoUrl || reel.videoSrc}
+                  poster={posterSrc}
+                  autoPlay
+                  muted={unmutedIndex !== index}
+                  loop
+                  playsInline
+                  webkit-playsinline="true"
+                  x5-playsinline="true"
+                  preload="metadata"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 z-10 pointer-events-none"
+                />
+              )}
 
-              {/* Sound Toggle Indicator */}
-              <div
-                className="absolute top-3 right-3 z-30 pointer-events-auto"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (unmutedIndex === index) {
-                    setUnmutedIndex(null);
-                  } else {
-                    if (index !== activeReelIndex) selectCard(index);
-                    setUnmutedIndex(index);
-                  }
-                }}
-              >
+              {/* Sound Toggle Indicator (Only for video slides) */}
+              {(reel.videoUrl || reel.videoSrc) && reel.mediaType !== 'image' && (
                 <div
-                  className={`flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full backdrop-blur-md border transition-all cursor-pointer shadow-lg active:scale-95 ${
-                    unmutedIndex === index
-                      ? 'bg-[#ff6d29] border-[#ff6d29] text-white shadow-[0_0_15px_rgba(255,109,41,0.6)]'
-                      : 'bg-black/60 border-white/20 text-white/90 hover:bg-black/80'
-                  }`}
-                  title={unmutedIndex === index ? 'Mute audio' : 'Play sound'}
+                  className="absolute top-3 right-3 z-30 pointer-events-auto"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (unmutedIndex === index) {
+                      setUnmutedIndex(null);
+                    } else {
+                      if (index !== activeReelIndex) selectCard(index);
+                      setUnmutedIndex(index);
+                    }
+                  }}
                 >
-                  <span className="material-symbols-outlined text-sm sm:text-base">
-                    {unmutedIndex === index ? 'volume_up' : 'volume_off'}
-                  </span>
-                  <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">
-                    {unmutedIndex === index ? 'Sound ON' : 'Tap for sound'}
-                  </span>
+                  <div
+                    className={`flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full backdrop-blur-md border transition-all cursor-pointer shadow-lg active:scale-95 ${
+                      unmutedIndex === index
+                        ? 'bg-[#ff6d29] border-[#ff6d29] text-white shadow-[0_0_15px_rgba(255,109,41,0.6)]'
+                        : 'bg-black/60 border-white/20 text-white/90 hover:bg-black/80'
+                    }`}
+                    title={unmutedIndex === index ? 'Mute audio' : 'Play sound'}
+                  >
+                    <span className="material-symbols-outlined text-sm sm:text-base">
+                      {unmutedIndex === index ? 'volume_up' : 'volume_off'}
+                    </span>
+                    <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">
+                      {unmutedIndex === index ? 'Sound ON' : 'Tap for sound'}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Fullscreen Expand Action on Active Card */}
               {isCenter && (
@@ -622,34 +633,42 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
               className="relative w-full max-w-[420px] sm:max-w-[440px] h-full max-h-[76vh] sm:max-h-[82vh] aspect-[9/16] rounded-2xl sm:rounded-3xl overflow-hidden bg-black shadow-[0_25px_80px_rgba(0,0,0,0.95)] border border-white/20 flex items-center justify-center cursor-pointer group"
               onClick={handleVideoTap}
             >
-              <video
-                ref={fullscreenVideoRef}
-                src={reels[fullscreenIndex].videoUrl || reels[fullscreenIndex].videoSrc}
-                poster={reels[fullscreenIndex].poster || `/thumbnails/hero-video-${(fullscreenIndex % 7) + 1}.jpg`}
-                playsInline
-                loop
-                webkit-playsinline="true"
-                x5-playsinline="true"
-                preload="auto"
-                muted={isFullscreenMuted}
-                onTimeUpdate={() => {
-                  if (fullscreenVideoRef.current) {
-                    setFullscreenCurrentTime(fullscreenVideoRef.current.currentTime);
-                  }
-                }}
-                onLoadedMetadata={() => {
-                  if (fullscreenVideoRef.current) {
-                    setFullscreenDuration(fullscreenVideoRef.current.duration);
-                  }
-                }}
-                onEnded={() => {
-                  if (fullscreenVideoRef.current) {
-                    fullscreenVideoRef.current.currentTime = 0;
-                    fullscreenVideoRef.current.play().catch(() => {});
-                  }
-                }}
-                className="w-full h-full object-cover"
-              />
+              {reels[fullscreenIndex].mediaType === 'image' || (!reels[fullscreenIndex].videoUrl && !reels[fullscreenIndex].videoSrc) ? (
+                <img
+                  src={reels[fullscreenIndex].imageUrl || reels[fullscreenIndex].poster || `/thumbnails/hero-video-${(fullscreenIndex % 7) + 1}.jpg`}
+                  alt={reels[fullscreenIndex].title || 'Reel visual'}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <video
+                  ref={fullscreenVideoRef}
+                  src={reels[fullscreenIndex].videoUrl || reels[fullscreenIndex].videoSrc}
+                  poster={reels[fullscreenIndex].poster || `/thumbnails/hero-video-${(fullscreenIndex % 7) + 1}.jpg`}
+                  playsInline
+                  loop
+                  webkit-playsinline="true"
+                  x5-playsinline="true"
+                  preload="auto"
+                  muted={isFullscreenMuted}
+                  onTimeUpdate={() => {
+                    if (fullscreenVideoRef.current) {
+                      setFullscreenCurrentTime(fullscreenVideoRef.current.currentTime);
+                    }
+                  }}
+                  onLoadedMetadata={() => {
+                    if (fullscreenVideoRef.current) {
+                      setFullscreenDuration(fullscreenVideoRef.current.duration);
+                    }
+                  }}
+                  onEnded={() => {
+                    if (fullscreenVideoRef.current) {
+                      fullscreenVideoRef.current.currentTime = 0;
+                      fullscreenVideoRef.current.play().catch(() => {});
+                    }
+                  }}
+                  className="w-full h-full object-cover"
+                />
+              )}
 
               {/* Big Splash Play button if paused in fullscreen */}
               {!isFullscreenPlaying && (

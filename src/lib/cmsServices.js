@@ -10,7 +10,7 @@ import {
   orderBy,
   onSnapshot,
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import {
   REEL_PORTFOLIO,
   FAQ_DATA,
@@ -1525,9 +1525,16 @@ export function subscribeToHeroSlides(callback) {
 export async function saveHeroSlide(slide, adminEmail) {
   const isNew = !slide.id || slide.id.startsWith('new_');
   const slideId = isNew ? 'slide_' + Date.now() : slide.id;
+  const hasVideo = Boolean(slide.videoUrl || slide.videoSrc);
   const payload = {
     ...slide,
     id: slideId,
+    videoUrl: slide.videoUrl || slide.videoSrc || '',
+    videoSrc: slide.videoUrl || slide.videoSrc || '',
+    storagePath: slide.storagePath || '',
+    mediaType: hasVideo ? 'video' : (slide.mediaType || 'image'),
+    originalFileName: slide.originalFileName || '',
+    uploadedAt: slide.uploadedAt || new Date().toISOString(),
     enabled: slide.enabled !== false,
     order: Number(slide.order) || 1,
     updatedAt: new Date().toISOString(),
@@ -1597,6 +1604,10 @@ export async function deleteHeroSlide(slideId, adminEmail) {
   let deleteSuccess = false;
   let lastError = null;
 
+  // Retrieve cached slide to inspect storage file path
+  const currentList = getCachedHeroSlides();
+  const existingSlide = currentList.find((s) => s.id === slideId);
+
   if (isFirebaseConfigured && db) {
     try {
       await deleteDoc(doc(db, 'cms_hero', slideId));
@@ -1639,8 +1650,12 @@ export async function deleteHeroSlide(slideId, adminEmail) {
     );
   }
 
+  // Safely delete associated Storage file if present
+  if (existingSlide && (existingSlide.storagePath || (existingSlide.videoUrl && existingSlide.videoUrl.includes('firebasestorage')))) {
+    deleteStorageFile(existingSlide.storagePath || existingSlide.videoUrl).catch(() => {});
+  }
+
   // Update in-memory cache and localStorage immediately
-  const currentList = getCachedHeroSlides();
   const updated = currentList.filter((s) => s.id !== slideId);
   setLocal(CMS_STORAGE_KEYS.hero, updated);
 
@@ -1762,54 +1777,155 @@ export async function uploadImageFile(file, folder = 'uploads') {
 }
 
 /**
- * Upload Video File directly to Firebase Storage bucket or Server API (/public/uploads/videos)
+ * Safely delete a file from Firebase Storage
+ * Accepts a full Firebase Storage download URL or relative path (e.g. 'hero-videos/...')
  */
-export async function uploadVideoFile(file, folder = 'hero') {
-  if (!file) throw new Error('No video file provided for upload.');
+export async function deleteStorageFile(storagePathOrUrl) {
+  if (!storagePathOrUrl || !isFirebaseConfigured || !storage) return false;
+  try {
+    let fileRef = null;
+    if (storagePathOrUrl.startsWith('http://') || storagePathOrUrl.startsWith('https://')) {
+      fileRef = ref(storage, storagePathOrUrl);
+    } else {
+      fileRef = ref(storage, storagePathOrUrl);
+    }
+    await deleteObject(fileRef);
+    console.log('[deleteStorageFile] Deleted old storage file:', storagePathOrUrl);
+    return true;
+  } catch (err) {
+    console.warn('[deleteStorageFile] Storage file deletion notice (benign):', err?.message || err);
+    return false;
+  }
+}
 
-  // 1. Try Firebase Storage if configured
+/**
+ * Upload Video to Firebase Storage using uploadBytesResumable with 0-100% progress tracking
+ * Dedicated storage path: hero-videos/
+ * Generates unique filename, returns downloadURL, storagePath, and metadata
+ */
+export async function uploadHeroVideo(file, onProgress) {
+  if (!file) throw new Error('No video file selected.');
+
+  // Validate file format: MP4 and WebM (plus quicktime / mov)
+  const validFormats = ['video/mp4', 'video/webm', 'video/quicktime'];
+  const ext = (file.name || '').split('.').pop()?.toLowerCase();
+  const validExtensions = ['mp4', 'webm', 'mov'];
+  const isValidFormat = validFormats.includes(file.type) || validExtensions.includes(ext);
+  if (!isValidFormat) {
+    throw new Error('Unsupported video format. Please upload an MP4 or WebM video.');
+  }
+
+  // Validate file size: maximum 100MB
+  const MAX_SIZE = 100 * 1024 * 1024; // 100MB
+  if (file.size > MAX_SIZE) {
+    throw new Error(`Video file size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds maximum limit of 100MB.`);
+  }
+
+  // Generate unique filename in dedicated hero-videos/ path
+  const timestamp = Date.now();
+  const safeName = (file.name || 'video.mp4')
+    .replace(/[^a-zA-Z0-9._-]/g, '_')
+    .replace(/_{2,}/g, '_');
+  const storagePath = `hero-videos/${timestamp}_${safeName}`;
+
+  // 1. Direct Firebase Storage using uploadBytesResumable
   if (isFirebaseConfigured && storage) {
-    try {
-      const sanitizedName = (file.name || 'video.mp4').replace(/[^a-zA-Z0-9.]/g, '_');
-      const storageRef = ref(storage, `${folder}/${Date.now()}_${sanitizedName}`);
-      const snapshot = await Promise.race([
-        uploadBytes(storageRef, file),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Firebase Storage Video upload timed out after 8000ms.')), 8000)
-        ),
-      ]);
-      const downloadUrl = await getDownloadURL(snapshot.ref);
-      return downloadUrl;
-    } catch (err) {
-      console.warn('[uploadVideoFile] Firebase Storage upload notice, falling back to server API:', err?.message || err);
-    }
+    return new Promise((resolve, reject) => {
+      try {
+        const storageRef = ref(storage, storagePath);
+        const metadata = {
+          contentType: file.type || 'video/mp4',
+          customMetadata: {
+            originalName: file.name || '',
+            uploadedAt: new Date().toISOString(),
+          },
+        };
+
+        const uploadTask = uploadBytesResumable(storageRef, file, metadata);
+
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            if (snapshot.totalBytes > 0) {
+              const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+              if (typeof onProgress === 'function') {
+                onProgress(progress);
+              }
+            }
+          },
+          (error) => {
+            console.error('[uploadHeroVideo] Firebase Storage upload error:', error);
+            // Fallback to server API if client network/rules block
+            uploadViaServerApi(file, onProgress, storagePath)
+              .then(resolve)
+              .catch(() => reject(new Error(`Firebase Storage upload failed: ${error.message || 'Permission denied'}`)));
+          },
+          async () => {
+            try {
+              const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+              if (typeof onProgress === 'function') onProgress(100);
+              resolve({
+                downloadUrl,
+                videoUrl: downloadUrl,
+                videoSrc: downloadUrl,
+                storagePath,
+                originalFileName: file.name,
+                fileSize: file.size,
+                mediaType: 'video',
+                uploadedAt: new Date().toISOString(),
+              });
+            } catch (urlErr) {
+              reject(new Error(`Failed to retrieve video download URL: ${urlErr.message}`));
+            }
+          }
+        );
+      } catch (err) {
+        uploadViaServerApi(file, onProgress, storagePath)
+          .then(resolve)
+          .catch(reject);
+      }
+    });
   }
 
-  // 2. Direct Server API upload (/public/uploads/videos)
-  if (typeof window !== 'undefined') {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder', 'videos');
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || `Upload failed with status ${res.status}`);
-      }
-      const data = await res.json();
-      if (data.url) {
-        return data.url;
-      }
-      throw new Error(data.error || 'Server did not return a valid video URL.');
-    } catch (serverErr) {
-      console.error('[uploadVideoFile] Server upload error:', serverErr);
-      const cleanMsg = (serverErr.message || 'Server error').replace(/^Video upload failed:\s*/i, '');
-      throw new Error(`Video upload failed: ${cleanMsg}`);
-    }
+  // 2. Fallback to server API if Storage not initialized
+  return uploadViaServerApi(file, onProgress, storagePath);
+}
+
+async function uploadViaServerApi(file, onProgress, storagePath) {
+  if (typeof onProgress === 'function') onProgress(10);
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('folder', 'hero-videos');
+
+  const res = await fetch('/api/upload', {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const errorJson = await res.json().catch(() => ({}));
+    throw new Error(errorJson.error || `Upload failed with status ${res.status}`);
   }
 
-  throw new Error('Video upload is not available in current environment.');
+  const result = await res.json();
+  if (typeof onProgress === 'function') onProgress(100);
+
+  return {
+    downloadUrl: result.downloadUrl || result.url,
+    videoUrl: result.downloadUrl || result.url,
+    videoSrc: result.downloadUrl || result.url,
+    storagePath: result.storagePath || storagePath,
+    originalFileName: file.name,
+    fileSize: file.size,
+    mediaType: 'video',
+    uploadedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Backward compatible wrapper for uploadVideoFile
+ */
+export async function uploadVideoFile(file, folder = 'hero-videos') {
+  const result = await uploadHeroVideo(file);
+  return result.downloadUrl || result.videoUrl;
 }

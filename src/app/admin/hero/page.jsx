@@ -6,7 +6,8 @@ import {
   saveHeroSlide,
   deleteHeroSlide,
   uploadImageFile,
-  uploadVideoFile,
+  uploadHeroVideo,
+  deleteStorageFile,
 } from '@/lib/cmsServices';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 
@@ -20,6 +21,9 @@ export default function AdminHeroPage() {
   const [slideToDelete, setSlideToDelete] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isVideoUploading, setIsVideoUploading] = useState(false);
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
+  const [videoUploadStatus, setVideoUploadStatus] = useState(null); // 'uploading' | 'success' | 'error'
+  const [videoUploadError, setVideoUploadError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
@@ -65,6 +69,9 @@ export default function AdminHeroPage() {
       showToast(`Maximum limit of ${MAX_HERO_REELS} reels reached.`);
       return;
     }
+    setVideoUploadProgress(0);
+    setVideoUploadStatus(null);
+    setVideoUploadError(null);
     setEditingSlide({
       id: 'new_' + Date.now(),
       title: '',
@@ -72,11 +79,26 @@ export default function AdminHeroPage() {
       category: 'Celebrations',
       views: '150K views',
       poster: '/thumbnails/reel-frame-1.jpg',
+      imageUrl: '/thumbnails/reel-frame-1.jpg',
       videoUrl: '',
       videoSrc: '',
+      storagePath: '',
+      mediaType: 'image',
+      originalFileName: '',
       instagramUrl: 'https://www.instagram.com/reelxpress___',
       enabled: true,
       order: slides.length + 1,
+    });
+  };
+
+  const handleStartEdit = (slide) => {
+    setVideoUploadProgress(0);
+    setVideoUploadStatus(null);
+    setVideoUploadError(null);
+    setEditingSlide({
+      ...slide,
+      _initialStoragePath: slide.storagePath || null,
+      mediaType: slide.mediaType || (slide.videoUrl || slide.videoSrc ? 'video' : 'image'),
     });
   };
 
@@ -86,7 +108,11 @@ export default function AdminHeroPage() {
     setIsUploading(true);
     try {
       const url = await uploadImageFile(file, 'hero');
-      setEditingSlide((prev) => ({ ...prev, poster: url }));
+      setEditingSlide((prev) => ({
+        ...prev,
+        poster: url,
+        imageUrl: url,
+      }));
       showToast('Image uploaded and previewed successfully!');
     } catch (err) {
       alert('Upload failed: ' + err.message);
@@ -98,21 +124,90 @@ export default function AdminHeroPage() {
   const handleVideoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // 1. Validate file format: MP4 & WebM (and MOV)
+    const validMimes = ['video/mp4', 'video/webm', 'video/quicktime'];
+    const ext = (file.name || '').split('.').pop()?.toLowerCase();
+    const validExts = ['mp4', 'webm', 'mov'];
+    const isValidFormat = validMimes.includes(file.type) || validExts.includes(ext);
+
+    if (!isValidFormat) {
+      setVideoUploadError('Unsupported format. Please select an MP4 or WebM video file.');
+      setVideoUploadStatus('error');
+      if (e.target) e.target.value = '';
+      return;
+    }
+
+    // 2. Validate file size: 100MB limit
+    const MAX_SIZE = 100 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      setVideoUploadError(
+        `Video size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds 100MB maximum limit.`
+      );
+      setVideoUploadStatus('error');
+      if (e.target) e.target.value = '';
+      return;
+    }
+
     setIsVideoUploading(true);
+    setVideoUploadProgress(0);
+    setVideoUploadStatus('uploading');
+    setVideoUploadError(null);
+
     try {
-      const url = await uploadVideoFile(file, 'hero');
-      setEditingSlide((prev) => ({ ...prev, videoUrl: url, videoSrc: url }));
-      showToast('Video uploaded successfully!');
+      const oldStoragePath = editingSlide?.storagePath || null;
+
+      // Direct Firebase Storage upload using uploadBytesResumable with progress tracking
+      const result = await uploadHeroVideo(file, (progress) => {
+        setVideoUploadProgress(progress);
+      });
+
+      setEditingSlide((prev) => ({
+        ...prev,
+        videoUrl: result.downloadUrl,
+        videoSrc: result.downloadUrl,
+        storagePath: result.storagePath,
+        mediaType: 'video',
+        originalFileName: file.name,
+        uploadedAt: result.uploadedAt || new Date().toISOString(),
+        _oldStoragePath:
+          oldStoragePath && oldStoragePath !== result.storagePath
+            ? oldStoragePath
+            : prev?._oldStoragePath || null,
+      }));
+
+      setVideoUploadStatus('success');
+      showToast('Video uploaded to Firebase Storage successfully!');
     } catch (err) {
-      alert('Video upload failed: ' + err.message);
+      console.error('[handleVideoUpload] Upload failed:', err);
+      setVideoUploadError(err.message || 'Video upload failed. Please try again.');
+      setVideoUploadStatus('error');
     } finally {
       setIsVideoUploading(false);
+      if (e.target) e.target.value = '';
     }
+  };
+
+  const handleRemoveVideo = () => {
+    const oldPath = editingSlide?.storagePath || null;
+    setEditingSlide((prev) => ({
+      ...prev,
+      videoUrl: '',
+      videoSrc: '',
+      storagePath: '',
+      mediaType: 'image',
+      originalFileName: '',
+      _oldStoragePath: oldPath || prev?._oldStoragePath || null,
+    }));
+    setVideoUploadStatus(null);
+    setVideoUploadError(null);
+    setVideoUploadProgress(0);
+    showToast('Video removed from slide. Slide will display as image.');
   };
 
   const handleSave = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    if (isSaving) return;
+    if (isSaving || isVideoUploading || isUploading) return;
     if (!editingSlide?.title || !editingSlide?.creator) {
       alert('Title and creator are required.');
       return;
@@ -124,14 +219,30 @@ export default function AdminHeroPage() {
     }
     setIsSaving(true);
     try {
+      const hasVideo = Boolean(editingSlide.videoUrl || editingSlide.videoSrc);
       const payload = {
         ...editingSlide,
         videoUrl: editingSlide.videoUrl || editingSlide.videoSrc || '',
         videoSrc: editingSlide.videoUrl || editingSlide.videoSrc || '',
+        storagePath: editingSlide.storagePath || '',
+        mediaType: hasVideo ? 'video' : (editingSlide.mediaType || 'image'),
+        originalFileName: editingSlide.originalFileName || '',
+        uploadedAt: editingSlide.uploadedAt || new Date().toISOString(),
       };
+
+      // 1. Save directly to Firestore and server
       await saveHeroSlide(payload, user?.email);
+
+      // 2. If replacing video, safely clean up old Storage file now that Firestore save succeeded
+      if (editingSlide._oldStoragePath && editingSlide._oldStoragePath !== payload.storagePath) {
+        deleteStorageFile(editingSlide._oldStoragePath).catch(() => {});
+      }
+
       showToast('Hero slide saved successfully!');
       setEditingSlide(null);
+      setVideoUploadStatus(null);
+      setVideoUploadError(null);
+      setVideoUploadProgress(0);
       try {
         await fetchSlides();
       } catch (fetchErr) {
@@ -358,7 +469,7 @@ export default function AdminHeroPage() {
                   </button>
 
                   <button
-                    onClick={() => setEditingSlide(slide)}
+                    onClick={() => handleStartEdit(slide)}
                     className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white cursor-pointer"
                     title="Edit Slide"
                   >
@@ -481,18 +592,20 @@ export default function AdminHeroPage() {
               {/* Video URL & Video File Upload */}
               <div>
                 <label className="block text-xs uppercase tracking-wider font-bold text-text-muted mb-1.5 flex items-center justify-between">
-                  <span>Reel Video (MP4 / WebM / QuickTime)</span>
-                  {(editingSlide.videoUrl || editingSlide.videoSrc) && (
+                  <span>Reel Video (MP4 / WebM up to 100MB)</span>
+                  {(editingSlide.videoUrl || editingSlide.videoSrc) ? (
                     <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
                       <span className="material-symbols-outlined text-xs">check_circle</span>
-                      <span>Video Configured</span>
+                      <span>Video Ready</span>
                     </span>
+                  ) : (
+                    <span className="text-[11px] text-text-muted">Image Mode</span>
                   )}
                 </label>
                 <div className="space-y-3 p-4 rounded-2xl bg-[#0c0a0c] border border-white/15">
                   <div className="flex items-center gap-4">
                     {editingSlide.videoUrl || editingSlide.videoSrc ? (
-                      <div className="w-16 h-28 aspect-[9/16] rounded-xl overflow-hidden bg-black shrink-0 border border-white/20 relative">
+                      <div className="w-20 h-32 aspect-[9/16] rounded-xl overflow-hidden bg-black shrink-0 border border-white/20 relative shadow-lg">
                         <video
                           src={editingSlide.videoUrl || editingSlide.videoSrc}
                           playsInline
@@ -502,35 +615,105 @@ export default function AdminHeroPage() {
                         />
                       </div>
                     ) : (
-                      <div className="w-16 h-28 aspect-[9/16] rounded-xl bg-white/5 border border-dashed border-white/20 shrink-0 flex flex-col items-center justify-center text-text-muted">
-                        <span className="material-symbols-outlined text-xl">videocam_off</span>
-                        <span className="text-[9px] mt-1">No video</span>
+                      <div className="w-20 h-32 aspect-[9/16] rounded-xl bg-white/5 border border-dashed border-white/20 shrink-0 flex flex-col items-center justify-center text-text-muted">
+                        <span className="material-symbols-outlined text-2xl">videocam_off</span>
+                        <span className="text-[10px] mt-1 font-semibold">No Video</span>
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
-                      <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs cursor-pointer transition-colors">
-                        <span className="material-symbols-outlined text-sm">video_file</span>
-                        <span>{isVideoUploading ? 'Uploading Video...' : 'Upload Video File'}</span>
-                        <input
-                          type="file"
-                          accept="video/mp4,video/webm,video/quicktime"
-                          disabled={isVideoUploading}
-                          onChange={handleVideoUpload}
-                          className="hidden"
-                        />
-                      </label>
-                      <p className="text-[11px] text-text-muted mt-1.5">
-                        Upload 9:16 vertical video directly. Automatically optimized and persisted.
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <label className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold text-xs cursor-pointer transition-all ${
+                          isVideoUploading
+                            ? 'bg-white/5 opacity-50 cursor-not-allowed'
+                            : 'bg-white/10 hover:bg-white/20 active:scale-95'
+                        }`}>
+                          <span className="material-symbols-outlined text-sm">
+                            {editingSlide.videoUrl || editingSlide.videoSrc ? 'published_with_changes' : 'video_file'}
+                          </span>
+                          <span>
+                            {isVideoUploading
+                              ? `Uploading (${videoUploadProgress}%)...`
+                              : (editingSlide.videoUrl || editingSlide.videoSrc ? 'Replace Video File' : 'Upload Video File')}
+                          </span>
+                          <input
+                            type="file"
+                            accept="video/mp4,video/webm,video/quicktime"
+                            disabled={isVideoUploading || isSaving}
+                            onChange={handleVideoUpload}
+                            className="hidden"
+                          />
+                        </label>
+
+                        {(editingSlide.videoUrl || editingSlide.videoSrc) && !isVideoUploading && (
+                          <button
+                            type="button"
+                            onClick={handleRemoveVideo}
+                            className="px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-semibold text-xs transition-colors cursor-pointer"
+                          >
+                            Remove Video
+                          </button>
+                        )}
+                      </div>
+
+                      <p className="text-[11px] text-text-muted leading-relaxed">
+                        Supports <span className="text-white font-medium">MP4</span> and <span className="text-white font-medium">WebM</span> formats (max 100MB). Video uploads directly to Firebase Storage bucket.
                       </p>
+
+                      {/* Upload Progress Bar */}
+                      {isVideoUploading && (
+                        <div className="space-y-1.5 pt-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-[#F28C3C] font-semibold flex items-center gap-1.5">
+                              <span className="w-3 h-3 rounded-full border-2 border-[#F28C3C] border-t-transparent animate-spin shrink-0" />
+                              Uploading to Firebase Storage...
+                            </span>
+                            <span className="font-mono font-bold text-white">{videoUploadProgress}%</span>
+                          </div>
+                          <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-[#F28C3C] to-[#DC6A2C] transition-all duration-200 rounded-full"
+                              style={{ width: `${videoUploadProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Success State */}
+                      {videoUploadStatus === 'success' && !isVideoUploading && (
+                        <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2">
+                          <span className="material-symbols-outlined text-sm shrink-0">check_circle</span>
+                          <span className="truncate">
+                            Uploaded to Firebase Storage ({editingSlide.originalFileName || 'video.mp4'})
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Error State */}
+                      {videoUploadStatus === 'error' && (
+                        <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="material-symbols-outlined text-sm shrink-0">error</span>
+                            <span className="truncate">{videoUploadError || 'Video upload failed'}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setVideoUploadStatus(null)}
+                            className="text-white/60 hover:text-white text-xs underline shrink-0 cursor-pointer"
+                          >
+                            Dismiss
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
+
                   <div>
                     <label className="block text-[11px] uppercase tracking-wider font-bold text-text-muted mb-1">
-                      Or Direct Video URL / File Path
+                      Direct Video URL (Firebase Storage / CDN)
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. /uploads/videos/... or https://... or /assets/video.mp4"
+                      placeholder="https://firebasestorage.googleapis.com/... or /uploads/videos/..."
                       value={editingSlide.videoUrl || editingSlide.videoSrc || ''}
                       onChange={(e) =>
                         setEditingSlide({
