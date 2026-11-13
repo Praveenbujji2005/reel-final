@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import FAQItem from './FAQItem';
 import { FAQ_DATA } from '@/lib/data';
-import { getFaqs, getCachedFaqs } from '@/lib/cmsServices';
+import { getFaqs, getCachedFaqs, subscribeToFaqs } from '@/lib/cmsServices';
 
 /**
  * FaqSection Component (Redesigned & Database-Connected)
@@ -27,63 +27,39 @@ export default function FaqSection() {
   useEffect(() => {
     let isMounted = true;
 
+    const applyFaqs = (items) => {
+      if (isMounted && items && items.length > 0) {
+        const active = items.filter((f) => f.enabled !== false);
+        if (active.length > 0) {
+          setFaqs(active);
+        }
+      }
+      if (isMounted) setIsLoading(false);
+    };
+
     // 1. Instant check from cache for 0ms initial render
     const cached = getCachedFaqs();
     if (cached && cached.length > 0) {
-      const active = cached.filter((f) => f.enabled !== false);
-      if (active.length > 0) {
-        setFaqs(active);
-        setIsLoading(false);
-      }
+      applyFaqs(cached);
     }
 
-    async function loadFaqs() {
-      try {
-        const res = await fetch('/api/cms?type=faqs');
-        const data = await res.json();
-        if (isMounted && data.success && Array.isArray(data.data) && data.data.length > 0) {
-          const active = data.data.filter((f) => f.enabled !== false);
-          if (active.length > 0) {
-            setFaqs(active);
-            setIsLoading(false);
-            return;
-          }
-        }
-      } catch {
-        // Fallback to cmsServices
-      }
+    // 2. Fetch fresh CMS faqs
+    getFaqs().then(applyFaqs).catch(() => {});
 
-      try {
-        const cmsData = await getFaqs();
-        if (isMounted && cmsData && cmsData.length > 0) {
-          const active = cmsData.filter((f) => f.enabled !== false);
-          if (active.length > 0) {
-            setFaqs(active);
-          }
-        }
-      } catch {} finally {
-        if (isMounted) setIsLoading(false);
-      }
-    }
+    // 3. Real-time Firestore onSnapshot listener
+    const unsubscribeSnapshot = subscribeToFaqs(applyFaqs);
 
-    loadFaqs();
-
+    // 4. Live update event for same-tab changes
     const handleCmsUpdate = (e) => {
       if (!e.detail?.type || e.detail.type === 'faqs') {
-        getFaqs({ forceRefresh: true }).then((cmsData) => {
-          if (isMounted && cmsData && cmsData.length > 0) {
-            const active = cmsData.filter((f) => f.enabled !== false);
-            if (active.length > 0) {
-              setFaqs(active);
-            }
-          }
-        });
+        getFaqs({ forceRefresh: true }).then(applyFaqs);
       }
     };
     window.addEventListener('cms-cache-invalidated', handleCmsUpdate);
 
     return () => {
       isMounted = false;
+      if (typeof unsubscribeSnapshot === 'function') unsubscribeSnapshot();
       window.removeEventListener('cms-cache-invalidated', handleCmsUpdate);
     };
   }, []);

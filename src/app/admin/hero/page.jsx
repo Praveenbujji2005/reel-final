@@ -618,14 +618,10 @@ export default function AdminHeroPage() {
                   disabled={isSaving || isUploading || isVideoUploading}
                   className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-[#F28C3C] to-[#DC6A2C] text-white font-bold text-sm tracking-wide shadow-lg hover:opacity-95 active:scale-95 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {isSaving ? (
-                    <>
-                      <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin shrink-0" />
-                      <span>Saving Reel Slide...</span>
-                    </>
-                  ) : (
-                    <span>Save Reel Slide</span>
+                  {isSaving && (
+                    <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin shrink-0" />
                   )}
+                  <span>{isSaving ? 'Saving Reel Slide...' : 'Save Reel Slide'}</span>
                 </button>
               </div>
             </form>

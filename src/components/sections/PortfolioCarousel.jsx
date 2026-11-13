@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { REEL_PORTFOLIO } from '@/lib/data';
-import { getHeroSlides, getCachedHeroSlides } from '@/lib/cmsServices';
+import { getHeroSlides, getCachedHeroSlides, subscribeToHeroSlides } from '@/lib/cmsServices';
 
 function formatTime(seconds) {
   if (!seconds || isNaN(seconds) || seconds < 0) return '0:00';
@@ -57,47 +57,42 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
 
   const totalCards = reels.length;
 
-  // Load dynamic hero slides from CMS / Firestore with instantaneous cache fast-path
+  // Load dynamic hero slides from CMS / Firestore with real-time onSnapshot sync & fast-path cache
   useEffect(() => {
+    const applySlides = (slides) => {
+      if (slides && slides.length > 0) {
+        const activeSlides = slides.filter((s) => s.enabled !== false);
+        if (activeSlides.length > 0) {
+          setReels(activeSlides);
+          setActiveReelIndex((prev) => (prev >= activeSlides.length ? Math.floor(activeSlides.length / 2) : prev));
+        }
+      }
+    };
+
     // 1. Instant cache fast-path
     const cached = getCachedHeroSlides();
-    if (cached && cached.length > 0) {
-      const activeSlides = cached.filter((s) => s.enabled !== false);
-      if (activeSlides.length > 0) {
-        setReels(activeSlides);
-        setActiveReelIndex((prev) => (prev >= activeSlides.length ? Math.floor(activeSlides.length / 2) : prev));
-      }
-    }
+    applySlides(cached);
 
-    // 2. Background revalidation
+    // 2. Initial fetch
     getHeroSlides()
-      .then((slides) => {
-        if (slides && slides.length > 0) {
-          const activeSlides = slides.filter((s) => s.enabled !== false);
-          if (activeSlides.length > 0) {
-            setReels(activeSlides);
-            setActiveReelIndex((prev) => (prev >= activeSlides.length ? Math.floor(activeSlides.length / 2) : prev));
-          }
-        }
-      })
+      .then(applySlides)
       .catch(() => {});
 
-    // 3. React to live Admin updates
+    // 3. Real-time Firestore onSnapshot subscription (live sync across all clients)
+    const unsubscribeSnapshot = subscribeToHeroSlides(applySlides);
+
+    // 4. React to local tab admin updates
     const handleCmsUpdate = (e) => {
       if (!e.detail?.type || e.detail.type === 'hero') {
-        getHeroSlides({ forceRefresh: true }).then((slides) => {
-          if (slides && slides.length > 0) {
-            const activeSlides = slides.filter((s) => s.enabled !== false);
-            if (activeSlides.length > 0) {
-              setReels(activeSlides);
-              setActiveReelIndex((prev) => (prev >= activeSlides.length ? Math.floor(activeSlides.length / 2) : prev));
-            }
-          }
-        });
+        getHeroSlides({ forceRefresh: true }).then(applySlides);
       }
     };
     window.addEventListener('cms-cache-invalidated', handleCmsUpdate);
-    return () => window.removeEventListener('cms-cache-invalidated', handleCmsUpdate);
+
+    return () => {
+      if (typeof unsubscribeSnapshot === 'function') unsubscribeSnapshot();
+      window.removeEventListener('cms-cache-invalidated', handleCmsUpdate);
+    };
   }, []);
 
   // Track window width for responsive 3D card layout calculations

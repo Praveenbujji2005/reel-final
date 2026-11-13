@@ -1,14 +1,22 @@
 import { NextResponse } from 'next/server';
+import { storage, isFirebaseConfigured } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-// Max file sizes
+// Maximum allowed upload sizes
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
 const MAX_IMAGE_SIZE = 25 * 1024 * 1024;  // 25MB
 
+/**
+ * POST /api/upload
+ * Handles media uploads for hero carousel videos, reels, and posters.
+ * Uploads persistently to Firebase Cloud Storage bucket.
+ */
 export async function POST(request) {
   try {
     const formData = await request.formData();
@@ -24,54 +32,103 @@ export async function POST(request) {
 
     const mimeType = file.type || '';
     const isVideo = mimeType.startsWith('video/') || (file.name && /\.(mp4|mov|webm|m4v)$/i.test(file.name));
-    const isImage = mimeType.startsWith('image/') || (file.name && /\.(jpg|jpeg|png|webp|gif|avif)$/i.test(file.name));
+    const isImage = mimeType.startsWith('image/') || (file.name && /\.(jpg|jpeg|png|webp|gif|avif|heic)$/i.test(file.name));
 
-    // Size check
+    // Size limit verification
     const maxAllowed = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
     if (file.size > maxAllowed) {
       return NextResponse.json(
         {
           success: false,
-          error: `File size exceeds limit (${Math.round(maxAllowed / (1024 * 1024))}MB).`,
+          error: `File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds maximum limit (${Math.round(maxAllowed / (1024 * 1024))}MB).`,
         },
         { status: 400 }
       );
     }
 
-    // Determine target subfolder under public/uploads
-    let targetSubfolder = 'images';
+    // Determine target folder
+    let targetFolder = 'images';
     if (isVideo || customFolder === 'videos' || customFolder === 'hero') {
-      targetSubfolder = 'videos';
+      targetFolder = 'hero';
     } else if (customFolder && typeof customFolder === 'string' && /^[a-zA-Z0-9_-]+$/.test(customFolder)) {
-      targetSubfolder = customFolder;
+      targetFolder = customFolder;
     }
-
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', targetSubfolder);
-    await mkdir(uploadsDir, { recursive: true });
 
     // Sanitize filename
     const originalName = file.name || (isVideo ? 'video.mp4' : 'image.jpg');
     const ext = path.extname(originalName) || (isVideo ? '.mp4' : '.jpg');
     const baseName = path.basename(originalName, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
     const uniqueFilename = `${Date.now()}_${baseName}${ext}`;
-    const destinationPath = path.join(uploadsDir, uniqueFilename);
 
-    // Convert file to ArrayBuffer then Buffer and write to disk
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    await writeFile(destinationPath, buffer);
 
-    const publicUrl = `/uploads/${targetSubfolder}/${uniqueFilename}`;
+    // 1. Primary Cloud Storage: Upload to Firebase Cloud Storage
+    if (isFirebaseConfigured && storage) {
+      try {
+        const storageRef = ref(storage, `${targetFolder}/${uniqueFilename}`);
+        const metadata = {
+          contentType: file.type || (isVideo ? 'video/mp4' : 'image/jpeg'),
+          customMetadata: {
+            uploadedAt: new Date().toISOString(),
+            originalName: file.name || '',
+          },
+        };
 
-    return NextResponse.json({
-      success: true,
-      url: publicUrl,
-      filename: uniqueFilename,
-      size: file.size,
-      mimeType: file.type,
-    });
+        const snapshot = await uploadBytes(storageRef, buffer, metadata);
+        const downloadUrl = await getDownloadURL(snapshot.ref);
+
+        return NextResponse.json({
+          success: true,
+          url: downloadUrl,
+          filename: uniqueFilename,
+          size: file.size,
+          mimeType: file.type,
+          storage: 'firebase_storage',
+        });
+      } catch (storageErr) {
+        console.error('[API /api/upload] Firebase Storage upload error:', storageErr);
+        // If in production, do not write to ephemeral local disk
+        if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Cloud Storage upload failed: ${storageErr.message || storageErr}. Please verify Firebase Storage Security Rules.`,
+              code: storageErr.code || 'storage_error',
+            },
+            { status: 500 }
+          );
+        }
+      }
+    }
+
+    // 2. Development-only local filesystem fallback (for offline local development)
+    if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+      const uploadsDir = path.join(process.cwd(), 'public', 'uploads', targetFolder);
+      await mkdir(uploadsDir, { recursive: true });
+      const destinationPath = path.join(uploadsDir, uniqueFilename);
+      await writeFile(destinationPath, buffer);
+      const localUrl = `/uploads/${targetFolder}/${uniqueFilename}`;
+
+      return NextResponse.json({
+        success: true,
+        url: localUrl,
+        filename: uniqueFilename,
+        size: file.size,
+        mimeType: file.type,
+        storage: 'local_dev',
+      });
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Cloud storage is required in production. Please configure Firebase Storage.',
+      },
+      { status: 500 }
+    );
   } catch (err) {
-    console.error('[API /api/upload] Upload error:', err);
+    console.error('[API /api/upload] Unexpected error:', err);
     return NextResponse.json(
       { success: false, error: err.message || 'File upload failed.' },
       { status: 500 }

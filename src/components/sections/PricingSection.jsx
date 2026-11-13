@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { getPricingPlans, getCachedPricingPlans } from '@/lib/cmsServices';
+import { getPricingPlans, getCachedPricingPlans, subscribeToPricingPlans } from '@/lib/cmsServices';
 
 // Pricing Tabs
 const TABS = [
@@ -420,54 +420,45 @@ export default function PricingSection() {
   };
 
   useEffect(() => {
+    const applyPlans = (plans) => {
+      if (plans && plans.length > 0) {
+        const activePlans = plans.filter((p) => p.enabled !== false);
+        const instant = activePlans.filter((p) => p.category === 'instant');
+        const business = activePlans.filter((p) => p.category === 'business');
+        const wedding = activePlans.filter((p) => p.category === 'wedding');
+        if (instant.length > 0) setInstantPlans(instant);
+        if (business.length > 0) setBusinessPlans(business);
+        if (wedding.length > 0) setWeddingPlans(wedding);
+      }
+      setIsLoading(false);
+    };
+
     // 1. Instant check from cache for 0ms initial render
     const cached = getCachedPricingPlans();
     if (cached && cached.length > 0) {
-      const activePlans = cached.filter((p) => p.enabled !== false);
-      const instant = activePlans.filter((p) => p.category === 'instant');
-      const business = activePlans.filter((p) => p.category === 'business');
-      const wedding = activePlans.filter((p) => p.category === 'wedding');
-      if (instant.length > 0) setInstantPlans(instant);
-      if (business.length > 0) setBusinessPlans(business);
-      if (wedding.length > 0) setWeddingPlans(wedding);
-      setIsLoading(false);
+      applyPlans(cached);
     }
 
-    // 2. Fetch fresh CMS pricing plans with background sync
+    // 2. Initial fetch
     getPricingPlans()
-      .then((plans) => {
-        if (plans && plans.length > 0) {
-          const activePlans = plans.filter((p) => p.enabled !== false);
-          const instant = activePlans.filter((p) => p.category === 'instant');
-          const business = activePlans.filter((p) => p.category === 'business');
-          const wedding = activePlans.filter((p) => p.category === 'wedding');
-          if (instant.length > 0) setInstantPlans(instant);
-          if (business.length > 0) setBusinessPlans(business);
-          if (wedding.length > 0) setWeddingPlans(wedding);
-        }
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      .then(applyPlans)
+      .finally(() => setIsLoading(false));
 
-    // 3. React to live Admin updates
+    // 3. Real-time Firestore onSnapshot listener
+    const unsubscribeSnapshot = subscribeToPricingPlans(applyPlans);
+
+    // 4. React to live Admin updates in same tab
     const handleCmsUpdate = (e) => {
       if (!e.detail?.type || e.detail.type === 'pricing') {
-        getPricingPlans({ forceRefresh: true }).then((plans) => {
-          if (plans && plans.length > 0) {
-            const activePlans = plans.filter((p) => p.enabled !== false);
-            const instant = activePlans.filter((p) => p.category === 'instant');
-            const business = activePlans.filter((p) => p.category === 'business');
-            const wedding = activePlans.filter((p) => p.category === 'wedding');
-            if (instant.length > 0) setInstantPlans(instant);
-            if (business.length > 0) setBusinessPlans(business);
-            if (wedding.length > 0) setWeddingPlans(wedding);
-          }
-        });
+        getPricingPlans({ forceRefresh: true }).then(applyPlans);
       }
     };
     window.addEventListener('cms-cache-invalidated', handleCmsUpdate);
-    return () => window.removeEventListener('cms-cache-invalidated', handleCmsUpdate);
+
+    return () => {
+      if (typeof unsubscribeSnapshot === 'function') unsubscribeSnapshot();
+      window.removeEventListener('cms-cache-invalidated', handleCmsUpdate);
+    };
   }, []);
 
   // Keyboard navigation for WAI-ARIA tabs pattern

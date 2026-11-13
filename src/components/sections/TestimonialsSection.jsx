@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import TestimonialCard from './TestimonialCard';
 import { ROW_1_TESTIMONIALS, ROW_2_TESTIMONIALS } from '@/lib/data';
-import { getTestimonials, getCachedTestimonials } from '@/lib/cmsServices';
+import { getTestimonials, getCachedTestimonials, subscribeToTestimonials } from '@/lib/cmsServices';
 
 /**
  * TestimonialsSection Component
@@ -51,51 +51,44 @@ export default function TestimonialsSection() {
   const touchStartY = useRef(0);
 
   useEffect(() => {
+    const applyTestimonials = (data) => {
+      if (data && data.length > 0) {
+        const active = data.filter((t) => t.enabled !== false);
+        if (active.length > 0) {
+          const mid = Math.ceil(active.length / 2);
+          setRow1(active.slice(0, mid));
+          setRow2(active.slice(mid).length > 0 ? active.slice(mid) : active.slice(0, mid));
+        }
+      }
+      setIsLoading(false);
+    };
+
     // 1. Instant check from cache for 0ms initial render
     const cached = getCachedTestimonials();
     if (cached && cached.length > 0) {
-      const active = cached.filter((t) => t.enabled !== false);
-      if (active.length > 0) {
-        const mid = Math.ceil(active.length / 2);
-        setRow1(active.slice(0, mid));
-        setRow2(active.slice(mid).length > 0 ? active.slice(mid) : active.slice(0, mid));
-        setIsLoading(false);
-      }
+      applyTestimonials(cached);
     }
 
-    // 2. Fetch fresh testimonials in background
+    // 2. Initial fetch
     getTestimonials()
-      .then((data) => {
-        if (data && data.length > 0) {
-          const active = data.filter((t) => t.enabled !== false);
-          if (active.length > 0) {
-            const mid = Math.ceil(active.length / 2);
-            setRow1(active.slice(0, mid));
-            setRow2(active.slice(mid).length > 0 ? active.slice(mid) : active.slice(0, mid));
-          }
-        }
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      .then(applyTestimonials)
+      .finally(() => setIsLoading(false));
 
-    // 3. React to live Admin updates
+    // 3. Real-time Firestore onSnapshot listener
+    const unsubscribeSnapshot = subscribeToTestimonials(applyTestimonials);
+
+    // 4. React to live Admin updates in same tab
     const handleCmsUpdate = (e) => {
       if (!e.detail?.type || e.detail.type === 'testimonials') {
-        getTestimonials({ forceRefresh: true }).then((data) => {
-          if (data && data.length > 0) {
-            const active = data.filter((t) => t.enabled !== false);
-            if (active.length > 0) {
-              const mid = Math.ceil(active.length / 2);
-              setRow1(active.slice(0, mid));
-              setRow2(active.slice(mid).length > 0 ? active.slice(mid) : active.slice(0, mid));
-            }
-          }
-        });
+        getTestimonials({ forceRefresh: true }).then(applyTestimonials);
       }
     };
     window.addEventListener('cms-cache-invalidated', handleCmsUpdate);
-    return () => window.removeEventListener('cms-cache-invalidated', handleCmsUpdate);
+
+    return () => {
+      if (typeof unsubscribeSnapshot === 'function') unsubscribeSnapshot();
+      window.removeEventListener('cms-cache-invalidated', handleCmsUpdate);
+    };
   }, []);
 
   // Pause animations when browser tab is inactive to preserve battery & CPU
