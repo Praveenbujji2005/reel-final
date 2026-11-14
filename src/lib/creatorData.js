@@ -181,6 +181,11 @@ export const CREATOR_TESTIMONIALS = [
 
 export const PHONE_MODEL_OPTIONS = [
   "Select your device",
+  "iPhone 18 Pro Max",
+  "iPhone 18 Pro",
+  "iPhone 17 Pro Max",
+  "iPhone 17 Pro",
+  "iPhone 17",
   "iPhone 16 Pro Max",
   "iPhone 16 Pro",
   "iPhone 16",
