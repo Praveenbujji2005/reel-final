@@ -38,10 +38,10 @@ export default function ShareButton({ title, slug }) {
     <button
       type="button"
       onClick={handleShare}
-      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer"
+      className="btn-glass-creator inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-white/90 hover:text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer"
       title="Share this article"
     >
-      <span className="material-symbols-outlined text-sm text-[#F28C3C]">share</span>
+      <span className="material-symbols-outlined text-sm text-primary">share</span>
       <span>{copied ? 'Link Copied!' : 'Share'}</span>
     </button>
   );

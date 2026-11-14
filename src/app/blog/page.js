@@ -53,7 +53,7 @@ export default function BlogHubPage() {
 
         {/* Header */}
         <div className="max-w-3xl mb-12 sm:mb-16">
-          <span className="text-[#F28C3C] text-xs sm:text-sm font-bold uppercase tracking-widest block mb-2">
+          <span className="text-primary text-xs sm:text-sm font-bold uppercase tracking-widest block mb-2">
             INDUSTRY INSIGHTS
           </span>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
@@ -69,13 +69,13 @@ export default function BlogHubPage() {
           {BLOG_POSTS.map((post) => (
             <article
               key={post.id}
-              className="rounded-2xl bg-[#130f14]/90 border border-white/10 p-6 sm:p-7 flex flex-col justify-between hover:border-[#F28C3C]/50 hover:-translate-y-1 transition-all duration-300 shadow-lg group"
+              className="rounded-2xl bg-[#130f14]/90 border border-white/10 p-6 sm:p-7 flex flex-col justify-between hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 shadow-lg group"
             >
               <div>
-                <span className="inline-block px-3 py-1 rounded-full bg-white/5 text-[#F28C3C] text-[11px] font-bold uppercase tracking-wider mb-4 border border-white/10">
+                <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-bold uppercase tracking-wider mb-4 border border-primary/20">
                   {post.tag}
                 </span>
-                <h2 className="text-xl font-bold text-white mb-3 group-hover:text-[#F28C3C] transition-colors leading-snug">
+                <h2 className="text-xl font-bold text-white mb-3 group-hover:text-primary transition-colors leading-snug">
                   <Link href={`/blog/${post.slug}`}>
                     {post.title}
                   </Link>
@@ -85,13 +85,15 @@ export default function BlogHubPage() {
                 </p>
               </div>
 
-              <Link
-                href={`/blog/${post.slug}`}
-                className="inline-flex items-center gap-2 text-[#F28C3C] font-bold text-sm hover:underline group-hover:translate-x-1 transition-transform"
-              >
-                <span>Read article</span>
-                <Icon name="arrow_forward" size={16} />
-              </Link>
+              <div className="pt-2">
+                <Link
+                  href={`/blog/${post.slug}`}
+                  className="btn-glass-creator inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold text-white tracking-wide transition-all group-hover:border-primary"
+                >
+                  <span>Read Article</span>
+                  <Icon name="arrow_forward" size={14} className="text-primary group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
             </article>
           ))}
         </div>

@@ -126,7 +126,7 @@ export default async function BlogPostPage({ params }) {
         <header className="mb-10 sm:mb-12 border-b border-white/10 pb-8 sm:pb-10">
           <div className="flex items-center justify-between gap-4 mb-5 flex-wrap">
             <div className="flex items-center gap-3">
-              <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[#F28C3C] text-xs font-bold uppercase tracking-wider">
+              <span className="px-3.5 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-bold uppercase tracking-wider shadow-[0_0_15px_rgba(255,122,51,0.15)]">
                 {post.tag}
               </span>
               <time dateTime={post.publishedDate} className="text-xs sm:text-sm text-text-muted font-medium">
@@ -153,13 +153,13 @@ export default async function BlogPostPage({ params }) {
         {post.takeaways && post.takeaways.length > 0 && (
           <section className="p-6 sm:p-8 rounded-2xl bg-[#1E1B1F] border border-white/10 mb-12 shadow-lg">
             <h2 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <Icon name="bolt" size={20} className="text-[#F28C3C]" />
+              <Icon name="bolt" size={20} className="text-primary" />
               <span>Key Takeaways</span>
             </h2>
             <ul className="space-y-3 text-sm sm:text-base text-text-muted leading-relaxed">
               {post.takeaways.map((takeaway, idx) => (
                 <li key={idx} className="flex items-start gap-3">
-                  <Icon name="check_circle" size={18} className="text-[#F28C3C] shrink-0 mt-1" />
+                  <Icon name="check_circle" size={18} className="text-primary shrink-0 mt-1" />
                   <span>{takeaway}</span>
                 </li>
               ))}
@@ -193,11 +193,11 @@ export default async function BlogPostPage({ params }) {
                     {section.pricingTiers.map((tier, tIdx) => (
                       <div
                         key={tIdx}
-                        className="rounded-2xl bg-[#151217] border border-white/10 hover:border-[#F28C3C]/40 p-6 flex flex-col justify-between transition-colors shadow-lg"
+                        className="rounded-2xl bg-[#151217] border border-white/10 hover:border-primary/50 p-6 flex flex-col justify-between transition-colors shadow-lg"
                       >
                         <div>
                           <div className="flex items-center justify-between gap-3 mb-2">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[#F28C3C] px-2.5 py-0.5 rounded-full bg-[#F28C3C]/10 border border-[#F28C3C]/20">
+                            <span className="text-xs font-bold uppercase tracking-wider text-primary px-3 py-1 rounded-full bg-primary/10 border border-primary/30 shadow-[0_0_12px_rgba(255,122,51,0.2)]">
                               {tier.events}
                             </span>
                             <span className="text-2xl font-black text-white">
@@ -213,7 +213,7 @@ export default async function BlogPostPage({ params }) {
                           <ul className="space-y-1.5 pt-4 border-t border-white/5 text-xs text-white/80">
                             {tier.highlights.map((h, hIdx) => (
                               <li key={hIdx} className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#F28C3C]" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                                 <span>{h}</span>
                               </li>
                             ))}
@@ -229,7 +229,7 @@ export default async function BlogPostPage({ params }) {
                   <ul className="space-y-3.5 my-6 p-6 rounded-2xl bg-[#151217] border border-white/10">
                     {section.bullets.map((b, bIdx) => (
                       <li key={bIdx} className="flex items-start gap-3 text-base text-text-muted leading-relaxed">
-                        <Icon name="check_circle" size={18} className="text-[#F28C3C] shrink-0 mt-1" />
+                        <Icon name="check_circle" size={18} className="text-primary shrink-0 mt-1" />
                         <div>
                           <strong className="text-white font-semibold mr-1.5">{b.label}</strong>
                           <span>{b.text}</span>
@@ -245,10 +245,10 @@ export default async function BlogPostPage({ params }) {
                     {section.numberedTrends.map((trend, trIdx) => (
                       <div
                         key={trIdx}
-                        className="p-6 sm:p-7 rounded-2xl bg-[#151217] border border-white/10 hover:border-white/20 transition-all shadow-md"
+                        className="p-6 sm:p-7 rounded-2xl bg-[#151217] border border-white/10 hover:border-primary/40 transition-all shadow-md"
                       >
                         <div className="flex items-start gap-4">
-                          <span className="px-3 py-1 rounded-xl bg-gradient-to-br from-[#F28C3C]/20 to-transparent border border-[#F28C3C]/30 text-[#F28C3C] text-sm font-black shrink-0">
+                          <span className="px-3.5 py-1.5 rounded-xl bg-gradient-to-br from-primary/25 to-transparent border border-primary/40 text-primary text-sm font-black shrink-0 shadow-[0_0_15px_rgba(255,122,51,0.2)]">
                             {trend.number}
                           </span>
                           <div>
@@ -276,7 +276,7 @@ export default async function BlogPostPage({ params }) {
 
                 {/* Section Footer Callout with Quick Navigation Links */}
                 {section.footerCta && (
-                  <div className="p-6 rounded-2xl bg-[#1E1B1F] border border-[#F28C3C]/30 my-8">
+                  <div className="p-6 sm:p-7 rounded-2xl bg-[#1E1B1F] border border-border-amber/50 my-8 shadow-[0_10px_30px_rgba(255,94,30,0.15)]">
                     <p className="text-sm sm:text-base text-white/90 leading-relaxed mb-4">
                       {section.footerCta.text}
                     </p>
@@ -285,10 +285,10 @@ export default async function BlogPostPage({ params }) {
                         <Link
                           key={lIdx}
                           href={link.href}
-                          className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-[#F28C3C] hover:text-white text-xs font-bold transition-colors"
+                          className="btn-glass-creator inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold text-white hover:text-white transition-all group"
                         >
-                          <span>{link.label}</span>
-                          <Icon name="arrow_forward" size={14} />
+                          <span className="text-primary font-bold">{link.label}</span>
+                          <Icon name="arrow_forward" size={14} className="text-primary group-hover:translate-x-1 transition-transform" />
                         </Link>
                       ))}
                     </div>
@@ -300,29 +300,30 @@ export default async function BlogPostPage({ params }) {
         )}
 
         {/* Primary CTA to Book */}
-        <section className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-[#1E1B1F] to-[#151215] border border-white/15 text-center shadow-2xl relative overflow-hidden">
+        <section className="p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-[#1E1B1F] to-[#110e13] border border-border-amber/40 text-center shadow-[0_20px_60px_rgba(255,94,30,0.2)] relative overflow-hidden">
           <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-[rgba(242,140,60,0.12)] blur-3xl pointer-events-none"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-[rgba(255,94,30,0.20)] blur-3xl pointer-events-none"
             aria-hidden="true"
           />
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-3 tracking-tight relative z-10">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-3 tracking-tight relative z-10">
             Ready to shoot your vertical reel?
           </h2>
-          <p className="text-sm sm:text-base text-text-muted max-w-md mx-auto mb-6 relative z-10">
+          <p className="text-sm sm:text-base text-text-muted max-w-md mx-auto mb-8 relative z-10">
             Book professional iPhone cinematography across Bengaluru. Delivered directly to your device within minutes.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
             <Link
               href="/#booking"
-              className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-[#F28C3C] to-[#DC6A2C] text-white font-extrabold text-sm uppercase tracking-wider shadow-[0_4px_20px_rgba(242,140,60,0.4)] hover:brightness-110 active:scale-95 transition-all text-center"
+              className="btn-orange-lux btn-shine-sweep w-full sm:w-auto inline-flex items-center justify-center gap-2 px-9 py-4 rounded-full font-black text-sm uppercase tracking-wider text-white shadow-[0_8px_28px_rgba(255,94,30,0.45)] hover:shadow-[0_12px_36px_rgba(255,94,30,0.65)] active:scale-95 transition-all text-center cursor-pointer"
             >
-              Book Your Reel
+              <span>Book Your Reel</span>
+              <Icon name="arrow_forward" size={16} />
             </Link>
             <Link
               href="/contact"
-              className="w-full sm:w-auto px-8 py-4 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-sm transition-all text-center"
+              className="btn-glass-creator w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-sm text-white/90 hover:text-white active:scale-95 transition-all text-center cursor-pointer"
             >
-              Contact Team
+              <span>Contact Team</span>
             </Link>
           </div>
         </section>
