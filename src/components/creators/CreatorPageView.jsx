@@ -185,12 +185,6 @@ export default function CreatorPageView() {
           <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-primary-container/15 blur-[120px] rounded-full pointer-events-none -z-10" />
 
           <div className="text-center max-w-4xl mx-auto">
-            {/* Live Ecosystem Eyebrow Pill */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-container/15 border border-border-amber text-primary text-xs sm:text-sm font-bold tracking-wider uppercase mb-6 backdrop-blur-md shadow-[0_0_20px_rgba(255,109,41,0.25)]">
-              <span className="w-2 h-2 rounded-full bg-primary rec-indicator" />
-              <span>{CREATOR_HERO.badge}</span>
-            </div>
-
             {/* Monumental Headline */}
             <h1 className="text-display-md sm:text-display-lg md:text-display-xl font-display-xl font-black text-white tracking-tight leading-[1.08] mb-6">
               {CREATOR_HERO.titlePart1}
@@ -224,21 +218,41 @@ export default function CreatorPageView() {
               </button>
             </div>
 
-            {/* Quick Highlights Strip */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 pt-6 border-t border-border-specular">
+            {/* Quick Highlights Strip: Crystal-Clear Glassmorphism */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 pt-2">
               {CREATOR_HERO.stats.map((stat, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl bg-surface-base/60 border border-border-specular/60 p-4 sm:p-5 backdrop-blur-md text-center hover:border-border-amber/60 transition-colors"
+                  className="group relative rounded-2xl p-5 sm:p-6 text-center transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+                  style={{
+                    backgroundColor: 'rgba(22, 17, 24, 0.45)',
+                    backdropFilter: 'blur(18px)',
+                    WebkitBackdropFilter: 'blur(18px)',
+                    border: '1.5px solid rgba(255, 122, 51, 0.40)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 1.5px rgba(255, 255, 255, 0.25)',
+                  }}
                 >
-                  <div className="text-2xl sm:text-3xl font-extrabold text-primary mb-1">
-                    {stat.value}
-                  </div>
-                  <div className="text-xs sm:text-sm font-bold text-white mb-0.5">
-                    {stat.label}
-                  </div>
-                  <div className="text-[11px] text-text-muted">
-                    {stat.sub}
+                  {/* Subtle Top Reflective Sheen */}
+                  <div
+                    className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none"
+                    aria-hidden="true"
+                  />
+                  {/* Ambient Glow on Hover */}
+                  <div
+                    className="absolute inset-0 bg-gradient-to-b from-[#FF7A33]/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                    aria-hidden="true"
+                  />
+
+                  <div className="relative z-10">
+                    <div className="text-2xl xs:text-3xl sm:text-4xl font-black text-[#FF7A33] tracking-tight mb-1.5 drop-shadow-[0_2px_14px_rgba(255,109,41,0.45)]">
+                      {stat.value}
+                    </div>
+                    <div className="text-xs sm:text-sm font-extrabold text-white tracking-wide mb-1">
+                      {stat.label}
+                    </div>
+                    <div className="text-[11px] sm:text-xs text-white/70 font-medium leading-relaxed">
+                      {stat.sub}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -402,7 +416,7 @@ export default function CreatorPageView() {
                     </span>
                   </div>
 
-                  <div className="w-12 h-12 rounded-2xl bg-surface-container border border-border-specular text-white flex items-center justify-center mb-5">
+                  <div className="w-12 h-12 rounded-2xl bg-surface-container text-white flex items-center justify-center mb-5">
                     <span className="material-symbols-outlined text-2xl text-primary">
                       {step.icon}
                     </span>
@@ -416,7 +430,7 @@ export default function CreatorPageView() {
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-border-specular/60 flex items-center justify-between">
+                <div className="pt-2 flex items-center justify-between">
                   <span className="text-xs text-text-muted font-medium">Stage {step.stepNumber} of 5</span>
                   <div className="w-7 h-7 rounded-full bg-primary-container/25 text-primary text-xs font-extrabold flex items-center justify-center">
                     {step.stepNumber}
@@ -451,21 +465,25 @@ export default function CreatorPageView() {
                 className="rounded-3xl bg-surface-deep/80 border border-border-specular hover:border-border-amber backdrop-blur-xl p-7 sm:p-8 transition-all duration-300 flex flex-col justify-between"
               >
                 <div>
-                  {/* Creator Header with Avatar Initials */}
+                  {/* Creator Header with Avatar Profile Photo */}
                   <div className="flex items-center gap-3.5 mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#141014] to-[#ff6d29] border border-border-amber text-white font-extrabold flex items-center justify-center text-base shadow-[0_0_20px_rgba(255,109,41,0.4)]">
-                      {item.initials}
+                    <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-[#FF7A33]/70 shadow-[0_0_16px_rgba(255,109,41,0.35)] shrink-0 bg-[#161118]">
+                      <img
+                        src={item.avatar || `/creators/dp-${idx + 1}.jpg`}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <div>
                       <div className="flex items-center gap-1.5">
                         <span className="text-base sm:text-lg font-bold text-white">
                           {item.name}
                         </span>
-                        <span className="material-symbols-outlined text-sm text-primary">
+                        <span className="material-symbols-outlined text-sm text-[#FF7A33]">
                           verified
                         </span>
                       </div>
-                      <div className="text-xs text-text-muted">
+                      <div className="text-xs text-white/60">
                         {item.joined}
                       </div>
                     </div>
@@ -491,7 +509,7 @@ export default function CreatorPageView() {
         </section>
 
         {/* ==========================================================================
-            6. READY TO START? (Interactive Creator Waiting List Form)
+            6. READY TO START? (Interactive Creator Application Form)
             ========================================================================== */}
         <section id="apply" className="py-16 md:py-24 px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28">
           <div className="max-w-3xl mx-auto rounded-3xl bg-surface-base/90 border border-border-amber backdrop-blur-2xl p-8 sm:p-12 shadow-[0_20px_80px_rgba(255,109,41,0.25)] relative overflow-hidden">
@@ -499,15 +517,11 @@ export default function CreatorPageView() {
             <div className="absolute top-0 right-0 w-80 h-80 bg-primary-container/15 blur-3xl rounded-full pointer-events-none" />
 
             <div className="text-center mb-10">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary-container/20 border border-border-amber text-primary text-xs uppercase font-bold tracking-wider mb-4">
-                <span className="w-2 h-2 rounded-full bg-primary rec-indicator" />
-                <span>Join Our Waiting List</span>
-              </div>
               <h2 className="text-display-sm sm:text-display-md font-display-md text-white font-extrabold mb-3">
                 Ready to Start?
               </h2>
               <p className="text-sm sm:text-base text-text-muted max-w-xl mx-auto leading-relaxed">
-                Fill out the form below to join our waiting list. Spots are limited based on region.
+                Fill out the form below to become a creator. Spots are limited based on region.
               </p>
             </div>
 

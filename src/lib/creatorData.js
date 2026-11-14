@@ -2,7 +2,7 @@
 // Turn Your iPhone Into an Income Machine
 
 export const CREATOR_HERO = {
-  badge: "Join Our Ecosystem",
+  badge: "",
   titlePart1: "Turn Your iPhone Into",
   titlePart2: "an Income Machine",
   description:
@@ -148,6 +148,7 @@ export const CREATOR_TESTIMONIALS = [
   {
     initials: "SJ",
     name: "Sujan",
+    avatar: "/creators/dp-1.jpg",
     joined: "Joined 2025",
     role: "Student Creator • Bengaluru",
     quote: "Started as a student, now making ₹25K+ every month part-time.",
@@ -157,6 +158,7 @@ export const CREATOR_TESTIMONIALS = [
   {
     initials: "AK",
     name: "Akhil",
+    avatar: "/creators/dp-2.jpg",
     joined: "Joined 2025",
     role: "Freelance Videographer • Bengaluru",
     quote:
@@ -167,6 +169,7 @@ export const CREATOR_TESTIMONIALS = [
   {
     initials: "NI",
     name: "Nithin",
+    avatar: "/creators/dp-3.jpg",
     joined: "Joined 2025",
     role: "Event Specialist • Bengaluru",
     quote:
