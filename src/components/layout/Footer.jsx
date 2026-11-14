@@ -82,11 +82,11 @@ export default function Footer() {
 
       {/* Large Subtle Watermark Background Signature */}
       <div
-        className="w-full overflow-hidden flex justify-center items-center pointer-events-none select-none -mb-6 sm:-mb-10 md:-mb-14 pt-2 relative z-0"
+        className="w-full overflow-hidden flex justify-center items-center pointer-events-none select-none pb-2 sm:pb-3 md:pb-4 -mb-1 sm:-mb-3 md:-mb-6 pt-4 relative z-0"
         aria-hidden="true"
       >
-        <span className="text-[14vw] font-black tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-b from-white/[0.06] via-white/[0.02] to-transparent whitespace-nowrap">
-          reelXpress
+        <span className="text-[17vw] sm:text-[15vw] md:text-[13vw] font-black tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-b from-white/[0.16] via-white/[0.07] to-transparent whitespace-nowrap">
+          reel<span className="bg-gradient-to-b from-[#FFA033]/35 via-[#FF7A33]/15 to-transparent bg-clip-text text-transparent">X</span>press
         </span>
       </div>
     </footer>
