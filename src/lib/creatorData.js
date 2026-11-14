@@ -3,8 +3,8 @@
 
 export const CREATOR_HERO = {
   badge: "",
-  titlePart1: "Turn Your iPhone Into",
-  titlePart2: "an Income Machine",
+  titlePart1: "Turn Your iPhone Into an",
+  titlePart2: "Income Machine",
   description:
     "ReelXpress connects talented iPhone creators with brands who need high-velocity, production-grade footage. No editing needed. Just shoot, upload, and get paid.",
   ctaPrimary: "Start Earning Today",
