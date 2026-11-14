@@ -179,10 +179,6 @@ export default function ContactPageView() {
 
         {/* Section Heading */}
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#161318] border border-border-amber text-primary text-xs font-bold uppercase tracking-widest mb-4 shadow-[0_0_15px_rgba(255,94,30,0.2)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary-container rec-indicator" />
-            <span>CONTACT REELXPRESS</span>
-          </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white mb-4">
             Let&apos;s Connect with Our <span className="text-shimmer text-primary-container">Bengaluru Team</span>
           </h1>
@@ -214,9 +210,6 @@ export default function ContactPageView() {
                     <div className="text-sm sm:text-base font-semibold text-white mt-0.5">
                       Bengaluru, Karnataka, India
                     </div>
-                    <p className="text-xs text-text-muted mt-1">
-                      Serving Indiranagar, Koramangala, Whitefield, MG Road &amp; all NCR zones.
-                    </p>
                   </div>
                 </li>
 
@@ -233,10 +226,6 @@ export default function ContactPageView() {
                     >
                       +91 9988338180
                     </a>
-                    <span className="text-[11px] text-[#22c55e] font-medium flex items-center gap-1 mt-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
-                      Live response desk active
-                    </span>
                   </div>
                 </li>
 
@@ -253,9 +242,6 @@ export default function ContactPageView() {
                     >
                       contact@reelxpress.com
                     </a>
-                    <span className="text-xs text-text-muted mt-0.5 block">
-                      Fast turnaround for brand decks &amp; queries
-                    </span>
                   </div>
                 </li>
 
@@ -269,9 +255,6 @@ export default function ContactPageView() {
                     <div className="text-sm sm:text-base font-semibold text-white mt-0.5">
                       Monday – Sunday: 8:00 AM – 10:00 PM
                     </div>
-                    <span className="text-xs text-text-muted mt-0.5 block">
-                      24/7 priority emergency crew dispatch available
-                    </span>
                   </div>
                 </li>
               </ul>

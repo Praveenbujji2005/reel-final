@@ -68,14 +68,10 @@ export default function Footer() {
 
 
         {/* Copyright Notice */}
-        <div className="pt-4 border-t border-border-specular/40 flex flex-col sm:flex-row justify-between items-center gap-4 text-body-sm font-body-sm text-text-muted">
+        <div className="pt-4 border-t border-border-specular/40 flex justify-center items-center text-center text-body-sm font-body-sm text-text-muted">
           <div>
             Copyright © 2026 by QUANTELLOVENTURES PRIVATE LIMITED. All rights reserved.
           </div>
-          <Link href="/#why-us" className="flex items-center gap-2 text-label-sm font-label-sm text-text-muted/80 hover:text-white transition-colors">
-            <img src="/brand/icon-gold.png" alt="" className="w-4 h-4 object-contain opacity-75" />
-            <span>reel<span className="brand-x-gold">X</span>press · Cinematic Quick Content Platform</span>
-          </Link>
         </div>
 
       </div>

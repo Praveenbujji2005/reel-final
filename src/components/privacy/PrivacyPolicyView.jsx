@@ -65,12 +65,6 @@ export default function PrivacyPolicyView() {
       <main className="relative z-10 flex-1">
         {/* HERO SECTION */}
         <header className="relative pt-12 md:pt-20 pb-12 px-6 md:px-margin max-w-5xl mx-auto text-center flex flex-col items-center">
-          {/* Eyebrow with Shield Lock Icon */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-glass-tinted border border-border-amber text-primary text-label-md font-label-md backdrop-blur-md mb-6 shadow-[0_0_20px_rgba(255,109,41,0.25)]">
-            <span className="material-symbols-outlined text-lg">shield_lock</span>
-            <span className="font-semibold tracking-wide">Security &amp; Privacy</span>
-          </div>
-
           <h1 className="text-display-md sm:text-display-lg md:text-display-xl font-display-xl font-extrabold tracking-tight text-text-primary mb-4">
             Privacy Policy
           </h1>
