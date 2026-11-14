@@ -5,6 +5,7 @@ import { SITE_CONFIG, SITE_URL } from '@/config/site';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Icon from '@/components/ui/Icon';
+import ShareButton from '@/components/blog/ShareButton';
 
 export function generateStaticParams() {
   return getAllBlogSlugs().map((slug) => ({ slug }));
@@ -123,17 +124,16 @@ export default async function BlogPostPage({ params }) {
 
         {/* Article Header */}
         <header className="mb-10 sm:mb-12 border-b border-white/10 pb-8 sm:pb-10">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[#F28C3C] text-xs font-bold uppercase tracking-wider">
-              {post.tag}
-            </span>
-            <time dateTime={post.publishedDate} className="text-xs text-text-muted font-medium">
-              {new Date(post.publishedDate).toLocaleDateString('en-IN', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </time>
+          <div className="flex items-center justify-between gap-4 mb-5 flex-wrap">
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[#F28C3C] text-xs font-bold uppercase tracking-wider">
+                {post.tag}
+              </span>
+              <time dateTime={post.publishedDate} className="text-xs sm:text-sm text-text-muted font-medium">
+                {post.displayDate || '21 July 2026'}
+              </time>
+            </div>
+            <ShareButton title={post.title} slug={post.slug} />
           </div>
 
           {/* Single H1 on page */}
@@ -141,10 +141,12 @@ export default async function BlogPostPage({ params }) {
             {post.title}
           </h1>
 
-          {/* Intro paragraph from verified summary */}
-          <p className="text-base sm:text-xl text-white/85 leading-relaxed font-normal">
-            {post.summary}
-          </p>
+          {/* Intro paragraph from verified editorial text */}
+          {post.intro && (
+            <p className="text-base sm:text-xl text-white/90 leading-relaxed font-normal">
+              {post.intro}
+            </p>
+          )}
         </header>
 
         {/* Key Takeaways Section */}
@@ -165,19 +167,137 @@ export default async function BlogPostPage({ params }) {
           </section>
         )}
 
-        {/* Editorial Body Content Area with Clearly Marked TODO Placeholder */}
-        <section className="prose prose-invert max-w-none space-y-6 text-text-muted text-base sm:text-lg leading-relaxed mb-14">
-          <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 border-dashed text-center">
-            <Icon name="edit" size={28} className="text-[#F28C3C] mx-auto mb-2" />
-            <h3 className="text-white font-bold text-lg mb-1">
-              Editorial Article Body Pending
-            </h3>
-            <p className="text-sm text-text-muted max-w-md mx-auto">
-              {/* TODO: Add full verified editorial article body text without inventing statistics or prices. */}
-              {post.todoNote}
-            </p>
+        {/* Full Editorial Body Content */}
+        {post.sections && post.sections.length > 0 && (
+          <div className="space-y-12 mb-16">
+            {post.sections.map((section, sIdx) => (
+              <section key={sIdx} className="scroll-mt-24">
+                {section.heading && (
+                  <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-5 leading-tight">
+                    {section.heading}
+                  </h2>
+                )}
+
+                {section.paragraphs && section.paragraphs.map((para, pIdx) => (
+                  <p
+                    key={pIdx}
+                    className="text-base sm:text-lg text-text-muted leading-relaxed font-normal mb-5 last:mb-0"
+                  >
+                    {para}
+                  </p>
+                ))}
+
+                {/* Pricing Tiers Grid for Package Breakdowns */}
+                {section.pricingTiers && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 my-8">
+                    {section.pricingTiers.map((tier, tIdx) => (
+                      <div
+                        key={tIdx}
+                        className="rounded-2xl bg-[#151217] border border-white/10 hover:border-[#F28C3C]/40 p-6 flex flex-col justify-between transition-colors shadow-lg"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between gap-3 mb-2">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[#F28C3C] px-2.5 py-0.5 rounded-full bg-[#F28C3C]/10 border border-[#F28C3C]/20">
+                              {tier.events}
+                            </span>
+                            <span className="text-2xl font-black text-white">
+                              {tier.price}
+                            </span>
+                          </div>
+                          <h3 className="text-xl font-bold text-white mb-2">{tier.name}</h3>
+                          <p className="text-sm text-text-muted leading-relaxed mb-4">
+                            {tier.description}
+                          </p>
+                        </div>
+                        {tier.highlights && (
+                          <ul className="space-y-1.5 pt-4 border-t border-white/5 text-xs text-white/80">
+                            {tier.highlights.map((h, hIdx) => (
+                              <li key={hIdx} className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#F28C3C]" />
+                                <span>{h}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Bullet Points with Label & Text */}
+                {section.bullets && (
+                  <ul className="space-y-3.5 my-6 p-6 rounded-2xl bg-[#151217] border border-white/10">
+                    {section.bullets.map((b, bIdx) => (
+                      <li key={bIdx} className="flex items-start gap-3 text-base text-text-muted leading-relaxed">
+                        <Icon name="check_circle" size={18} className="text-[#F28C3C] shrink-0 mt-1" />
+                        <div>
+                          <strong className="text-white font-semibold mr-1.5">{b.label}</strong>
+                          <span>{b.text}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {/* 10 Numbered Trends Display */}
+                {section.numberedTrends && (
+                  <div className="space-y-5 my-8">
+                    {section.numberedTrends.map((trend, trIdx) => (
+                      <div
+                        key={trIdx}
+                        className="p-6 sm:p-7 rounded-2xl bg-[#151217] border border-white/10 hover:border-white/20 transition-all shadow-md"
+                      >
+                        <div className="flex items-start gap-4">
+                          <span className="px-3 py-1 rounded-xl bg-gradient-to-br from-[#F28C3C]/20 to-transparent border border-[#F28C3C]/30 text-[#F28C3C] text-sm font-black shrink-0">
+                            {trend.number}
+                          </span>
+                          <div>
+                            <h3 className="text-lg sm:text-xl font-bold text-white mb-2 leading-snug">
+                              {trend.title}
+                            </h3>
+                            <p className="text-sm sm:text-base text-text-muted leading-relaxed font-normal">
+                              {trend.text}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {section.extraParagraphs && section.extraParagraphs.map((para, epIdx) => (
+                  <p
+                    key={epIdx}
+                    className="text-base sm:text-lg text-text-muted leading-relaxed font-normal my-5"
+                  >
+                    {para}
+                  </p>
+                ))}
+
+                {/* Section Footer Callout with Quick Navigation Links */}
+                {section.footerCta && (
+                  <div className="p-6 rounded-2xl bg-[#1E1B1F] border border-[#F28C3C]/30 my-8">
+                    <p className="text-sm sm:text-base text-white/90 leading-relaxed mb-4">
+                      {section.footerCta.text}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-3">
+                      {section.footerCta.links.map((link, lIdx) => (
+                        <Link
+                          key={lIdx}
+                          href={link.href}
+                          className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-[#F28C3C] hover:text-white text-xs font-bold transition-colors"
+                        >
+                          <span>{link.label}</span>
+                          <Icon name="arrow_forward" size={14} />
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </section>
+            ))}
           </div>
-        </section>
+        )}
 
         {/* Primary CTA to Book */}
         <section className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-[#1E1B1F] to-[#151215] border border-white/15 text-center shadow-2xl relative overflow-hidden">

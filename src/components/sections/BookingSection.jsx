@@ -184,10 +184,6 @@ export default function BookingSection({ onBookingSuccess }) {
           
           {/* LEFT COLUMN: Contact Details & Express Network Info */}
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-container/20 border border-border-amber text-primary text-label-sm font-label-sm uppercase tracking-widest mb-4">
-              <span className="w-2 h-2 rounded-full bg-primary rec-indicator" />
-              <span>JOIN THE EXPRESS NETWORK</span>
-            </div>
             <h2 className="text-2xl sm:text-3xl md:text-headline-lg font-headline-lg text-text-primary mb-4 leading-tight">
               The fastest creative community for modern creators.
             </h2>
@@ -222,6 +218,18 @@ export default function BookingSection({ onBookingSuccess }) {
                   <span className="material-symbols-outlined">pin_drop</span>
                 </div>
                 <span>Bengaluru, Karnataka</span>
+              </div>
+
+              {/* Become a Creator CTA Button */}
+              <div className="pt-2">
+                <Link
+                  href="/creators"
+                  className="btn-glass-creator inline-flex items-center gap-2.5 px-6 py-3 rounded-full text-sm font-bold tracking-wide transition-all group"
+                >
+                  <span className="material-symbols-outlined text-lg text-primary">videocam</span>
+                  <span>Become a Creator</span>
+                  <span className="material-symbols-outlined text-base transition-transform group-hover:translate-x-1">arrow_forward</span>
+                </Link>
               </div>
             </div>
           </div>
