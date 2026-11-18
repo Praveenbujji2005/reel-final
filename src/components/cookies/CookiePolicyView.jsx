@@ -74,7 +74,7 @@ export default function CookiePolicyView() {
 
           <p className="text-body-lg sm:text-headline-sm text-text-muted max-w-2xl mx-auto leading-relaxed mb-6">
             This Cookie Policy explains how{' '}
-            <strong className="text-text-primary font-semibold">QUANTELLOVENTURES PRIVATE LIMITED</strong> uses cookies and similar tracking technologies to enhance your experience on our Platform.
+            <strong className="text-text-primary font-semibold">ReelXpress</strong> uses cookies and similar tracking technologies to enhance your experience on our Platform.
           </p>
 
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-surface-container border border-border-specular text-text-muted text-label-sm font-label-sm">

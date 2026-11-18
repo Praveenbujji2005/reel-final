@@ -219,18 +219,6 @@ export default function BookingSection({ onBookingSuccess }) {
                 </div>
                 <span>Bengaluru, Karnataka</span>
               </div>
-
-              {/* Become a Creator CTA Button */}
-              <div className="pt-2">
-                <Link
-                  href="/creators"
-                  className="btn-glass-creator inline-flex items-center gap-2.5 px-6 py-3 rounded-full text-sm font-bold tracking-wide transition-all group"
-                >
-                  <span className="material-symbols-outlined text-lg text-primary">videocam</span>
-                  <span>Become a Creator</span>
-                  <span className="material-symbols-outlined text-base transition-transform group-hover:translate-x-1">arrow_forward</span>
-                </Link>
-              </div>
             </div>
           </div>
 

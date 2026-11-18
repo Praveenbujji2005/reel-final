@@ -88,17 +88,17 @@ function MobileStatItem({ value, label, hasStar = false }) {
 
   return (
     <div ref={itemRef} className="flex flex-col items-center">
-      <div className="flex items-center justify-center gap-1.5 leading-none">
-        <span className="text-[28px] xs:text-[32px] sm:text-[36px] font-black tracking-tight text-white leading-none tabular-nums">
+      <div className="flex items-center justify-center gap-1 leading-none">
+        <span className="text-[20px] xs:text-[23px] sm:text-[28px] font-black tracking-tight text-white leading-none tabular-nums">
           {displayValue}
         </span>
         {hasStar && (
-          <span className="text-[#FF7A33] text-[24px] xs:text-[26px] leading-none drop-shadow-[0_0_10px_rgba(255,122,51,0.65)] select-none">
+          <span className="text-[#FF7A33] text-[17px] xs:text-[19px] sm:text-[22px] leading-none drop-shadow-[0_0_10px_rgba(255,122,51,0.65)] select-none">
             ★
           </span>
         )}
       </div>
-      <span className="text-white/70 text-[12px] sm:text-[14px] mt-2 font-medium tracking-wide">
+      <span className="text-white/70 text-[11px] xs:text-[12px] sm:text-[13px] mt-1.5 font-medium tracking-tight text-center leading-tight">
         {label}
       </span>
     </div>
@@ -115,7 +115,7 @@ function MobileStatItem({ value, label, hasStar = false }) {
  *     1. Trust Chips (1 on first row, 2 per row) with glassmorphism
  *     2. Centered Book Now CTA button (Vibrant Luxury Orange)
  *     3. Service Tiles (All Event Shoot, Wedding Shoot, Vehicle Shoot with glassmorphism)
- *     4. Balanced 2-column Stats Row (45,000+ Reels, 4.8★ Average Rating, NO 200+ Creators)
+ *     4. 3-column Stats Row (10,000+ Reels, 12,000+ Booking Done, 4.8★ Rating)
  *     5. Animated subtle orange line beneath statistics
  *     6. 90px bottom padding to prevent WhatsApp widget overlap
  * - Key creative showcase ("THE REAL WORK") interactive 3D video portfolio carousel
@@ -190,14 +190,15 @@ export default function Hero({ onShowToast }) {
         </a>
       </div>
 
-      {/* Desktop StatCards (Balanced 2-Column Layout, No 200+ Creators) */}
-      <div className="hidden md:block reveal-on-scroll hero-animate-5 relative z-30 w-full max-w-2xl mx-auto mb-14 px-4">
-        <div className="grid grid-cols-2 gap-6">
-          <StatCard value="45,000+" label="Reels delivered" />
+      {/* Desktop StatCards (3-Column Layout: 10,000+ Reels, 12,000+ Booking Done, 4.8★ Rating) */}
+      <div className="hidden md:block reveal-on-scroll hero-animate-5 relative z-30 w-full max-w-3xl mx-auto mb-14 px-4">
+        <div className="grid grid-cols-3 gap-6">
+          <StatCard value="10,000+" label="Reels delivered" />
+          <StatCard value="12,000+" label="Booking Done" />
           <StatCard value="4.8" label="Average Rating" hasStar={true} />
         </div>
         {/* Animated subtle orange line from left to right beneath the statistics */}
-        <div className="relative w-56 mx-auto mt-6 h-[2px] overflow-hidden rounded-full bg-white/5">
+        <div className="relative w-64 mx-auto mt-6 h-[2px] overflow-hidden rounded-full bg-white/5">
           <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-[#FF7A33] to-transparent animate-stat-line-sweep" />
         </div>
       </div>
@@ -207,7 +208,7 @@ export default function Hero({ onShowToast }) {
           - 1. Trust Chips (Semi-transparent glass, subtle borders, bright orange icons)
           - 2. Centered Book Now CTA Button (Vibrant Luxury Orange)
           - 3. Service Tiles (All Event Shoot, Wedding Shoot, Vehicle Shoot with glassmorphism)
-          - 4. Balanced 2-Column Stats Row (45,000+, 4.8★, Animated Counter, NO 200+ Creators)
+          - 4. 3-Column Stats Row (10,000+ Reels, 12,000+ Booking Done, 4.8★ Rating)
           - 5. Animated subtle orange line beneath statistics
           - 90px bottom padding to prevent WhatsApp widget overlap
          ========================================================================= */}
@@ -234,7 +235,7 @@ export default function Hero({ onShowToast }) {
           <div className="flex items-center justify-center gap-2.5 w-full">
             <div className="inline-flex items-center gap-2 bg-[#161218]/70 backdrop-blur-md border border-white/10 rounded-full py-2.5 px-3.5 text-[13px] sm:text-[14px] font-medium text-white shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
               <Icon name="military_tech" size={17} className="text-[#FF7A33]" />
-              <span>5,000+ Bookings Done</span>
+              <span>12,000+ Bookings Done</span>
             </div>
             <div className="inline-flex items-center gap-2 bg-[#161218]/70 backdrop-blur-md border border-white/10 rounded-full py-2.5 px-3.5 text-[13px] sm:text-[14px] font-medium text-white shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
               <Icon name="bolt" size={17} className="text-[#FF7A33]" />
@@ -309,18 +310,21 @@ export default function Hero({ onShowToast }) {
           </Link>
         </div>
 
-        {/* 4. STATS ROW (Balanced 2-Column Layout, Animated Number Counters, NO 200+ Creators) */}
+        {/* 4. STATS ROW (3-Column Layout: 10,000+ Reels, 12,000+ Booking Done, 4.8★ Rating) */}
         <div className="hero-animate-7 w-full border-t border-white/10 pt-8 mt-2">
-          <div className="grid grid-cols-2 gap-4 text-center max-w-sm mx-auto">
-            {/* Column 1: 45,000+ / Reels Delivered */}
-            <MobileStatItem value="45,000+" label="Reels Delivered" />
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center max-w-md mx-auto">
+            {/* Column 1: 10,000+ / Reels Delivered */}
+            <MobileStatItem value="10,000+" label="Reels Delivered" />
 
-            {/* Column 2: 4.8★ Average Rating */}
+            {/* Column 2: 12,000+ / Booking Done */}
+            <MobileStatItem value="12,000+" label="Booking Done" />
+
+            {/* Column 3: 4.8★ Average Rating */}
             <MobileStatItem value="4.8" label="Average Rating" hasStar={true} />
           </div>
 
           {/* 5. Animated subtle orange gradient line beneath the statistics */}
-          <div className="relative w-44 mx-auto mt-6 h-[2px] overflow-hidden rounded-full bg-white/5">
+          <div className="relative w-48 mx-auto mt-6 h-[2px] overflow-hidden rounded-full bg-white/5">
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-[#FF7A33] to-transparent animate-stat-line-sweep" />
           </div>
         </div>

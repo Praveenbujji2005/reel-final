@@ -38,8 +38,8 @@ export default function WhyUsSection() {
           <span>THE ADVANTAGE</span>
         </div>
 
-        <h2 className="text-3xl sm:text-4xl md:text-headline-lg font-headline-lg font-extrabold text-text-primary tracking-tight">
-          <span>Why </span>
+        <h2 className="text-3xl sm:text-4xl md:text-headline-lg font-headline-lg font-extrabold text-text-primary tracking-tight flex items-center justify-center gap-2.5 sm:gap-3.5 flex-wrap">
+          <span>Why</span>
           <span className="inline-flex items-center align-middle whitespace-nowrap">
             <ReelXpressWordmark className="inline-block h-[0.92em] sm:h-[1.0em] w-auto align-middle drop-shadow-[0_0_14px_rgba(255,94,30,0.4)]" />
             <span>?</span>

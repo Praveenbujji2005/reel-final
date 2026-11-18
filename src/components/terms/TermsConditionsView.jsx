@@ -77,7 +77,7 @@ export default function TermsConditionsView() {
 
           <p className="text-body-lg sm:text-headline-sm text-text-muted max-w-2xl mx-auto leading-relaxed mb-6">
             These Terms and Conditions constitute a legally binding agreement between{' '}
-            <strong className="text-text-primary font-semibold">QUANTELLOVENTURES PRIVATE LIMITED</strong> and the user.
+            <strong className="text-text-primary font-semibold">ReelXpress</strong> and the user.
           </p>
 
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-surface-container border border-border-specular text-text-muted text-label-sm font-label-sm">
@@ -102,7 +102,7 @@ export default function TermsConditionsView() {
               </div>
               <p className="text-body-md text-text-muted leading-relaxed pl-0 sm:pl-13">
                 These Terms and Conditions (&ldquo;Terms&rdquo;) constitute a legally binding agreement between{' '}
-                <strong className="text-text-primary">QUANTELLOVENTURES PRIVATE LIMITED</strong>, a company incorporated under the Companies Act, 2013, having its registered office at #67 Jyothi Nivas College Road, 5th Block, Industrial Area, Koramangala, Bengaluru, Karnataka – 560095 (&ldquo;Company&rdquo;, &ldquo;We&rdquo;, &ldquo;Us&rdquo;, &ldquo;Our&rdquo;) and the user (&ldquo;You&rdquo;, &ldquo;User&rdquo;).
+                <strong className="text-text-primary">ReelXpress</strong>, a company incorporated under the Companies Act, 2013, having its registered office at #67 Jyothi Nivas College Road, 5th Block, Industrial Area, Koramangala, Bengaluru, Karnataka – 560095 (&ldquo;Company&rdquo;, &ldquo;We&rdquo;, &ldquo;Us&rdquo;, &ldquo;Our&rdquo;) and the user (&ldquo;You&rdquo;, &ldquo;User&rdquo;).
               </p>
               <p className="text-body-md text-text-muted leading-relaxed pl-0 sm:pl-13">
                 These Terms govern access to and use of the Company&apos;s website, mobile application, and services (collectively, the &ldquo;Platform&rdquo;).

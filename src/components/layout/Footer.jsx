@@ -116,7 +116,7 @@ export default function Footer() {
         {/* Copyright Notice */}
         <div className="pt-4 border-t border-border-specular/40 flex justify-center items-center text-center text-body-sm font-body-sm text-text-muted">
           <div>
-            Copyright © 2026 by QUANTELLOVENTURES PRIVATE LIMITED. All rights reserved.
+            Copyright © 2026 by ReelXpress. All rights reserved.
           </div>
         </div>
 

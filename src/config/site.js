@@ -10,7 +10,7 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.reelxpr
 
 export const SITE_CONFIG = {
   name: 'reelXpress',
-  legalName: 'QUANTELLOVENTURES PRIVATE LIMITED',
+  legalName: 'ReelXpress',
   // TODO: [Confirm 'First' claim if provable] Provable tagline used across SEO & branding
   tagline: 'Quick Reel Service in Bengaluru',
   description:

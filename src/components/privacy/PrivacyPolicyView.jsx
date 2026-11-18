@@ -70,7 +70,7 @@ export default function PrivacyPolicyView() {
           </h1>
 
           <p className="text-body-lg sm:text-headline-sm text-text-muted max-w-2xl mx-auto leading-relaxed mb-6">
-            <strong className="text-text-primary font-semibold">QUANTELLOVENTURES PRIVATE LIMITED</strong> is committed to protecting your data and privacy.
+            <strong className="text-text-primary font-semibold">ReelXpress</strong> is committed to protecting your data and privacy.
           </p>
 
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-surface-container border border-border-specular text-text-muted text-label-sm font-label-sm">
@@ -94,7 +94,7 @@ export default function PrivacyPolicyView() {
                 </h2>
               </div>
               <p className="text-body-md text-text-muted leading-relaxed pl-0 sm:pl-13">
-                This Privacy Policy explains how <strong className="text-text-primary">QUANTELLOVENTURES PRIVATE LIMITED</strong>, a company incorporated under the Companies Act, 2013, having its registered office at #67 Jyothi Nivas College Road, 5th Block, Industrial Area, Koramangala, Bengaluru, Karnataka – 560095 (“Company”, “we”, “us”, “our”), collects, uses, processes, stores, transfers, and discloses information relating to users (“you”, “your”, “user”) who access or use our website, mobile application, or services (collectively, the “Platform”).
+                This Privacy Policy explains how <strong className="text-text-primary">ReelXpress</strong> (“Company”, “we”, “us”, “our”), collects, uses, processes, stores, transfers, and discloses information relating to users (“you”, “your”, “user”) who access or use our website, mobile application, or services (collectively, the “Platform”).
               </p>
               <p className="text-body-md text-text-muted leading-relaxed pl-0 sm:pl-13">
                 This Policy applies to all interactions with the Platform, whether online or offline, and forms an integral part of the Company’s Terms and Conditions.

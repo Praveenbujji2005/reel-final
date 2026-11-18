@@ -119,8 +119,8 @@ export default function ReelXpressPageView() {
            ========================================================================= */}
         <section className="reveal-on-scroll relative z-20 w-full max-w-4xl mx-auto mb-20 px-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-            <StatCard value="45,000+" label="Reels delivered" />
-            <StatCard value="5,000+" label="Bookings done" />
+            <StatCard value="10,000+" label="Reels delivered" />
+            <StatCard value="12,000+" label="Booking Done" />
             <StatCard value="4.8" label="Average Rating" hasStar={true} />
           </div>
         </section>

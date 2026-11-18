@@ -1,16 +1,16 @@
 import TermsConditionsView from '@/components/terms/TermsConditionsView';
 
 export const metadata = {
-  title: 'Terms & Conditions | reelXpress - QUANTELLOVENTURES PRIVATE LIMITED',
+  title: 'Terms & Conditions | ReelXpress',
   description:
-    'Terms and Conditions governing access to and use of reelXpress platform, booking services, and intellectual property by QUANTELLOVENTURES PRIVATE LIMITED.',
+    'Terms and Conditions governing access to and use of reelXpress platform, booking services, and intellectual property by ReelXpress.',
   alternates: {
     canonical: '/terms',
   },
   openGraph: {
-    title: 'Terms & Conditions | reelXpress',
+    title: 'Terms & Conditions | ReelXpress',
     description:
-      'Legally binding terms agreement between QUANTELLOVENTURES PRIVATE LIMITED and the user.',
+      'Legally binding terms agreement between ReelXpress and the user.',
     url: '/terms',
   },
 };

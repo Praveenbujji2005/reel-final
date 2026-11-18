@@ -5,7 +5,7 @@ import { FAQ_DATA } from '@/lib/data';
  * Structured Data (JSON-LD) Component
  *
  * Provides Google Rich Snippets for:
- * 1. Organization (reelXpress / QUANTELLOVENTURES PRIVATE LIMITED)
+ * 1. Organization (ReelXpress)
  * 2. LocalBusiness / ProfessionalService (Bengaluru)
  * 3. FAQPage (All verified FAQs)
  * 4. Service / Offer catalog (Instant, Business & Wedding Packages)
