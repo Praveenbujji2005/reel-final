@@ -78,8 +78,8 @@ export default function HomePage() {
         <HeroSection
           onShowToast={showToast}
         />
-        <WhyUsSection />
         <PricingSection />
+        <WhyUsSection />
         <BrandTicker />
         <TestimonialsSection />
         <BlogSection />

@@ -48,7 +48,7 @@ export const INITIAL_TESTIMONIALS = [
     review:
       'Booked them just a day before the wedding. They showed up with iPhones and edited the video before the baraat ended. Unreal.',
     rating: 5,
-    avatar: '/brand/icon-gold.png',
+    avatar: '/creators/dp-1.jpg',
     enabled: true,
     order: 1,
   },
@@ -61,7 +61,7 @@ export const INITIAL_TESTIMONIALS = [
     review:
       'We used reelXpress for our store launch - got high-quality reels before the event wrapped up. Perfect for social!',
     rating: 5,
-    avatar: '/brand/icon-gold.png',
+    avatar: '/creators/dp-2.jpg',
     enabled: true,
     order: 2,
   },
@@ -74,7 +74,7 @@ export const INITIAL_TESTIMONIALS = [
     review:
       'As a new business, getting professional-looking content quickly helped us gain traction online. reelXpress is now our go-to team.',
     rating: 5,
-    avatar: '/brand/icon-gold.png',
+    avatar: '/creators/dp-3.jpg',
     enabled: true,
     order: 3,
   },
@@ -87,7 +87,7 @@ export const INITIAL_TESTIMONIALS = [
     review:
       'reelXpress has changed the way we capture events for our clients. No delays, no chasing, just pure magic delivered instantly.',
     rating: 5,
-    avatar: '/brand/icon-gold.png',
+    avatar: '/creators/dp-4.jpg',
     enabled: true,
     order: 4,
   },
@@ -100,7 +100,7 @@ export const INITIAL_TESTIMONIALS = [
     review:
       "I didn't have to do anything except show up. They shot, added trending music, and gave me perfect reels within the hour.",
     rating: 5,
-    avatar: '/brand/icon-gold.png',
+    avatar: '/creators/dp-5.jpg',
     enabled: true,
     order: 5,
   },
@@ -113,7 +113,7 @@ export const INITIAL_TESTIMONIALS = [
     review:
       'I was literally watching our wedding reel before the reception dinner even started. These guys are insanely fast and so good!',
     rating: 5,
-    avatar: '/brand/icon-gold.png',
+    avatar: '/creators/dp-1.jpg',
     enabled: true,
     order: 6,
   },

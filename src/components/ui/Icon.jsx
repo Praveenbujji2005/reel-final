@@ -111,6 +111,8 @@ const ICON_MAP = {
   error_outline: AlertCircle,
   schedule: Clock,
   celebration: Sparkles,
+  sparkles: Sparkles,
+  event: Calendar,
   search: Search,
   settings: Settings,
   tune: Sliders,

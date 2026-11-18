@@ -17,7 +17,7 @@ const STAR_PATH =
  * - Name in bold, role in smaller accent-colored text beneath
  * - Subtle hover lift & amber glow
  */
-export default function TestimonialCard({ name, role, quote, review, rating = 5 }) {
+export default function TestimonialCard({ name, role, quote, review, rating = 5, avatar }) {
   const displayText = (quote || review || '').trim();
 
   return (
@@ -48,14 +48,39 @@ export default function TestimonialCard({ name, role, quote, review, rating = 5 
         </p>
       </div>
 
-      {/* Author Details: Name in bold, Role in smaller accent color */}
-      <div className="pt-3.5 sm:pt-4 border-t border-border-specular/40 flex items-center justify-between gap-2.5 sm:gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="text-text-primary font-bold text-xs sm:text-sm md:text-base leading-snug truncate">
-            {name}
+      {/* Author Details: Avatar + Name & Role + Quote Pill */}
+      <div className="pt-3.5 sm:pt-4 border-t border-border-specular/40 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {/* Circular Profile Picture with Luxury Orange Ring */}
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden shrink-0 border border-[#FF7A33]/45 bg-[#1b151e] shadow-[0_0_12px_rgba(255,122,51,0.22)] flex items-center justify-center relative">
+            {avatar ? (
+              <img
+                src={avatar}
+                alt={name || 'Client avatar'}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const fallback = e.currentTarget.parentElement?.querySelector('.avatar-fallback');
+                  if (fallback) fallback.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <span
+              className={`avatar-fallback ${
+                avatar ? 'hidden' : 'flex'
+              } w-full h-full items-center justify-center font-bold text-xs sm:text-sm text-[#FF7A33] bg-gradient-to-br from-[#2a1d26] to-[#161218]`}
+            >
+              {name ? name.charAt(0).toUpperCase() : 'R'}
+            </span>
           </div>
-          <div className="text-primary text-[11px] sm:text-xs md:text-sm font-medium leading-snug mt-0.5 truncate">
-            {role}
+
+          <div className="min-w-0 flex-1">
+            <div className="text-text-primary font-bold text-xs sm:text-sm md:text-base leading-snug truncate">
+              {name}
+            </div>
+            <div className="text-primary text-[11px] sm:text-xs md:text-sm font-medium leading-snug mt-0.5 truncate">
+              {role}
+            </div>
           </div>
         </div>
 

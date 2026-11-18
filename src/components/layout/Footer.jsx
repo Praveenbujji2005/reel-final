@@ -18,8 +18,8 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Navigation & Legal Links Columns (side-by-side on all screens) */}
-          <div className="grid grid-cols-2 gap-6 sm:gap-14 w-full sm:w-auto">
+          {/* Navigation, Career & Legal Links Columns */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 sm:gap-10 md:gap-14 w-full sm:w-auto">
             {/* Navigation Column */}
             <div>
               <div className="text-label-sm font-bold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-1.5">
@@ -42,8 +42,54 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Connect / Legal Links Column */}
+            {/* Career Column */}
             <div>
+              <div className="text-label-sm font-bold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary-container" />
+                <Link
+                  href="/become-a-creator"
+                  className="hover:text-primary transition-colors inline-flex items-center gap-1"
+                >
+                  <span>Career</span>
+                </Link>
+              </div>
+              <div className="flex flex-col gap-2.5 text-body-sm mb-6 sm:mb-0">
+                <Link
+                  href="/become-a-creator"
+                  className="text-text-muted hover:text-primary transition-colors flex items-center gap-1 group py-0.5"
+                >
+                  <span className="material-symbols-outlined text-xs text-text-muted/40 group-hover:text-primary transition-colors">
+                    chevron_right
+                  </span>
+                  <span>Become a Creator</span>
+                </Link>
+              </div>
+
+              {/* On narrow screens (< 640px), show Connect & Legal stacked inside right column */}
+              <div className="block sm:hidden mt-6">
+                <div className="text-label-sm font-bold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary-container" />
+                  <span>Connect &amp; Legal</span>
+                </div>
+                <div className="flex flex-col gap-2.5 text-body-sm">
+                  {FOOTER_LEGAL_LINKS.map((link) => (
+                    <Link
+                      key={link.label}
+                      href={link.href}
+                      className="text-text-muted hover:text-primary transition-colors flex items-center gap-1 group py-0.5"
+                    >
+                      <span className="material-symbols-outlined text-xs text-text-muted/40 group-hover:text-primary transition-colors">
+                        shield
+                      </span>
+                      <span>{link.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Connect / Legal Links Column (Desktop & Tablet >= 640px) */}
+            <div className="hidden sm:block">
               <div className="text-label-sm font-bold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary-container" />
                 <span>Connect &amp; Legal</span>

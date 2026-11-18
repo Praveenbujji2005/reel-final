@@ -196,6 +196,7 @@ export default function TestimonialsSection() {
                   quote={currentMobileReview.quote || currentMobileReview.review}
                   review={currentMobileReview.review || currentMobileReview.quote}
                   rating={currentMobileReview.rating}
+                  avatar={currentMobileReview.avatar || currentMobileReview.image || `/creators/dp-${(mobileIndex % 5) + 1}.jpg`}
                 />
               </div>
             </div>
@@ -272,6 +273,7 @@ export default function TestimonialsSection() {
                       quote={item.quote || item.review}
                       review={item.review || item.quote}
                       rating={item.rating}
+                      avatar={item.avatar || item.image || `/creators/dp-${(idx % 5) + 1}.jpg`}
                     />
                   ))}
                 </div>
@@ -289,6 +291,7 @@ export default function TestimonialsSection() {
                       quote={item.quote || item.review}
                       review={item.review || item.quote}
                       rating={item.rating}
+                      avatar={item.avatar || item.image || `/creators/dp-${(idx % 5) + 1}.jpg`}
                     />
                   ))}
                 </div>
@@ -308,6 +311,7 @@ export default function TestimonialsSection() {
                       quote={item.quote || item.review}
                       review={item.review || item.quote}
                       rating={item.rating}
+                      avatar={item.avatar || item.image || `/creators/dp-${((idx + 2) % 5) + 1}.jpg`}
                     />
                   ))}
                 </div>
@@ -325,6 +329,7 @@ export default function TestimonialsSection() {
                       quote={item.quote || item.review}
                       review={item.review || item.quote}
                       rating={item.rating}
+                      avatar={item.avatar || item.image || `/creators/dp-${((idx + 2) % 5) + 1}.jpg`}
                     />
                   ))}
                 </div>

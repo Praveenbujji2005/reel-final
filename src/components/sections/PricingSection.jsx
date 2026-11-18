@@ -227,14 +227,20 @@ const WEDDING_PACKAGES = [
   },
 ];
 
-// SKELETON LOADER FOR PRICING CARDS
-function PricingCardSkeleton({ count = 4, colsClass = 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' }) {
+// SKELETON LOADER FOR PRICING CARDS (Desktop Grid + Mobile Horizontal Slide)
+function PricingCardSkeleton({ count = 4, colsClass = 'md:grid-cols-2 lg:grid-cols-4' }) {
   return (
-    <div className={`grid ${colsClass} gap-3.5 sm:gap-4 lg:gap-5 mb-14`}>
+    <div
+      className={`
+        flex md:grid overflow-x-auto md:overflow-visible gap-4 md:gap-5 mb-14
+        pb-6 md:pb-0 px-4 -mx-4 md:mx-auto md:px-0 no-scrollbar
+        ${colsClass}
+      `}
+    >
       {Array.from({ length: count }).map((_, idx) => (
         <div
           key={`pricing-skel-${idx}`}
-          className="relative rounded-[24px] sm:rounded-[28px] bg-[#110e13] p-5 sm:p-6 flex flex-col justify-between border border-white/5 min-h-[530px] ambient-skeleton shadow-lg"
+          className="w-[82vw] xs:w-[310px] md:w-auto shrink-0 md:shrink relative rounded-[24px] sm:rounded-[28px] bg-[#110e13] p-5 sm:p-6 flex flex-col justify-between border border-white/5 min-h-[530px] ambient-skeleton shadow-lg"
         >
           <div>
             <div className="w-20 h-3.5 rounded-full bg-white/10 mb-2.5 ambient-pulse" />
@@ -375,10 +381,11 @@ function ScrollRevealPricingCard({ pkg, onBooking, index = 0 }) {
   const cardRef = useRef(null);
 
   useEffect(() => {
+    // Reveal immediately on mobile or reduced-motion so horizontal sliding is instantaneous
     if (
       typeof window !== 'undefined' &&
-      window.matchMedia &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      (window.innerWidth < 768 ||
+        (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches))
     ) {
       setIsVisible(true);
       return;
@@ -408,6 +415,147 @@ function ScrollRevealPricingCard({ pkg, onBooking, index = 0 }) {
       style={{ transitionDelay: `${Math.min((index % 4) * 80, 240)}ms` }}
     >
       <PricingCard pkg={pkg} onBooking={onBooking} />
+    </div>
+  );
+}
+
+// Adaptive Pricing Layout: Desktop Multi-Column Grid + Mobile Horizontal Sliding Carousel
+function PricingGridOrSlider({
+  plans,
+  onBooking,
+  category = 'instant',
+  gridColsClass = 'md:grid-cols-2 lg:grid-cols-4',
+  maxWClass = 'max-w-md md:max-w-3xl lg:max-w-7xl',
+}) {
+  const [activeSlide, setActiveSlide] = useState(0);
+  const sliderRef = useRef(null);
+  const cardRefs = useRef([]);
+  const total = plans.length;
+
+  const scrollToSlide = (idx) => {
+    const target = cardRefs.current[idx];
+    if (target && sliderRef.current) {
+      const container = sliderRef.current;
+      const left = target.offsetLeft - (container.clientWidth - target.clientWidth) / 2;
+      container.scrollTo({ left, behavior: 'smooth' });
+      setActiveSlide(idx);
+    }
+  };
+
+  const handleScroll = () => {
+    if (!sliderRef.current) return;
+    const container = sliderRef.current;
+    const scrollLeft = container.scrollLeft;
+    const width = container.clientWidth;
+
+    let closestIdx = 0;
+    let minDistance = Infinity;
+    cardRefs.current.forEach((card, idx) => {
+      if (!card) return;
+      const cardCenter = card.offsetLeft + card.clientWidth / 2;
+      const viewCenter = scrollLeft + width / 2;
+      const dist = Math.abs(cardCenter - viewCenter);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestIdx = idx;
+      }
+    });
+    if (closestIdx !== activeSlide) {
+      setActiveSlide(closestIdx);
+    }
+  };
+
+  const nextSlide = () => {
+    const next = Math.min(total - 1, activeSlide + 1);
+    scrollToSlide(next);
+  };
+
+  const prevSlide = () => {
+    const prev = Math.max(0, activeSlide - 1);
+    scrollToSlide(prev);
+  };
+
+  return (
+    <div className="w-full mb-14">
+      {/* Sliding track on mobile (< md), standard multi-column grid on desktop (>= md) */}
+      <div
+        ref={sliderRef}
+        onScroll={handleScroll}
+        className={`
+          flex md:grid overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none
+          gap-4 md:gap-6 lg:gap-5 pb-6 md:pb-0 pt-2 md:pt-0 px-4 -mx-4 md:mx-auto md:px-0
+          no-scrollbar scroll-smooth touch-pan-x
+          ${gridColsClass}
+          ${maxWClass}
+        `}
+      >
+        {plans.map((pkg, idx) => (
+          <div
+            key={`${category}-plan-${pkg.id || idx}-${idx}`}
+            ref={(el) => (cardRefs.current[idx] = el)}
+            className="w-[82vw] xs:w-[310px] sm:w-[320px] md:w-auto shrink-0 md:shrink snap-center flex flex-col h-full"
+          >
+            <ScrollRevealPricingCard
+              pkg={pkg}
+              index={idx}
+              onBooking={onBooking}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Mobile-Only Navigation Controls: Prev, Pagination Dots, Next (< md) */}
+      {total > 1 && (
+        <div className="flex md:hidden items-center justify-between mt-3 px-2 max-w-sm mx-auto">
+          {/* Previous Arrow */}
+          <button
+            onClick={prevSlide}
+            disabled={activeSlide === 0}
+            aria-label="Previous package"
+            className={`w-9 h-9 rounded-full bg-[#161218] border border-white/15 text-white flex items-center justify-center transition-all active:scale-95 shadow-md ${
+              activeSlide === 0 ? 'opacity-35 cursor-not-allowed' : 'hover:border-[#FF7A33]/50 cursor-pointer'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          {/* Pagination Dots */}
+          <div className="flex items-center gap-1.5 py-1">
+            {plans.map((_, dotIdx) => (
+              <button
+                key={`pricing-dot-${category}-${dotIdx}`}
+                onClick={() => scrollToSlide(dotIdx)}
+                aria-label={`Go to package ${dotIdx + 1}`}
+                className="p-1 cursor-pointer touch-manipulation"
+              >
+                <span
+                  className={`block rounded-full transition-all duration-200 ${
+                    dotIdx === activeSlide
+                      ? 'w-6 h-2 bg-gradient-to-r from-[#FF7A33] to-[#FF5E1E] shadow-[0_0_8px_rgba(255,122,51,0.6)]'
+                      : 'w-2 h-2 bg-white/20 hover:bg-white/40'
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+
+          {/* Next Arrow */}
+          <button
+            onClick={nextSlide}
+            disabled={activeSlide === total - 1}
+            aria-label="Next package"
+            className={`w-9 h-9 rounded-full bg-[#161218] border border-white/15 text-white flex items-center justify-center transition-all active:scale-95 shadow-md ${
+              activeSlide === total - 1 ? 'opacity-35 cursor-not-allowed' : 'hover:border-[#FF7A33]/50 cursor-pointer'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -607,62 +755,57 @@ export default function PricingSection() {
         />
       ) : (
         <>
-          {/* ---------------- INSTANT PACKAGES (Vertical Scroll-Reveal Layout) ---------------- */}
+          {/* ---------------- INSTANT PACKAGES (Desktop Grid + Mobile Sliding Carousel) ---------------- */}
           {activeTab === 'instant' && (
             <div
               role="tabpanel"
               id="tabpanel-instant"
               aria-labelledby="tab-instant"
-              className="mb-14 fade-in-content"
+              className="fade-in-content"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-5 max-w-md md:max-w-3xl lg:max-w-7xl mx-auto">
-                {instantPlans.map((pkg, idx) => (
-                  <ScrollRevealPricingCard
-                    key={`instant-plan-${pkg.id || idx}-${idx}`}
-                    pkg={pkg}
-                    index={idx}
-                    onBooking={handleBooking}
-                  />
-                ))}
-              </div>
+              <PricingGridOrSlider
+                plans={instantPlans}
+                onBooking={handleBooking}
+                category="instant"
+                gridColsClass="md:grid-cols-2 lg:grid-cols-4"
+                maxWClass="max-w-md md:max-w-3xl lg:max-w-7xl"
+              />
             </div>
           )}
 
-          {/* ---------------- BUSINESS PACKAGES (2 Cards Centered) ---------------- */}
+          {/* ---------------- BUSINESS PACKAGES (Desktop 2-Card Grid + Mobile Sliding Carousel) ---------------- */}
           {activeTab === 'business' && (
             <div
               role="tabpanel"
               id="tabpanel-business"
               aria-labelledby="tab-business"
-              className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 max-w-md md:max-w-4xl mx-auto mb-14 fade-in-content"
+              className="fade-in-content"
             >
-              {businessPlans.map((pkg, idx) => (
-                <ScrollRevealPricingCard
-                  key={`business-plan-${pkg.id || idx}-${idx}`}
-                  pkg={pkg}
-                  index={idx}
-                  onBooking={handleBooking}
-                />
-              ))}
+              <PricingGridOrSlider
+                plans={businessPlans}
+                onBooking={handleBooking}
+                category="business"
+                gridColsClass="md:grid-cols-2"
+                maxWClass="max-w-md md:max-w-4xl"
+              />
             </div>
           )}
 
-          {/* ---------------- WEDDING PACKAGES (4 Cards) ---------------- */}
+          {/* ---------------- WEDDING PACKAGES (Desktop 4-Card Grid + Mobile Sliding Carousel) ---------------- */}
           {activeTab === 'wedding' && (
             <div
               role="tabpanel"
               id="tabpanel-wedding"
               aria-labelledby="tab-wedding"
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-5 max-w-md sm:max-w-3xl lg:max-w-7xl mx-auto mb-14 fade-in-content"
+              className="fade-in-content"
             >
-              {weddingPlans.map((pkg, idx) => (
-                <ScrollRevealPricingCard
-                  key={`wedding-plan-${pkg.id || idx}-${idx}`}
-                  pkg={pkg}
-                  index={idx}
-                  onBooking={handleBooking}
-                />
-              ))}
+              <PricingGridOrSlider
+                plans={weddingPlans}
+                onBooking={handleBooking}
+                category="wedding"
+                gridColsClass="md:grid-cols-2 lg:grid-cols-4"
+                maxWClass="max-w-md md:max-w-3xl lg:max-w-7xl"
+              />
             </div>
           )}
         </>

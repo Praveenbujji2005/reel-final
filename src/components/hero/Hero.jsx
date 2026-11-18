@@ -113,8 +113,8 @@ function MobileStatItem({ value, label, hasStar = false }) {
  * - Desktop (>= 768px): Side-by-side primary CTAs & balanced 2-column StatCards row
  * - Mobile (< 768px): Redesigned mobile hero bottom section:
  *     1. Trust Chips (1 on first row, 2 per row) with glassmorphism
- *     2. Centered CTA buttons (Vibrant Book Now + Crystal-Clear Glass Become a Creator)
- *     3. Service Tiles (3 in a row with glassmorphic backdrop and bright icons)
+ *     2. Centered Book Now CTA button (Vibrant Luxury Orange)
+ *     3. Service Tiles (All Event Shoot, Wedding Shoot, Vehicle Shoot with glassmorphism)
  *     4. Balanced 2-column Stats Row (45,000+ Reels, 4.8★ Average Rating, NO 200+ Creators)
  *     5. Animated subtle orange line beneath statistics
  *     6. 90px bottom padding to prevent WhatsApp widget overlap
@@ -175,29 +175,19 @@ export default function Hero({ onShowToast }) {
       </p>
 
       {/* =========================================================================
-          DESKTOP ONLY (>= 768px): SIDE-BY-SIDE CTAs & 2-CARD STATS ROW
+          DESKTOP ONLY (>= 768px): CENTERED CTA & 2-CARD STATS ROW
          ========================================================================= */}
       <div className="hidden md:flex reveal-on-scroll hero-animate-4 relative z-30 w-full max-w-xl mx-auto flex-row items-center justify-center gap-6 mb-10 px-4">
         {/* Book Now Button: Vibrant Luxury Gradient */}
         <a
           href="#booking"
           onClick={handleBookNow}
-          className="btn-orange-lux btn-shine-sweep group w-auto inline-flex items-center justify-center gap-2.5 px-10 py-4.5 rounded-full font-black text-base tracking-wider uppercase cursor-pointer select-none touch-manipulation min-h-[52px]"
+          className="btn-orange-lux btn-shine-sweep group w-auto inline-flex items-center justify-center gap-2.5 px-12 py-4.5 rounded-full font-black text-base tracking-wider uppercase cursor-pointer select-none touch-manipulation min-h-[52px]"
           aria-label="Book reelXpress Now"
         >
           <span className="text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">BOOK NOW</span>
           <Icon name="arrow_forward" size={20} className="text-white transition-transform duration-200 group-hover:translate-x-1" />
         </a>
-
-        {/* Become a Creator Button: Crystal-Clear Glassmorphism */}
-        <Link
-          href="/creators"
-          className="btn-glass-creator group w-auto inline-flex items-center justify-center gap-2.5 px-10 py-4.5 rounded-full font-black text-base tracking-wider uppercase cursor-pointer select-none touch-manipulation min-h-[52px]"
-          aria-label="Become a Creator"
-        >
-          <span className="text-[#FF7A33]">BECOME A CREATOR</span>
-          <Icon name="north_east" size={20} className="text-[#FF7A33] transition-transform duration-200 group-hover:translate-x-1 group-hover:-translate-y-0.5" />
-        </Link>
       </div>
 
       {/* Desktop StatCards (Balanced 2-Column Layout, No 200+ Creators) */}
@@ -215,8 +205,8 @@ export default function Hero({ onShowToast }) {
       {/* =========================================================================
           MOBILE ONLY (< 768px): REDESIGNED HERO BOTTOM SECTION
           - 1. Trust Chips (Semi-transparent glass, subtle borders, bright orange icons)
-          - 2. Centered CTA Buttons (Vibrant Book Now + Crystal-Clear Glass Become a Creator)
-          - 3. Service Tiles (Quick Shoot, Wedding Shoot, Vehicle Shoot with glassmorphism)
+          - 2. Centered Book Now CTA Button (Vibrant Luxury Orange)
+          - 3. Service Tiles (All Event Shoot, Wedding Shoot, Vehicle Shoot with glassmorphism)
           - 4. Balanced 2-Column Stats Row (45,000+, 4.8★, Animated Counter, NO 200+ Creators)
           - 5. Animated subtle orange line beneath statistics
           - 90px bottom padding to prevent WhatsApp widget overlap
@@ -264,8 +254,8 @@ export default function Hero({ onShowToast }) {
           </div>
         </div>
 
-        {/* 2. CTA BUTTONS (centered, ~72-76% screen width, 14px gap) */}
-        <div className="hero-animate-5 flex flex-col items-center gap-[14px] w-[74%] max-w-[310px] mb-8">
+        {/* 2. CTA BUTTON (centered, ~72-76% screen width) */}
+        <div className="hero-animate-5 flex flex-col items-center w-[74%] max-w-[310px] mb-8">
           {/* BOOK NOW: Vibrant luxury orange gradient, radius 20px, height 60px, surface highlight */}
           <a
             href="#booking"
@@ -275,29 +265,20 @@ export default function Hero({ onShowToast }) {
           >
             <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">BOOK NOW</span>
           </a>
-
-          {/* BECOME A CREATOR: Crystal-clear glassmorphism, 18px backdrop blur, subtle orange border */}
-          <Link
-            href="/creators"
-            className="w-full h-[60px] rounded-[20px] btn-glass-creator flex items-center justify-center text-[#FF7A33] font-black text-[15px] tracking-[0.04em] uppercase cursor-pointer select-none touch-manipulation active:scale-[0.97]"
-            aria-label="Become a Creator"
-          >
-            <span>BECOME A CREATOR</span>
-          </Link>
         </div>
 
         {/* 3. SERVICE TILES (3 in a row, equal width cards, 12px gap, semi-transparent glass) */}
         <div className="hero-animate-6 grid grid-cols-3 gap-3 w-full px-2 mb-8">
-          {/* Quick Shoot */}
+          {/* All Event Shoot */}
           <Link
-            href="/contact?service=Quick%20Shoot"
+            href="/contact?service=All%20Event%20Shoot"
             className="flex flex-col items-center text-center p-3.5 py-4 rounded-[24px] bg-[#161218]/70 backdrop-blur-md border border-white/10 hover:border-[#FF7A33]/40 active:scale-95 transition-all shadow-[0_6px_20px_rgba(0,0,0,0.4)] cursor-pointer"
           >
             <div className="w-14 h-14 rounded-2xl bg-[rgba(255,122,51,0.15)] border border-[#FF7A33]/25 flex items-center justify-center mb-2.5 shadow-[0_0_12px_rgba(255,122,51,0.2)]">
-              <Icon name="bolt" size={26} className="text-[#FF7A33]" />
+              <Icon name="celebration" size={26} className="text-[#FF7A33]" />
             </div>
-            <span className="text-[13.5px] sm:text-[15px] font-semibold text-white tracking-tight leading-tight">
-              Quick Shoot
+            <span className="text-[13px] sm:text-[14.5px] font-semibold text-white tracking-tight leading-tight">
+              All Event Shoot
             </span>
           </Link>
 

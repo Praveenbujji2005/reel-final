@@ -19,14 +19,18 @@ export const NAV_LINKS = [
   { label: "Blog", href: "/#blog" },
 ];
 
-// Footer navigation & legal links
+// Footer navigation, career & legal links
 export const FOOTER_NAV_LINKS = [
   { label: "Home page", href: "/" },
+  { label: "Pricing", href: "/#pricing" },
   { label: "Why us", href: "/#why-us" },
   { label: "Real work", href: "/#showcase" },
-  { label: "Pricing", href: "/#pricing" },
   { label: "Testimonials", href: "/#testimonials" },
   { label: "Blog", href: "/#blog" },
+];
+
+export const FOOTER_CAREER_LINKS = [
+  { label: "Become a Creator", href: "/become-a-creator" },
 ];
 
 export const FOOTER_LEGAL_LINKS = [
@@ -290,6 +294,7 @@ export const MARQUEE_TESTIMONIALS = [
     id: 1,
     name: "Krishna D.",
     role: "Groom's Brother",
+    avatar: "/creators/dp-1.jpg",
     quote:
       "Booked them just a day before the wedding. They showed up with iPhones and edited the video before the baraat ended. Unreal.",
     rating: 5,
@@ -298,6 +303,7 @@ export const MARQUEE_TESTIMONIALS = [
     id: 2,
     name: "Padma M.",
     role: "Brand Manager, Skincare Brand",
+    avatar: "/creators/dp-2.jpg",
     quote:
       "We used reelXpress for our store launch - got high-quality reels before the event wrapped up. Perfect for social!",
     rating: 5,
@@ -306,6 +312,7 @@ export const MARQUEE_TESTIMONIALS = [
     id: 3,
     name: "Radhika P.",
     role: "Small Business Owner",
+    avatar: "/creators/dp-3.jpg",
     quote:
       "As a new business, getting professional-looking content quickly helped us gain traction online. reelXpress is now our go-to team.",
     rating: 5,
@@ -314,6 +321,7 @@ export const MARQUEE_TESTIMONIALS = [
     id: 4,
     name: "Harish G.",
     role: "Event Planner",
+    avatar: "/creators/dp-4.jpg",
     quote:
       "reelXpress has changed the way we capture events for our clients. No delays, no chasing, just pure magic delivered instantly.",
     rating: 5,
@@ -322,6 +330,7 @@ export const MARQUEE_TESTIMONIALS = [
     id: 5,
     name: "Arjun S.",
     role: "Influencer",
+    avatar: "/creators/dp-5.jpg",
     quote:
       "I didn't have to do anything except show up. They shot, added trending music, and gave me perfect reels within the hour.",
     rating: 5,
@@ -330,6 +339,7 @@ export const MARQUEE_TESTIMONIALS = [
     id: 6,
     name: "Sravanthi R.",
     role: "Bride",
+    avatar: "/creators/dp-1.jpg",
     quote:
       "I was literally watching our wedding reel before the reception dinner even started. These guys are insanely fast and so good!",
     rating: 5,
