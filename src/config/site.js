@@ -36,9 +36,9 @@ export const SITE_CONFIG = {
   },
 
   gst: {
-    rate: '18%',
-    noticeText: '+ 18% GST applicable on all packages',
-    shortNotice: '+ GST',
+    rate: '',
+    noticeText: '',
+    shortNotice: '',
   },
 
   /**

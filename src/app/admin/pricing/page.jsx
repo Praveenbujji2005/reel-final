@@ -66,7 +66,7 @@ export default function AdminPricingPage() {
       name: '',
       description: '',
       price: '₹ ',
-      priceSuffix: '+ GST',
+      priceSuffix: '',
       badge: '',
       isPopular: false,
       enabled: true,

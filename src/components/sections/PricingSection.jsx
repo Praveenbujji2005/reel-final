@@ -18,7 +18,7 @@ const INSTANT_PACKAGES = [
     name: 'Hourly Plan',
     description: 'Perfect for anyone who wants a single, fast, high-quality reel delivered in minutes.',
     price: '₹2,200',
-    priceSuffix: '+ 18% GST',
+    priceSuffix: '',
     badge: 'BEST SELLER',
     isPopular: true,
     shootType: 'Hourly Plan (₹2,200 - 1 Hour Shoot, 1 Reel)',
@@ -39,7 +39,7 @@ const INSTANT_PACKAGES = [
     name: 'Vehicle Shoot',
     description: 'Specialized dynamic reels for car & superbike deliveries, unboxings, and rallies.',
     price: '₹3,999',
-    priceSuffix: 'onwards + 18% GST',
+    priceSuffix: 'onwards',
     isPopular: false,
     shootType: 'Vehicle Shoot (From ₹3,999 - Regular / Premium / Drone)',
     inclusions: [
@@ -59,7 +59,7 @@ const INSTANT_PACKAGES = [
     name: 'Half Day',
     description: 'Ideal for parties, pop-up events, store launches, or multi-content creator shoots.',
     price: '₹8,500',
-    priceSuffix: '+ 18% GST',
+    priceSuffix: '',
     isPopular: false,
     shootType: 'Half Day Plan (₹8,500 - Up to 4 Hours, 3 Reels)',
     inclusions: [
@@ -79,7 +79,7 @@ const INSTANT_PACKAGES = [
     name: 'Full Day',
     description: 'Complete day-long coverage for exhibitions, major festivals, and marathon events.',
     price: '₹15,000',
-    priceSuffix: '+ 18% GST',
+    priceSuffix: '',
     isPopular: false,
     shootType: 'Full Day Plan (₹15,000 - Up to 8 Hours, 7 Reels)',
     inclusions: [
@@ -103,7 +103,7 @@ const BUSINESS_PACKAGES = [
     name: 'Brand shoot',
     description: 'Professional coverage tailored to campaign, launch, and showcase moments, scoped around your calendar and deliverables.',
     price: 'Customised',
-    priceSuffix: '+ 18% GST',
+    priceSuffix: '',
     badge: 'MOST FLEXIBLE',
     isPopular: true,
     shootType: 'Brand Shoot (Customised Pricing - Campaign & Showcase)',
@@ -126,7 +126,7 @@ const BUSINESS_PACKAGES = [
     name: 'Product Shoot',
     description: 'High-converting product and catalog reels for e-commerce, D2C, and brand launches, shot and edited to make your product the hero.',
     price: '₹7,000',
-    priceSuffix: 'onwards / per reel + 18% GST',
+    priceSuffix: 'onwards / per reel',
     isPopular: false,
     shootType: 'Product Shoot (₹7,000 / reel - E-commerce & Catalog)',
     inclusions: [
@@ -150,7 +150,7 @@ const WEDDING_PACKAGES = [
     name: 'Basic',
     description: "Perfect for couples looking for a stunning, professionally crafted wedding shoot that won't break the bank.",
     price: '₹14,999',
-    priceSuffix: '+ 18% GST',
+    priceSuffix: '',
     isPopular: false,
     shootType: 'Wedding Basic (₹14,999 - Single Event, 3 Reels)',
     inclusions: [
@@ -170,7 +170,7 @@ const WEDDING_PACKAGES = [
     name: 'Silver',
     description: 'Perfect for those who want comprehensive coverage with an extra touch of elegance.',
     price: '₹44,999',
-    priceSuffix: '+ 18% GST',
+    priceSuffix: '',
     isPopular: false,
     shootType: 'Wedding Silver (₹44,999 - Three Events, 10 Reels)',
     inclusions: [
@@ -190,7 +190,7 @@ const WEDDING_PACKAGES = [
     name: 'Gold',
     description: 'Perfect for couples who want an exclusive, comprehensive experience across four events.',
     price: '₹59,999',
-    priceSuffix: '+ 18% GST',
+    priceSuffix: '',
     badge: 'MOST POPULAR',
     isPopular: true,
     shootType: 'Wedding Gold (₹59,999 - Four Events, 15 Reels)',
@@ -211,7 +211,7 @@ const WEDDING_PACKAGES = [
     name: 'Platinum',
     description: 'For couples who want it all: every moment captured with unmatched attention to detail.',
     price: '₹99,999',
-    priceSuffix: '+ 18% GST',
+    priceSuffix: '',
     isPopular: false,
     shootType: 'Wedding Platinum (₹99,999 - Complete Wedding, 25 Reels)',
     inclusions: [
@@ -270,15 +270,23 @@ function PricingCardSkeleton({ count = 4, colsClass = 'md:grid-cols-2 lg:grid-co
 
 // Single Unified High-Contrast PriceBox Component
 function PriceBox({ price, priceSuffix, tag }) {
+  // Strip any '+ 18% GST', '+ GST', '+ 18% gst', '+ gst'
+  const cleanSuffix = (priceSuffix || '')
+    .replace(/\+?\s*18%\s*gst/gi, '')
+    .replace(/\+?\s*gst/gi, '')
+    .trim();
+
   return (
     <div className="rounded-[16px] bg-[#161218]/90 border border-white/10 p-3.5 sm:p-4 mb-5 shadow-[0_4px_18px_rgba(0,0,0,0.4)] flex items-center justify-between gap-2 flex-wrap">
       <div className="flex items-baseline gap-1.5 flex-wrap">
         <span className="text-2xl sm:text-3xl font-black text-white tracking-tight">
           {price}
         </span>
-        <span className="text-xs font-semibold text-white/70 tracking-normal whitespace-nowrap">
-          {priceSuffix || '+ 18% GST'}
-        </span>
+        {cleanSuffix ? (
+          <span className="text-xs font-semibold text-white/70 tracking-normal whitespace-nowrap">
+            {cleanSuffix}
+          </span>
+        ) : null}
       </div>
       {tag && (
         <span className="text-[10px] uppercase font-bold tracking-wider text-[#FF7A33] bg-[#FF7A33]/15 px-2.5 py-1 rounded-full border border-[#FF7A33]/40 shrink-0">

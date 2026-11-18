@@ -241,7 +241,7 @@ export const EXPLORE_PACKAGES = [
   {
     id: "hourly",
     title: "Hourly",
-    price: "₹2,200+gst",
+    price: "₹2,200",
     description: "A single fast, high-quality reel from a one-hour shoot.",
     ctaText: "Book now",
     ctaLink: "#booking",
