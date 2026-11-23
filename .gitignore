@@ -25,4 +25,7 @@ scratch/
 .DS_Store
 *.pem
 
+# Google Calendar OAuth Tokens & Credentials
+data/google_calendar_*.json
+
 AGENTS.md

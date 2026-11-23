@@ -70,6 +70,26 @@ export function updateServerEnquiryStatus(id, newStatus, adminEmail = 'admin@ree
   return null;
 }
 
+export function getServerEnquiryById(id) {
+  const list = readServerEnquiries();
+  return list.find((e) => e.id === id) || null;
+}
+
+export function updateServerEnquiryFields(id, updates = {}) {
+  const list = readServerEnquiries();
+  const idx = list.findIndex((e) => e.id === id);
+  if (idx >= 0) {
+    list[idx] = {
+      ...list[idx],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+    writeServerEnquiries(list);
+    return list[idx];
+  }
+  return null;
+}
+
 export function deleteServerEnquiry(id) {
   const list = readServerEnquiries();
   const filtered = list.filter((e) => e.id !== id);

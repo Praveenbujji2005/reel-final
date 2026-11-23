@@ -5,6 +5,9 @@ import {
   subscribeToEnquiries,
 } from '@/lib/enquiries';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import GoogleCalendarSettingsModal, {
+  GoogleCalendarIcon,
+} from '@/components/admin/GoogleCalendarSettingsModal';
 
 const PAGE_SIZE = 10;
 const FIREBASE_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'reelxpress-a862c';
@@ -31,6 +34,142 @@ export default function AdminInquiriesPage() {
   const [inquiryToDelete, setInquiryToDelete] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+
+  // Google Calendar Integration States
+  const [calendarStatus, setCalendarStatus] = useState({
+    configured: false,
+    connected: false,
+    email: null,
+  });
+  const [syncingInquiryId, setSyncingInquiryId] = useState(null);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const [pendingCalendarEnquiry, setPendingCalendarEnquiry] = useState(null);
+  const [validationModal, setValidationModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+  });
+
+  // Fetch Google Calendar connection status
+  const refreshCalendarStatus = async () => {
+    try {
+      const res = await fetch('/api/google-calendar/status');
+      const data = await res.json();
+      if (data.success) {
+        setCalendarStatus({
+          configured: Boolean(data.configured),
+          connected: Boolean(data.connected),
+          email: data.email || null,
+        });
+      }
+    } catch (err) {
+      console.warn('[AdminInquiries] Calendar status check notice:', err.message);
+    }
+  };
+
+  useEffect(() => {
+    refreshCalendarStatus();
+
+    // Check if redirected back after OAuth flow
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('calendar_connected') === 'true') {
+        showToast('Google Calendar connected successfully!');
+        window.history.replaceState({}, '', window.location.pathname);
+        refreshCalendarStatus();
+      }
+    }
+  }, []);
+
+  /**
+   * Add to Google Calendar handler with full validation & duplicate prevention
+   */
+  const handleAddToCalendar = async (inq) => {
+    // 1. Missing date check
+    if (!inq.eventDate || !String(inq.eventDate).trim()) {
+      setValidationModal({
+        isOpen: true,
+        title: 'Shoot Date Missing',
+        message: `Enquiry from "${inq.customerName || inq.fullName}" does not have a shoot date specified. Google Calendar requires an event date. Please update the enquiry with a valid shoot date.`,
+      });
+      return;
+    }
+
+    // 2. Prevent duplicate event creation if already synced
+    if (inq.googleCalendarSyncStatus === 'synced' && inq.googleCalendarEventUrl) {
+      window.open(inq.googleCalendarEventUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    // 3. Connect check: If admin hasn't connected Google Calendar yet
+    if (!calendarStatus?.connected) {
+      setPendingCalendarEnquiry(inq);
+      setIsCalendarModalOpen(true);
+      return;
+    }
+
+    // 4. API Request to create event in Google Calendar
+    setSyncingInquiryId(inq.id);
+    try {
+      const res = await fetch('/api/google-calendar/sync-event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enquiryId: inq.id }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        // Update in-memory enquiries list with synced status & URL
+        setInquiries((prev) =>
+          prev.map((item) =>
+            item.id === inq.id
+              ? {
+                  ...item,
+                  googleCalendarEventId: data.eventId,
+                  googleCalendarSyncStatus: 'synced',
+                  googleCalendarSyncedAt: data.syncedAt,
+                  googleCalendarEventUrl: data.eventUrl,
+                }
+              : item
+          )
+        );
+
+        if (selectedInquiry?.id === inq.id) {
+          setSelectedInquiry((prev) => ({
+            ...prev,
+            googleCalendarEventId: data.eventId,
+            googleCalendarSyncStatus: 'synced',
+            googleCalendarSyncedAt: data.syncedAt,
+            googleCalendarEventUrl: data.eventUrl,
+          }));
+        }
+
+        showToast(data.message || 'Event added to Google Calendar!');
+      } else {
+        if (data.error === 'NOT_CONNECTED' || data.error === 'AUTH_EXPIRED') {
+          setPendingCalendarEnquiry(inq);
+          setIsCalendarModalOpen(true);
+        } else if (data.error === 'MISSING_DATE' || data.error === 'INVALID_DATE') {
+          setValidationModal({
+            isOpen: true,
+            title: 'Shoot Date Validation',
+            message: data.message,
+          });
+        } else {
+          showToast(data.message || 'Failed to add event to Google Calendar.');
+          setInquiries((prev) =>
+            prev.map((item) =>
+              item.id === inq.id ? { ...item, googleCalendarSyncStatus: 'failed' } : item
+            )
+          );
+        }
+      }
+    } catch (err) {
+      showToast(err.message || 'Network error while adding event to Google Calendar.');
+    } finally {
+      setSyncingInquiryId(null);
+    }
+  };
 
   // Prevent background scrolling while modal is open
   useEffect(() => {
@@ -218,6 +357,8 @@ export default function AdminInquiriesPage() {
       'City',
       'Status',
       'Submitted Date',
+      'Google Calendar Sync',
+      'Google Calendar Event URL',
       'Message / Notes',
     ];
 
@@ -231,6 +372,8 @@ export default function AdminInquiriesPage() {
       `"${(inq.city || 'Bengaluru').replace(/"/g, '""')}"`,
       `"${(inq.status || 'New').replace(/"/g, '""')}"`,
       `"${(inq.createdAt || inq.formattedDate || '').replace(/"/g, '""')}"`,
+      `"${(inq.googleCalendarSyncStatus || 'not_synced').replace(/"/g, '""')}"`,
+      `"${(inq.googleCalendarEventUrl || '').replace(/"/g, '""')}"`,
       `"${(inq.enquiryMessage || inq.message || '').replace(/"/g, '""')}"`,
     ]);
 
@@ -355,6 +498,32 @@ export default function AdminInquiriesPage() {
         </div>
 
         <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
+          {/* Google Calendar Status / Connect Button */}
+          <button
+            onClick={() => {
+              setPendingCalendarEnquiry(null);
+              setIsCalendarModalOpen(true);
+            }}
+            className={`px-4 py-2.5 rounded-xl border font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all active:scale-95 shadow-md ${
+              calendarStatus?.connected
+                ? 'bg-[#4285F4]/15 hover:bg-[#4285F4]/25 border-[#4285F4]/40 text-[#8ab4f8]'
+                : 'bg-white/[0.06] hover:bg-white/[0.12] border-white/15 text-white/80 hover:text-white'
+            }`}
+            title="Google Calendar Integration Settings"
+          >
+            <GoogleCalendarIcon className="w-4 h-4 text-[#4285F4]" />
+            <span>
+              {calendarStatus?.connected
+                ? `Calendar: ${calendarStatus.email ? calendarStatus.email.split('@')[0] : 'Connected'}`
+                : 'Google Calendar'}
+            </span>
+            {calendarStatus?.connected ? (
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
+            ) : (
+              <span className="w-2 h-2 rounded-full bg-amber-400 ml-0.5" />
+            )}
+          </button>
+
           <button
             onClick={exportToCSV}
             className="px-4 py-2.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all active:scale-95 shadow-md"
@@ -576,6 +745,21 @@ export default function AdminInquiriesPage() {
                         <div className="text-[11px] text-text-muted mt-0.5">
                           📍 {inq.city || 'Bengaluru'}
                         </div>
+                        {inq.googleCalendarSyncStatus === 'synced' ? (
+                          <div className="mt-1">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#4285F4] bg-[#4285F4]/10 border border-[#4285F4]/30 px-2 py-0.5 rounded-full" title={`Synced: ${inq.googleCalendarSyncedAt || ''}`}>
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                              <span>Synced</span>
+                            </span>
+                          </div>
+                        ) : inq.googleCalendarSyncStatus === 'failed' ? (
+                          <div className="mt-1">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-400 bg-red-500/10 border border-red-500/30 px-2 py-0.5 rounded-full" title="Calendar sync failed">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                              <span>Sync Failed</span>
+                            </span>
+                          </div>
+                        ) : null}
                       </td>
 
                       {/* Status Dropdown */}
@@ -629,6 +813,47 @@ export default function AdminInquiriesPage() {
                               <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2M12.05 3.67C14.25 3.67 16.31 4.53 17.87 6.09C19.42 7.65 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15C10.56 20.15 9.11 19.76 7.85 19L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.81 13.47 3.81 11.91C3.81 7.37 7.5 3.67 12.05 3.67M9.53 7.34C9.36 7.34 9.09 7.4 8.87 7.65C8.64 7.89 8 8.49 8 9.72C8 10.95 8.89 12.14 9.01 12.3C9.14 12.46 10.77 14.96 13.25 16.03C13.84 16.29 14.3 16.44 14.66 16.55C15.25 16.74 15.79 16.71 16.22 16.65C16.7 16.58 17.69 16.05 17.89 15.48C18.1 14.9 18.1 14.41 18.04 14.31C17.97 14.2 17.8 14.14 17.55 14.02C17.3 13.89 16.07 13.29 15.84 13.21C15.62 13.12 15.45 13.08 15.29 13.33C15.12 13.57 14.64 14.14 14.5 14.31C14.35 14.47 14.21 14.49 13.96 14.37C13.71 14.24 12.89 13.98 11.93 13.12C11.18 12.45 10.67 11.63 10.53 11.38C10.38 11.13 10.51 11 10.64 10.87C10.75 10.76 10.89 10.58 11.01 10.43C11.14 10.29 11.18 10.18 11.26 10.02C11.35 9.85 11.3 9.71 11.24 9.58C11.18 9.46 10.7 8.28 10.5 7.79C10.3 7.31 10.1 7.38 9.95 7.37C9.81 7.36 9.67 7.34 9.53 7.34Z" />
                             </svg>
                           </a>
+
+                          {/* Google Calendar Action Button */}
+                          {inq.googleCalendarSyncStatus === 'synced' ? (
+                            <a
+                              href={inq.googleCalendarEventUrl || 'https://calendar.google.com'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="View in Google Calendar (Synced)"
+                              className="p-2 rounded-lg bg-[#4285F4]/15 hover:bg-[#4285F4]/30 text-[#4285F4] transition-colors relative group cursor-pointer inline-flex items-center justify-center"
+                            >
+                              <GoogleCalendarIcon className="w-4 h-4" />
+                              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-[#120f12]" title="Synced to Google Calendar" />
+                            </a>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleAddToCalendar(inq)}
+                              disabled={syncingInquiryId === inq.id}
+                              title={
+                                inq.googleCalendarSyncStatus === 'failed'
+                                  ? 'Sync Failed - Click to Retry'
+                                  : !inq.eventDate
+                                  ? 'Add to Google Calendar (Shoot date required)'
+                                  : 'Add to Google Calendar'
+                              }
+                              className={`p-2 rounded-lg transition-colors cursor-pointer relative inline-flex items-center justify-center ${
+                                inq.googleCalendarSyncStatus === 'failed'
+                                  ? 'bg-red-500/15 hover:bg-red-500/30 text-red-400'
+                                  : 'bg-[#4285F4]/15 hover:bg-[#4285F4]/30 text-[#4285F4]'
+                              } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                              {syncingInquiryId === inq.id ? (
+                                <span className="w-4 h-4 border-2 border-[#4285F4] border-t-transparent rounded-full animate-spin inline-block" />
+                              ) : (
+                                <GoogleCalendarIcon className="w-4 h-4" />
+                              )}
+                              {inq.googleCalendarSyncStatus === 'failed' && (
+                                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-red-400 ring-2 ring-[#120f12]" title="Sync Failed" />
+                              )}
+                            </button>
+                          )}
 
                           {/* Email Button */}
                           <a
@@ -791,6 +1016,67 @@ export default function AdminInquiriesPage() {
                     </span>
                   </div>
                 )}
+
+                {/* Google Calendar Sync Info Card */}
+                <div className="col-span-2 p-3.5 rounded-xl bg-[#4285F4]/10 border border-[#4285F4]/25 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <GoogleCalendarIcon className="w-5 h-5 text-[#4285F4] shrink-0" />
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-white flex items-center gap-2">
+                        <span>Google Calendar:</span>
+                        {selectedInquiry.googleCalendarSyncStatus === 'synced' ? (
+                          <span className="text-emerald-400 font-extrabold flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Synced
+                          </span>
+                        ) : selectedInquiry.googleCalendarSyncStatus === 'failed' ? (
+                          <span className="text-red-400 font-extrabold flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-400" /> Sync Failed
+                          </span>
+                        ) : (
+                          <span className="text-zinc-400">Not Synced</span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-zinc-400 truncate">
+                        {selectedInquiry.googleCalendarSyncStatus === 'synced'
+                          ? `Synced on ${new Date(selectedInquiry.googleCalendarSyncedAt || Date.now()).toLocaleDateString()}`
+                          : selectedInquiry.eventDate
+                          ? `Ready to schedule for ${selectedInquiry.eventDate}`
+                          : 'Shoot date required before syncing'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {selectedInquiry.googleCalendarSyncStatus === 'synced' ? (
+                    <a
+                      href={selectedInquiry.googleCalendarEventUrl || 'https://calendar.google.com'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 rounded-lg bg-[#4285F4] hover:bg-[#3367d6] text-white text-xs font-bold whitespace-nowrap transition-colors flex items-center gap-1"
+                    >
+                      <span>View Event</span>
+                      <span className="material-symbols-outlined text-xs">open_in_new</span>
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleAddToCalendar(selectedInquiry)}
+                      disabled={syncingInquiryId === selectedInquiry.id}
+                      className="px-3 py-1.5 rounded-lg bg-[#4285F4] hover:bg-[#3367d6] text-white text-xs font-bold whitespace-nowrap transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                    >
+                      {syncingInquiryId === selectedInquiry.id ? (
+                        <>
+                          <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Adding...</span>
+                        </>
+                      ) : (
+                        <>
+                          <GoogleCalendarIcon className="w-3.5 h-3.5" />
+                          <span>Add to Calendar</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -845,7 +1131,7 @@ export default function AdminInquiriesPage() {
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-xs tracking-wide flex items-center justify-center gap-2 shadow-lg"
+                className="flex-1 min-w-[140px] py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-xs tracking-wide flex items-center justify-center gap-2 shadow-lg"
               >
                 <span>Chat on WhatsApp</span>
               </a>
@@ -854,10 +1140,41 @@ export default function AdminInquiriesPage() {
                 href={`mailto:${selectedInquiry.email}?subject=${encodeURIComponent(
                   `reelXpress - ${selectedInquiry.selectedService || selectedInquiry.serviceType}`
                 )}`}
-                className="flex-1 py-3 px-4 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs tracking-wide flex items-center justify-center gap-2"
+                className="flex-1 min-w-[120px] py-3 px-4 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs tracking-wide flex items-center justify-center gap-2"
               >
                 <span>Send Email</span>
               </a>
+
+              {selectedInquiry.googleCalendarSyncStatus === 'synced' ? (
+                <a
+                  href={selectedInquiry.googleCalendarEventUrl || 'https://calendar.google.com'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 min-w-[150px] py-3 px-4 rounded-xl bg-[#4285F4]/20 hover:bg-[#4285F4]/30 border border-[#4285F4]/40 text-[#8ab4f8] font-bold text-xs tracking-wide flex items-center justify-center gap-2"
+                >
+                  <GoogleCalendarIcon className="w-4 h-4 text-[#4285F4]" />
+                  <span>View in Calendar</span>
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleAddToCalendar(selectedInquiry)}
+                  disabled={syncingInquiryId === selectedInquiry.id}
+                  className="flex-1 min-w-[150px] py-3 px-4 rounded-xl bg-[#4285F4] hover:bg-[#3367d6] text-white font-bold text-xs tracking-wide flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+                >
+                  {syncingInquiryId === selectedInquiry.id ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Syncing Event...</span>
+                    </>
+                  ) : (
+                    <>
+                      <GoogleCalendarIcon className="w-4 h-4" />
+                      <span>Add to Google Calendar</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -902,6 +1219,66 @@ export default function AdminInquiriesPage() {
                 className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs cursor-pointer shadow-lg"
               >
                 {actionLoading ? 'Deleting...' : 'Confirm Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          GOOGLE CALENDAR SETTINGS & CONNECTION MODAL
+         ========================================================================= */}
+      <GoogleCalendarSettingsModal
+        isOpen={isCalendarModalOpen}
+        onClose={() => {
+          setIsCalendarModalOpen(false);
+          setPendingCalendarEnquiry(null);
+        }}
+        status={calendarStatus}
+        onStatusChange={(newStatus) => {
+          setCalendarStatus(newStatus);
+          // If there was an enquiry waiting to be synced, auto-sync it!
+          if (newStatus.connected && pendingCalendarEnquiry) {
+            const inqToSync = pendingCalendarEnquiry;
+            setPendingCalendarEnquiry(null);
+            setIsCalendarModalOpen(false);
+            setTimeout(() => {
+              handleAddToCalendar(inqToSync);
+            }, 500);
+          }
+        }}
+        pendingEnquiry={pendingCalendarEnquiry}
+      />
+
+      {/* =========================================================================
+          VALIDATION ALERT MODAL (Shoot Date Missing)
+         ========================================================================= */}
+      {validationModal.isOpen && (
+        <div
+          data-lenis-prevent
+          className="fixed inset-0 z-[100060] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn"
+          onClick={() => setValidationModal({ isOpen: false, title: '', message: '' })}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-[#181318] border border-amber-500/40 p-6 shadow-2xl relative text-white"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3.5 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-xl">event_busy</span>
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white tracking-tight">{validationModal.title}</h3>
+                <p className="text-xs text-text-muted mt-1.5 leading-relaxed">{validationModal.message}</p>
+              </div>
+            </div>
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setValidationModal({ isOpen: false, title: '', message: '' })}
+                className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs uppercase tracking-wider cursor-pointer transition-all active:scale-95 shadow-md"
+              >
+                Understood
               </button>
             </div>
           </div>

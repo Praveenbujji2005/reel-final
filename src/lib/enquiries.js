@@ -89,6 +89,11 @@ export function normalizeEnquiry(id, raw = {}) {
     minute: '2-digit',
   });
 
+  const googleCalendarEventId = raw.googleCalendarEventId || null;
+  const googleCalendarSyncStatus = raw.googleCalendarSyncStatus || (raw.googleCalendarEventId ? 'synced' : 'not_synced');
+  const googleCalendarSyncedAt = raw.googleCalendarSyncedAt || null;
+  const googleCalendarEventUrl = raw.googleCalendarEventUrl || null;
+
   return {
     id,
     customerName,
@@ -110,6 +115,10 @@ export function normalizeEnquiry(id, raw = {}) {
     timestampDate,
     formattedDate,
     formattedTime,
+    googleCalendarEventId,
+    googleCalendarSyncStatus,
+    googleCalendarSyncedAt,
+    googleCalendarEventUrl,
   };
 }
 
@@ -492,8 +501,77 @@ export async function deleteEnquiryFromFirestore(id) {
   throw new Error('Could not delete enquiry: Firestore database is not accessible.');
 }
 
+/**
+ * Update Google Calendar sync status in Firestore
+ */
+export async function updateEnquiryCalendarSyncInFirestore(id, syncData, adminEmail = 'admin@reelxpress.com') {
+  const {
+    googleCalendarEventId,
+    googleCalendarSyncStatus = 'synced',
+    googleCalendarSyncedAt = new Date().toISOString(),
+    googleCalendarEventUrl = '',
+  } = syncData;
+
+  const updatedAt = new Date().toISOString();
+
+  // A. REST API update
+  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || firebaseConfig?.apiKey;
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || firebaseConfig?.projectId;
+
+  if (apiKey && projectId) {
+    try {
+      const updateFields = {
+        googleCalendarEventId: { stringValue: googleCalendarEventId || '' },
+        googleCalendarSyncStatus: { stringValue: googleCalendarSyncStatus },
+        googleCalendarSyncedAt: { stringValue: googleCalendarSyncedAt },
+        googleCalendarEventUrl: { stringValue: googleCalendarEventUrl || '' },
+        updatedAt: { stringValue: updatedAt },
+        updatedBy: { stringValue: adminEmail },
+      };
+      const mask = [
+        'updateMask.fieldPaths=googleCalendarEventId',
+        'updateMask.fieldPaths=googleCalendarSyncStatus',
+        'updateMask.fieldPaths=googleCalendarSyncedAt',
+        'updateMask.fieldPaths=googleCalendarEventUrl',
+        'updateMask.fieldPaths=updatedAt',
+        'updateMask.fieldPaths=updatedBy',
+      ].join('&');
+      const restUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${ENQUIRIES_COLLECTION}/${id}?${mask}&key=${apiKey}`;
+
+      const res = await fetch(restUrl, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: updateFields }),
+      });
+
+      if (res.ok) {
+        return { success: true, id, ...syncData };
+      }
+    } catch (err) {
+      console.warn('[Enquiries] REST calendar sync notice:', err.message);
+    }
+  }
+
+  // B. Client SDK update
+  if (db) {
+    const docRef = doc(db, ENQUIRIES_COLLECTION, id);
+    await updateDoc(docRef, {
+      googleCalendarEventId: googleCalendarEventId || '',
+      googleCalendarSyncStatus,
+      googleCalendarSyncedAt,
+      googleCalendarEventUrl: googleCalendarEventUrl || '',
+      updatedAt,
+      updatedBy: adminEmail,
+    });
+    return { success: true, id, ...syncData };
+  }
+
+  return { success: true, id, ...syncData };
+}
+
 // Backward compatibility aliases
 export const createInquiry = createEnquiry;
 export const getInquiries = getEnquiriesFromFirestore;
 export const updateInquiryStatus = updateEnquiryStatusInFirestore;
+export const updateInquiryCalendarSync = updateEnquiryCalendarSyncInFirestore;
 export const deleteInquiry = deleteEnquiryFromFirestore;
