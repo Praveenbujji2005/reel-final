@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 import Navbar from '@/components/layout/Navbar';
 import MobileMenu from '@/components/layout/MobileMenu';
 import Footer from '@/components/layout/Footer';
@@ -20,6 +21,8 @@ import {
 } from '@/lib/creatorData';
 
 export default function CreatorPageView() {
+  useScrollReveal();
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
@@ -184,9 +187,9 @@ export default function CreatorPageView() {
           {/* Subtle Ambient Radial Glow */}
           <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-primary-container/15 blur-[120px] rounded-full pointer-events-none -z-10" />
 
-          <div className="text-center max-w-4xl mx-auto">
+          <div className="reveal-on-scroll text-center max-w-4xl mx-auto">
             {/* Monumental Headline */}
-            <h1 className="text-display-md sm:text-display-lg md:text-display-xl font-display-xl font-black text-white tracking-tight leading-[1.08] mb-6">
+            <h1 className="text-[36px] sm:text-[54px] md:text-display-xl font-display-xl font-black text-white tracking-tight leading-[1.12] md:leading-[1.08] mb-6">
               {CREATOR_HERO.titlePart1}
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-primary-light to-primary-container drop-shadow-[0_4px_24px_rgba(255,109,41,0.4)]">
@@ -223,7 +226,9 @@ export default function CreatorPageView() {
               {CREATOR_HERO.stats.map((stat, i) => (
                 <div
                   key={i}
-                  className="group relative rounded-2xl p-5 sm:p-6 text-center transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+                  className={`reveal-on-scroll group relative rounded-2xl p-5 sm:p-6 text-center transition-all duration-300 hover:-translate-y-1 overflow-hidden ${
+                    i === 0 ? 'delay-50' : i === 1 ? 'delay-100' : i === 2 ? 'delay-150' : 'delay-200'
+                  }`}
                   style={{
                     backgroundColor: 'rgba(22, 17, 24, 0.45)',
                     backdropFilter: 'blur(18px)',
@@ -265,12 +270,12 @@ export default function CreatorPageView() {
             2. WHY JOIN REELXPRESS? (8 Feature Perks)
             ========================================================================== */}
         <section id="perks" className="py-16 md:py-24 px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28">
-          <div className="text-center max-w-3xl mx-auto mb-14">
+          <div className="reveal-on-scroll text-center max-w-3xl mx-auto mb-14">
             <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-primary font-bold mb-3">
               <span className="w-1.5 h-1.5 rounded-full bg-primary-container" />
               <span>Creator Advantages</span>
             </div>
-            <h2 className="text-display-sm sm:text-display-md font-display-md text-white font-extrabold mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-headline-lg font-headline-lg text-white font-extrabold mb-4">
               <span>Why Join </span>
               <span className="inline-flex items-center align-middle whitespace-nowrap">
                 <ReelXpressWordmark className="inline-block h-[0.92em] sm:h-[1.0em] w-auto align-middle drop-shadow-[0_0_14px_rgba(255,94,30,0.4)]" />
@@ -286,7 +291,9 @@ export default function CreatorPageView() {
             {CREATOR_PERKS.map((perk, idx) => (
               <div
                 key={idx}
-                className="group relative rounded-3xl bg-surface-base/80 border border-border-specular hover:border-border-amber/80 backdrop-blur-xl p-6 sm:p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(255,109,41,0.2)] flex flex-col justify-between"
+                className={`reveal-on-scroll group relative rounded-3xl bg-surface-base/80 border border-border-specular hover:border-border-amber/80 backdrop-blur-xl p-6 sm:p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(255,109,41,0.2)] flex flex-col justify-between ${
+                  idx % 4 === 0 ? 'delay-50' : idx % 4 === 1 ? 'delay-100' : idx % 4 === 2 ? 'delay-150' : 'delay-200'
+                }`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-5">
@@ -316,16 +323,16 @@ export default function CreatorPageView() {
             3. WHO CAN APPLY? (6 Requirements + Callout Banner)
             ========================================================================== */}
         <section id="eligibility" className="py-16 md:py-24 px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28">
-          <div className="rounded-3xl bg-surface-deep/90 border border-border-amber/60 backdrop-blur-2xl p-8 sm:p-12 lg:p-16 shadow-[0_20px_80px_rgba(0,0,0,0.7)] relative overflow-hidden">
+          <div className="reveal-scale-on-scroll rounded-3xl bg-surface-deep/90 border border-border-amber/60 backdrop-blur-2xl p-8 sm:p-12 lg:p-16 shadow-[0_20px_80px_rgba(0,0,0,0.7)] relative overflow-hidden">
             {/* Top Amber Light */}
             <div className="absolute top-0 right-1/4 w-96 h-48 bg-primary-container/20 blur-3xl pointer-events-none rounded-full" />
 
-            <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="reveal-on-scroll text-center max-w-3xl mx-auto mb-14">
               <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-primary font-bold mb-3">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary-container" />
                 <span>Join Our Creator Network</span>
               </div>
-              <h2 className="text-display-sm sm:text-display-md font-display-md text-white font-extrabold mb-4">
+              <h2 className="text-2xl sm:text-3xl md:text-headline-lg font-headline-lg text-white font-extrabold mb-4">
                 Who Can Apply?
               </h2>
               <p className="text-body-lg text-text-muted">
@@ -338,7 +345,9 @@ export default function CreatorPageView() {
               {CREATOR_ELIGIBILITY.map((item, idx) => (
                 <div
                   key={idx}
-                  className="rounded-2xl bg-surface-container/50 border border-border-specular p-6 hover:border-border-amber transition-all flex items-start gap-4"
+                  className={`reveal-on-scroll rounded-2xl bg-surface-container/50 border border-border-specular p-6 hover:border-border-amber transition-all flex items-start gap-4 ${
+                    idx % 3 === 0 ? 'delay-50' : idx % 3 === 1 ? 'delay-100' : 'delay-150'
+                  }`}
                 >
                   <div className="w-11 h-11 rounded-xl bg-primary-container/20 border border-border-amber text-primary flex items-center justify-center shrink-0">
                     <span className="material-symbols-outlined text-xl">
@@ -358,7 +367,7 @@ export default function CreatorPageView() {
             </div>
 
             {/* Banner Callout */}
-            <div className="rounded-2xl bg-gradient-to-r from-primary-container/25 via-primary-container/15 to-transparent border border-border-amber p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
+            <div className="reveal-on-scroll delay-200 rounded-2xl bg-gradient-to-r from-primary-container/25 via-primary-container/15 to-transparent border border-border-amber p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
               <div>
                 <div className="text-xs uppercase tracking-widest text-primary font-bold mb-1">
                   ZERO BARRIERS TO ENTRY
@@ -387,12 +396,12 @@ export default function CreatorPageView() {
             4. THE JOURNEY (5 Simple Steps)
             ========================================================================== */}
         <section id="journey" className="py-16 md:py-24 px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28">
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="reveal-on-scroll text-center max-w-3xl mx-auto mb-16">
             <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-primary font-bold mb-3">
               <span className="w-1.5 h-1.5 rounded-full bg-primary-container" />
               <span>The Journey</span>
             </div>
-            <h2 className="text-display-sm sm:text-display-md font-display-md text-white font-extrabold mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-headline-lg font-headline-lg text-white font-extrabold mb-4">
               Start Your Creator journey
             </h2>
             <p className="text-body-lg text-text-muted">
@@ -404,7 +413,9 @@ export default function CreatorPageView() {
             {CREATOR_JOURNEY.map((step, idx) => (
               <div
                 key={idx}
-                className="relative rounded-3xl bg-surface-base/90 border border-border-specular hover:border-border-amber p-6 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between"
+                className={`reveal-on-scroll relative rounded-3xl bg-surface-base/90 border border-border-specular hover:border-border-amber p-6 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between ${
+                  idx === 0 ? 'delay-50' : idx === 1 ? 'delay-100' : idx === 2 ? 'delay-150' : idx === 3 ? 'delay-200' : 'delay-300'
+                }`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -445,12 +456,12 @@ export default function CreatorPageView() {
             5. REAL STORIES, REAL EARNINGS (Creator Proof)
             ========================================================================== */}
         <section id="stories" className="py-16 md:py-24 px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28">
-          <div className="text-center max-w-3xl mx-auto mb-14">
+          <div className="reveal-on-scroll text-center max-w-3xl mx-auto mb-14">
             <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-primary font-bold mb-3">
               <span className="w-1.5 h-1.5 rounded-full bg-primary-container" />
               <span>Real Stories, Real Earnings</span>
             </div>
-            <h2 className="text-display-sm sm:text-display-md font-display-md text-white font-extrabold mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-headline-lg font-headline-lg text-white font-extrabold mb-4">
               Real Stories, Real Earnings
             </h2>
             <p className="text-body-lg text-text-muted">
@@ -462,7 +473,9 @@ export default function CreatorPageView() {
             {CREATOR_TESTIMONIALS.map((item, idx) => (
               <div
                 key={idx}
-                className="rounded-3xl bg-surface-deep/80 border border-border-specular hover:border-border-amber backdrop-blur-xl p-7 sm:p-8 transition-all duration-300 flex flex-col justify-between"
+                className={`reveal-on-scroll rounded-3xl bg-surface-deep/80 border border-border-specular hover:border-border-amber backdrop-blur-xl p-7 sm:p-8 transition-all duration-300 flex flex-col justify-between ${
+                  idx === 0 ? 'delay-50' : idx === 1 ? 'delay-100' : 'delay-150'
+                }`}
               >
                 <div>
                   {/* Creator Header with Avatar Profile Photo */}
@@ -512,12 +525,12 @@ export default function CreatorPageView() {
             6. READY TO START? (Interactive Creator Application Form)
             ========================================================================== */}
         <section id="apply" className="py-16 md:py-24 px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28">
-          <div className="max-w-3xl mx-auto rounded-3xl bg-surface-base/90 border border-border-amber backdrop-blur-2xl p-8 sm:p-12 shadow-[0_20px_80px_rgba(255,109,41,0.25)] relative overflow-hidden">
+          <div className="reveal-scale-on-scroll max-w-3xl mx-auto rounded-3xl bg-surface-base/90 border border-border-amber backdrop-blur-2xl p-8 sm:p-12 shadow-[0_20px_80px_rgba(255,109,41,0.25)] relative overflow-hidden">
             {/* Ambient Background Light */}
             <div className="absolute top-0 right-0 w-80 h-80 bg-primary-container/15 blur-3xl rounded-full pointer-events-none" />
 
-            <div className="text-center mb-10">
-              <h2 className="text-display-sm sm:text-display-md font-display-md text-white font-extrabold mb-3">
+            <div className="reveal-on-scroll text-center mb-10">
+              <h2 className="text-2xl sm:text-3xl md:text-headline-lg font-headline-lg text-white font-extrabold mb-3">
                 Ready to Start?
               </h2>
               <p className="text-sm sm:text-base text-text-muted max-w-xl mx-auto leading-relaxed">
@@ -707,12 +720,12 @@ export default function CreatorPageView() {
             7. GOT QUESTIONS? (Frequently Asked Questions Accordion)
             ========================================================================== */}
         <section id="faq" className="py-16 md:py-24 px-4 sm:px-6 md:px-margin max-w-4xl mx-auto scroll-mt-20 md:scroll-mt-28">
-          <div className="text-center mb-12">
+          <div className="reveal-on-scroll text-center mb-12">
             <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-primary font-bold mb-3">
               <span className="w-1.5 h-1.5 rounded-full bg-primary-container" />
               <span>Got Questions?</span>
             </div>
-            <h2 className="text-display-sm sm:text-display-md font-display-md text-white font-extrabold mb-3">
+            <h2 className="text-2xl sm:text-3xl md:text-headline-lg font-headline-lg text-white font-extrabold mb-3">
               Got Questions?
             </h2>
             <p className="text-body-md text-text-muted">
@@ -720,7 +733,7 @@ export default function CreatorPageView() {
             </p>
           </div>
 
-          <div className="space-y-4">
+          <div className="reveal-on-scroll delay-100 space-y-4">
             {CREATOR_FAQS.map((faq, idx) => {
               const isOpen = openFaqIndex === idx;
               return (

@@ -5,15 +5,11 @@ import Navbar from '@/components/layout/Navbar';
 import MobileMenu from '@/components/layout/MobileMenu';
 import Footer from '@/components/layout/Footer';
 import FaqSection from '@/components/sections/FaqSection';
-import BookingSection from '@/components/sections/BookingSection';
 import BrandWatermark from '@/components/sections/BrandWatermark';
-import BookingModal from '@/components/ui/BookingModal';
 import ToastNotification from '@/components/ui/ToastNotification';
 
 export default function PrivacyPolicyView() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [confirmedBooking, setConfirmedBooking] = useState(null);
 
   const [toast, setToast] = useState({
     visible: false,
@@ -45,11 +41,6 @@ export default function PrivacyPolicyView() {
       });
     }
   };
-
-  const handleBookingSuccess = useCallback((details) => {
-    setConfirmedBooking(details);
-    setIsBookingModalOpen(true);
-  }, []);
 
   return (
     <>
@@ -493,20 +484,10 @@ export default function PrivacyPolicyView() {
 
         {/* FAQ Section */}
         <FaqSection />
-
-        {/* Join the Express Network Banner & Booking */}
-        <BookingSection onBookingSuccess={handleBookingSuccess} />
       </main>
 
       {/* Footer */}
       <Footer />
-
-      {/* Booking Confirmation Celebration Modal */}
-      <BookingModal
-        isOpen={isBookingModalOpen}
-        bookingDetails={confirmedBooking}
-        onClose={() => setIsBookingModalOpen(false)}
-      />
 
       {/* System Toast Notification */}
       <ToastNotification toast={toast} />
