@@ -12,6 +12,72 @@ import GoogleCalendarSettingsModal, {
 const PAGE_SIZE = 10;
 const FIREBASE_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'reelxpress-a862c';
 
+// Robust parsing for multiple date formats (ISO timestamp, YYYY-MM-DD, DD/MM/YYYY, Firestore timestamp)
+function parseDateSafe(val) {
+  if (!val) return null;
+  if (val instanceof Date) {
+    return isNaN(val.getTime()) ? null : val;
+  }
+  if (typeof val === 'object' && typeof val.toDate === 'function') {
+    try {
+      const d = val.toDate();
+      return isNaN(d.getTime()) ? null : d;
+    } catch {}
+  }
+  if (typeof val === 'object' && val.seconds) {
+    const d = new Date(val.seconds * 1000);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  if (typeof val === 'number') {
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  if (typeof val !== 'string') return null;
+  const s = val.trim();
+  if (!s) return null;
+
+  // Format: YYYY-MM-DD
+  const ymd = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (ymd) {
+    return new Date(parseInt(ymd[1], 10), parseInt(ymd[2], 10) - 1, parseInt(ymd[3], 10));
+  }
+
+  // Format: DD-MM-YYYY or DD/MM/YYYY
+  const dmy = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+  if (dmy) {
+    return new Date(parseInt(dmy[3], 10), parseInt(dmy[2], 10) - 1, parseInt(dmy[1], 10));
+  }
+
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// Checks if two dates fall on the same calendar day in local or Asia/Kolkata timezone
+function isSameDay(d1, d2) {
+  if (!d1 || !d2) return false;
+  // Local browser check
+  if (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  ) {
+    return true;
+  }
+  // Asia/Kolkata timezone check
+  try {
+    const fmt = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    if (fmt.format(d1) === fmt.format(d2)) {
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
 export default function AdminInquiriesPage() {
   const { user } = useAdminAuth();
   const [inquiries, setInquiries] = useState([]);
@@ -34,6 +100,7 @@ export default function AdminInquiriesPage() {
   const [inquiryToDelete, setInquiryToDelete] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+  const [copiedInquiryId, setCopiedInquiryId] = useState(null);
 
   // Google Calendar Integration States
   const [calendarStatus, setCalendarStatus] = useState({
@@ -191,6 +258,92 @@ export default function AdminInquiriesPage() {
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleCopyEnquiry = (inq, e) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    if (!inq) return;
+
+    const name = inq.customerName || inq.fullName || 'Client';
+    const phone = inq.phone || 'Not provided';
+    const email = inq.email || 'Not provided';
+    const service = inq.selectedService || inq.serviceType || 'General Shoot';
+    const shootDate = inq.eventDate || inq.date || 'Not specified';
+    const shootTime = inq.eventTime || inq.time || '';
+    const city = inq.city || 'Bengaluru';
+    const status = inq.status || 'New';
+    const source = inq.sourcePage || inq.source || 'Website';
+    const message = inq.enquiryMessage || inq.message || inq.notes || 'None';
+    const received = inq.formattedDate
+      ? `${inq.formattedDate} at ${inq.formattedTime}`
+      : inq.createdAt
+      ? new Date(inq.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+      : '';
+
+    const detailsText = [
+      `📋 REELXPRESS ENQUIRY DETAILS`,
+      `----------------------------------------`,
+      `👤 Customer: ${name}`,
+      `📞 Phone: ${phone}`,
+      `✉️ Email: ${email}`,
+      `🎬 Service: ${service}`,
+      `📅 Shoot Date: ${shootDate}${shootTime ? ` at ${shootTime}` : ''}`,
+      `📍 Location: ${city}, India`,
+      `📌 Status: ${status}`,
+      `🌐 Source: ${source}`,
+      received ? `⏰ Received: ${received}` : '',
+      inq.id ? `🆔 Enquiry ID: ${inq.id}` : '',
+      `----------------------------------------`,
+      `💬 Notes / Message:`,
+      `${message}`,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    const onSuccess = () => {
+      setCopiedInquiryId(inq.id);
+      showToast(`Copied enquiry details for ${name}!`);
+      setTimeout(() => {
+        setCopiedInquiryId((curr) => (curr === inq.id ? null : curr));
+      }, 2000);
+    };
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(detailsText).then(onSuccess).catch(() => {
+        try {
+          const textarea = document.createElement('textarea');
+          textarea.value = detailsText;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          onSuccess();
+        } catch (err) {
+          console.warn('Copy failed:', err);
+        }
+      });
+    } else {
+      try {
+        const textarea = document.createElement('textarea');
+        textarea.value = detailsText;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        onSuccess();
+      } catch (err) {
+        console.warn('Copy failed:', err);
+      }
+    }
   };
 
   const manualRefresh = async () => {
@@ -420,21 +573,34 @@ export default function AdminInquiriesPage() {
     if (dateFilter !== 'all') {
       const now = new Date();
       result = result.filter((inq) => {
-        const itemDateStr = inq.eventDate || inq.createdAt || inq.timestampDate;
-        if (!itemDateStr) return false;
-        const itemDate = new Date(itemDateStr);
-        if (isNaN(itemDate.getTime())) return false;
+        // Collect all potential candidate dates (submission date and shoot date)
+        const candidateDates = [
+          parseDateSafe(inq.createdAt),
+          parseDateSafe(inq.timestampDate),
+          parseDateSafe(inq.timestamp),
+          parseDateSafe(inq.eventDate),
+          parseDateSafe(inq.date),
+          parseDateSafe(inq.updatedAt),
+        ].filter(Boolean);
+
+        if (candidateDates.length === 0) return false;
 
         if (dateFilter === 'today') {
-          return itemDate.toDateString() === now.toDateString();
+          return candidateDates.some((d) => isSameDay(d, now));
         } else if (dateFilter === 'this_week') {
-          const diffDays = (now - itemDate) / (1000 * 60 * 60 * 24);
-          return diffDays >= -1 && diffDays <= 7;
+          const nowMs = now.getTime();
+          const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+          return candidateDates.some((d) => {
+            const diff = nowMs - d.getTime();
+            return diff >= -1 * 24 * 60 * 60 * 1000 && diff <= sevenDaysMs;
+          });
         } else if (dateFilter === 'this_month') {
-          return (
-            itemDate.getMonth() === now.getMonth() &&
-            itemDate.getFullYear() === now.getFullYear()
-          );
+          return candidateDates.some((d) => {
+            return (
+              d.getFullYear() === now.getFullYear() &&
+              d.getMonth() === now.getMonth()
+            );
+          });
         }
         return true;
       });
@@ -855,6 +1021,22 @@ export default function AdminInquiriesPage() {
                             </button>
                           )}
 
+                          {/* Copy Enquiry Details Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => handleCopyEnquiry(inq, e)}
+                            title={copiedInquiryId === inq.id ? 'Copied to clipboard!' : 'Copy Enquiry Details'}
+                            className={`p-2 rounded-lg transition-all cursor-pointer relative inline-flex items-center justify-center ${
+                              copiedInquiryId === inq.id
+                                ? 'bg-emerald-500/25 border border-emerald-500/50 text-emerald-300'
+                                : 'bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/5'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-sm">
+                              {copiedInquiryId === inq.id ? 'check' : 'content_copy'}
+                            </span>
+                          </button>
+
                           {/* Email Button */}
                           <a
                             href={mailLink}
@@ -863,15 +1045,6 @@ export default function AdminInquiriesPage() {
                           >
                             <span className="material-symbols-outlined text-sm">mail</span>
                           </a>
-
-                          {/* View Modal */}
-                          <button
-                            onClick={() => setSelectedInquiry(inq)}
-                            title="View Full Details"
-                            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
-                          >
-                            <span className="material-symbols-outlined text-sm">visibility</span>
-                          </button>
 
                           {/* Delete Button */}
                           <button
@@ -1144,6 +1317,18 @@ export default function AdminInquiriesPage() {
               >
                 <span>Send Email</span>
               </a>
+
+              {/* Copy Details */}
+              <button
+                type="button"
+                onClick={() => handleCopyEnquiry(selectedInquiry)}
+                className="flex-1 min-w-[130px] py-3 px-4 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold text-xs tracking-wide flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95"
+              >
+                <span className="material-symbols-outlined text-sm">
+                  {copiedInquiryId === selectedInquiry.id ? 'check' : 'content_copy'}
+                </span>
+                <span>{copiedInquiryId === selectedInquiry.id ? 'Copied!' : 'Copy Details'}</span>
+              </button>
 
               {selectedInquiry.googleCalendarSyncStatus === 'synced' ? (
                 <a
