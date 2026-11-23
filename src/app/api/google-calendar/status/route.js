@@ -3,7 +3,7 @@ import { getCalendarConnectionStatus } from '@/lib/googleCalendarService';
 
 export async function GET() {
   try {
-    const status = getCalendarConnectionStatus();
+    const status = await getCalendarConnectionStatus();
     return NextResponse.json({
       success: true,
       ...status,

@@ -3,7 +3,7 @@ import { getGoogleAuthUrl, getGoogleCalendarConfig } from '@/lib/googleCalendarS
 
 export async function GET(request) {
   try {
-    const config = getGoogleCalendarConfig();
+    const config = await getGoogleCalendarConfig();
     if (!config.clientId) {
       return NextResponse.json(
         {
@@ -16,7 +16,7 @@ export async function GET(request) {
     }
 
     const { origin } = new URL(request.url);
-    const { url, redirectUri } = getGoogleAuthUrl(origin);
+    const { url, redirectUri } = await getGoogleAuthUrl(origin);
 
     return NextResponse.json({
       success: true,

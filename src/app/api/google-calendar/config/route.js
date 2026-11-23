@@ -3,7 +3,7 @@ import { getGoogleCalendarConfig, saveGoogleCalendarConfig } from '@/lib/googleC
 
 export async function GET() {
   try {
-    const config = getGoogleCalendarConfig();
+    const config = await getGoogleCalendarConfig();
     return NextResponse.json({
       success: true,
       isConfigured: config.isConfigured,
@@ -31,7 +31,7 @@ export async function POST(request) {
       );
     }
 
-    saveGoogleCalendarConfig({ clientId, clientSecret, redirectUri });
+    await saveGoogleCalendarConfig({ clientId, clientSecret, redirectUri });
 
     return NextResponse.json({
       success: true,

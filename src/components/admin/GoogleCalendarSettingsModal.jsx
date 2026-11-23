@@ -55,6 +55,23 @@ export default function GoogleCalendarSettingsModal({
       ? `${window.location.origin}/api/google-calendar/callback`
       : 'http://localhost:3000/api/google-calendar/callback';
 
+  // Fetch existing config preview when opening config accordion
+  useEffect(() => {
+    if (showConfig && !configForm.clientId) {
+      fetch('/api/google-calendar/config')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.clientIdPreview) {
+            setConfigForm((prev) => ({
+              ...prev,
+              clientId: prev.clientId || data.clientIdPreview || '',
+            }));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [showConfig]);
+
   // Listen for OAuth completion from popup
   useEffect(() => {
     function handleMessage(e) {
@@ -145,15 +162,24 @@ export default function GoogleCalendarSettingsModal({
       });
       const data = await res.json();
       if (data.success) {
-        setConfigMessage('Credentials saved! You can now click "Connect Google Calendar".');
+        setConfigMessage({
+          type: 'success',
+          text: 'Credentials saved successfully in database! You can now click "Connect Google Calendar".',
+        });
         if (typeof onStatusChange === 'function') {
           onStatusChange({ ...status, configured: true });
         }
       } else {
-        setConfigMessage(data.error || 'Failed to save credentials.');
+        setConfigMessage({
+          type: 'error',
+          text: data.error || 'Failed to save credentials.',
+        });
       }
     } catch (err) {
-      setConfigMessage(err.message || 'Failed to save credentials.');
+      setConfigMessage({
+        type: 'error',
+        text: err.message || 'Failed to save credentials.',
+      });
     } finally {
       setLoading(false);
     }
@@ -384,8 +410,14 @@ export default function GoogleCalendarSettingsModal({
           )}
 
           {configMessage && (
-            <div className="mt-3 p-3 rounded-lg bg-white/5 border border-white/10 text-xs text-[#8ab4f8]">
-              {configMessage}
+            <div
+              className={`mt-3 p-3 rounded-lg text-xs border ${
+                typeof configMessage === 'object' && configMessage.type === 'error'
+                  ? 'bg-red-500/10 border-red-500/30 text-red-300'
+                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+              }`}
+            >
+              {typeof configMessage === 'object' ? configMessage.text : configMessage}
             </div>
           )}
         </div>

@@ -3,7 +3,7 @@ import { clearTokens } from '@/lib/googleCalendarService';
 
 export async function POST() {
   try {
-    clearTokens();
+    await clearTokens();
     return NextResponse.json({
       success: true,
       message: 'Google Calendar disconnected successfully.',

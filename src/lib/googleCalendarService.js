@@ -1,31 +1,123 @@
 import fs from 'fs';
 import path from 'path';
+import { db, isFirebaseConfigured } from './firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const TOKEN_FILE = path.join(DATA_DIR, 'google_calendar_token.json');
 const CONFIG_FILE = path.join(DATA_DIR, 'google_calendar_config.json');
 
-function ensureDataDir() {
-  if (!fs.existsSync(DATA_DIR)) {
+// In-memory cache for fast serverless execution across warm Lambda invocations
+let memoryConfigCache = null;
+let memoryTokensCache = null;
+
+/**
+ * Safely writes a file to disk, falling back to /tmp if process.cwd() is read-only (e.g. AWS Lambda / Vercel)
+ */
+function safeWriteFile(filePath, content) {
+  try {
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(filePath, content, 'utf-8');
+    return true;
+  } catch (err) {
+    // If running in a read-only filesystem (EROFS on Vercel/Lambda), fallback to /tmp
     try {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
-    } catch {}
+      const tmpDir = path.join('/tmp', 'reelexpress_data');
+      if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true });
+      }
+      const tmpPath = path.join(tmpDir, path.basename(filePath));
+      fs.writeFileSync(tmpPath, content, 'utf-8');
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
 
 /**
- * Reads Google OAuth client configuration from env vars or local config file
+ * Safely reads a file from disk, checking local data directory and /tmp fallback
  */
-export function getGoogleCalendarConfig() {
-  ensureDataDir();
+function safeReadFile(filePath) {
+  try {
+    if (fs.existsSync(filePath)) {
+      return fs.readFileSync(filePath, 'utf-8');
+    }
+  } catch {}
+  try {
+    const tmpPath = path.join('/tmp', 'reelexpress_data', path.basename(filePath));
+    if (fs.existsSync(tmpPath)) {
+      return fs.readFileSync(tmpPath, 'utf-8');
+    }
+  } catch {}
+  return null;
+}
 
+/**
+ * Safely removes a file from disk and /tmp fallback
+ */
+function safeUnlinkFile(filePath) {
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  } catch {}
+  try {
+    const tmpPath = path.join('/tmp', 'reelexpress_data', path.basename(filePath));
+    if (fs.existsSync(tmpPath)) {
+      fs.unlinkSync(tmpPath);
+    }
+  } catch {}
+}
+
+/**
+ * Reads Google OAuth client configuration from in-memory cache, Firestore (production/Vercel),
+ * safe local disk files, or environment variables.
+ */
+export async function getGoogleCalendarConfig() {
   let fileConfig = {};
-  if (fs.existsSync(CONFIG_FILE)) {
-    try {
-      fileConfig = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
-    } catch {}
+
+  // 1. Check in-memory cache
+  if (memoryConfigCache?.clientId && memoryConfigCache?.clientSecret) {
+    fileConfig = { ...memoryConfigCache };
   }
 
+  // 2. Check Firestore (primary persistent storage across all Vercel serverless instances)
+  if (!fileConfig.clientId && isFirebaseConfigured && db) {
+    try {
+      const docRef = doc(db, 'cms_settings', 'google_calendar');
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        const d = snap.data();
+        if (d?.clientId) {
+          fileConfig = {
+            clientId: d.clientId || '',
+            clientSecret: d.clientSecret || '',
+            redirectUri: d.redirectUri || '',
+          };
+          memoryConfigCache = { ...fileConfig };
+        }
+      }
+    } catch (err) {
+      console.warn('[GoogleCalendar] Firestore config read notice:', err.message);
+    }
+  }
+
+  // 3. Check disk file (local dev data/ or /tmp fallback)
+  if (!fileConfig.clientId) {
+    const raw = safeReadFile(CONFIG_FILE);
+    if (raw) {
+      try {
+        fileConfig = JSON.parse(raw);
+        memoryConfigCache = { ...fileConfig };
+      } catch {}
+    }
+  }
+
+  // 4. Fallback to process.env
   const clientId =
     process.env.GOOGLE_CLIENT_ID ||
     fileConfig.clientId ||
@@ -57,44 +149,103 @@ export function getGoogleCalendarConfig() {
 }
 
 /**
- * Saves Google OAuth client configuration locally
+ * Saves Google OAuth client configuration to in-memory cache, Firestore (for Vercel),
+ * and local safe disk files without throwing read-only filesystem errors.
  */
-export function saveGoogleCalendarConfig({ clientId, clientSecret, redirectUri = '' }) {
-  ensureDataDir();
+export async function saveGoogleCalendarConfig({ clientId, clientSecret, redirectUri = '' }) {
   const config = {
     clientId: (clientId || '').trim(),
     clientSecret: (clientSecret || '').trim(),
     redirectUri: (redirectUri || '').trim(),
     updatedAt: new Date().toISOString(),
   };
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), 'utf-8');
+
+  // 1. Update in-memory cache immediately
+  memoryConfigCache = { ...(memoryConfigCache || {}), ...config };
+
+  // 2. Persist to Firestore (handles Vercel read-only filesystem flawlessly)
+  if (isFirebaseConfigured && db) {
+    try {
+      const docRef = doc(db, 'cms_settings', 'google_calendar');
+      await setDoc(
+        docRef,
+        {
+          clientId: config.clientId,
+          clientSecret: config.clientSecret,
+          redirectUri: config.redirectUri,
+          updatedAt: config.updatedAt,
+        },
+        { merge: true }
+      );
+    } catch (err) {
+      console.warn('[GoogleCalendar] Firestore config save notice:', err.message);
+    }
+  }
+
+  // 3. Local disk safe write (non-blocking, never throws EROFS on Vercel)
+  safeWriteFile(CONFIG_FILE, JSON.stringify(config, null, 2));
+
   return { success: true };
 }
 
 /**
- * Reads saved Google OAuth tokens
+ * Reads saved Google OAuth tokens from in-memory cache, Firestore, or local disk fallback
  */
-export function getStoredTokens() {
-  ensureDataDir();
-  if (!fs.existsSync(TOKEN_FILE)) return null;
-  try {
-    const raw = fs.readFileSync(TOKEN_FILE, 'utf-8');
-    const data = JSON.parse(raw);
-    if (data && (data.tokens?.access_token || data.tokens?.refresh_token)) {
-      return data;
-    }
-  } catch (err) {
-    console.warn('[GoogleCalendar] Token read warning:', err.message);
+export async function getStoredTokens() {
+  // 1. In-memory cache
+  if (
+    memoryTokensCache &&
+    memoryTokensCache.connected &&
+    (memoryTokensCache.tokens?.access_token || memoryTokensCache.tokens?.refresh_token)
+  ) {
+    return memoryTokensCache;
   }
+
+  // 2. Firestore persistence (works across serverless instances and cold starts on Vercel)
+  if (isFirebaseConfigured && db) {
+    try {
+      const docRef = doc(db, 'cms_settings', 'google_calendar');
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        const d = snap.data();
+        if (d && d.connected && (d.tokens?.access_token || d.tokens?.refresh_token)) {
+          const payload = {
+            connected: true,
+            email: d.email || 'Admin Account',
+            name: d.name || '',
+            tokens: d.tokens,
+            connectedAt: d.connectedAt || null,
+            updatedAt: d.updatedAt || null,
+          };
+          memoryTokensCache = payload;
+          return payload;
+        }
+      }
+    } catch (err) {
+      console.warn('[GoogleCalendar] Firestore tokens read notice:', err.message);
+    }
+  }
+
+  // 3. Safe read from disk /tmp
+  const raw = safeReadFile(TOKEN_FILE);
+  if (raw) {
+    try {
+      const data = JSON.parse(raw);
+      if (data && (data.tokens?.access_token || data.tokens?.refresh_token)) {
+        memoryTokensCache = data;
+        return data;
+      }
+    } catch {}
+  }
+
   return null;
 }
 
 /**
- * Saves Google OAuth tokens
+ * Saves Google OAuth tokens to in-memory cache, Firestore, and local safe disk files
  */
-export function saveTokens({ tokens, email = '', name = '' }) {
-  ensureDataDir();
-  const existing = getStoredTokens() || {};
+export async function saveTokens({ tokens, email = '', name = '' }) {
+  const existing = (await getStoredTokens()) || {};
 
   const mergedTokens = {
     ...(existing.tokens || {}),
@@ -110,29 +261,71 @@ export function saveTokens({ tokens, email = '', name = '' }) {
     updatedAt: new Date().toISOString(),
   };
 
-  fs.writeFileSync(TOKEN_FILE, JSON.stringify(payload, null, 2), 'utf-8');
+  // 1. Update in-memory cache
+  memoryTokensCache = payload;
+
+  // 2. Persist to Firestore
+  if (isFirebaseConfigured && db) {
+    try {
+      const docRef = doc(db, 'cms_settings', 'google_calendar');
+      await setDoc(
+        docRef,
+        {
+          connected: true,
+          email: payload.email,
+          name: payload.name,
+          tokens: mergedTokens,
+          connectedAt: payload.connectedAt,
+          updatedAt: payload.updatedAt,
+        },
+        { merge: true }
+      );
+    } catch (err) {
+      console.warn('[GoogleCalendar] Firestore tokens save notice:', err.message);
+    }
+  }
+
+  // 3. Local disk safe write (non-blocking)
+  safeWriteFile(TOKEN_FILE, JSON.stringify(payload, null, 2));
+
   return payload;
 }
 
 /**
  * Clears saved Google OAuth tokens (disconnect)
  */
-export function clearTokens() {
-  ensureDataDir();
-  if (fs.existsSync(TOKEN_FILE)) {
+export async function clearTokens() {
+  memoryTokensCache = null;
+
+  if (isFirebaseConfigured && db) {
     try {
-      fs.unlinkSync(TOKEN_FILE);
-    } catch {}
+      const docRef = doc(db, 'cms_settings', 'google_calendar');
+      await setDoc(
+        docRef,
+        {
+          connected: false,
+          tokens: null,
+          email: null,
+          name: null,
+          disconnectedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+    } catch (err) {
+      console.warn('[GoogleCalendar] Firestore disconnect notice:', err.message);
+    }
   }
+
+  safeUnlinkFile(TOKEN_FILE);
   return { success: true };
 }
 
 /**
  * Gets connection status for client (safe: never returns secrets or refresh tokens)
  */
-export function getCalendarConnectionStatus() {
-  const config = getGoogleCalendarConfig();
-  const stored = getStoredTokens();
+export async function getCalendarConnectionStatus() {
+  const config = await getGoogleCalendarConfig();
+  const stored = await getStoredTokens();
 
   if (!stored || !stored.connected) {
     return {
@@ -158,8 +351,8 @@ export function getCalendarConnectionStatus() {
 /**
  * Generates official Google OAuth 2.0 authorization URL
  */
-export function getGoogleAuthUrl(requestOrigin = '') {
-  const config = getGoogleCalendarConfig();
+export async function getGoogleAuthUrl(requestOrigin = '') {
+  const config = await getGoogleCalendarConfig();
   if (!config.clientId) {
     throw new Error('Google Client ID is not configured. Please add it in settings.');
   }
@@ -193,7 +386,7 @@ export function getGoogleAuthUrl(requestOrigin = '') {
  * Exchanges authorization code for tokens
  */
 export async function exchangeCodeForTokens(code, requestOrigin = '') {
-  const config = getGoogleCalendarConfig();
+  const config = await getGoogleCalendarConfig();
   if (!config.clientId || !config.clientSecret) {
     throw new Error('Google OAuth credentials (Client ID or Client Secret) are missing.');
   }
@@ -228,28 +421,28 @@ export async function exchangeCodeForTokens(code, requestOrigin = '') {
     expiry_date: data.expires_in ? Date.now() + data.expires_in * 1000 : null,
   };
 
-  // Fetch authenticated user's email profile
+  // Fetch admin profile email to identify account
   let email = '';
   let name = '';
   try {
-    const userRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: { Authorization: `Bearer ${data.access_token}` },
+    const profileRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${tokens.access_token}` },
     });
-    if (userRes.ok) {
-      const userInfo = await userRes.json();
-      email = userInfo.email || '';
-      name = userInfo.name || '';
+    if (profileRes.ok) {
+      const profile = await profileRes.json();
+      email = profile.email || '';
+      name = profile.name || '';
     }
   } catch (err) {
-    console.warn('[GoogleCalendar] User info warning:', err.message);
+    console.warn('[GoogleCalendar] Profile fetch notice:', err.message);
   }
 
-  const saved = saveTokens({ tokens, email, name });
+  const saved = await saveTokens({ tokens, email, name });
   return {
-    success: true,
-    email: saved.email,
-    name: saved.name,
-    connectedAt: saved.connectedAt,
+    tokens,
+    email,
+    name,
+    saved,
   };
 }
 
@@ -257,7 +450,7 @@ export async function exchangeCodeForTokens(code, requestOrigin = '') {
  * Returns a valid access token, automatically refreshing if expired
  */
 export async function getValidAccessToken() {
-  const stored = getStoredTokens();
+  const stored = await getStoredTokens();
   if (!stored || !stored.tokens) {
     throw new Error('NOT_CONNECTED');
   }
@@ -276,7 +469,7 @@ export async function getValidAccessToken() {
   }
 
   // Refresh the access token using Google's token endpoint
-  const config = getGoogleCalendarConfig();
+  const config = await getGoogleCalendarConfig();
   if (!config.clientId || !config.clientSecret) {
     throw new Error('Google OAuth credentials missing for token refresh.');
   }
@@ -298,7 +491,7 @@ export async function getValidAccessToken() {
   if (!res.ok || data.error) {
     console.error('[GoogleCalendar] Refresh error:', data);
     if (data.error === 'invalid_grant') {
-      clearTokens();
+      await clearTokens();
       throw new Error('TOKEN_REVOKED');
     }
     throw new Error(data.error_description || data.error || 'Failed to refresh Google Calendar access token.');
@@ -310,7 +503,7 @@ export async function getValidAccessToken() {
     expiry_date: data.expires_in ? Date.now() + data.expires_in * 1000 : Date.now() + 3600 * 1000,
   };
 
-  saveTokens({ tokens: updatedTokens, email: stored.email, name: stored.name });
+  await saveTokens({ tokens: updatedTokens, email: stored.email, name: stored.name });
   return updatedTokens.access_token;
 }
 
@@ -321,66 +514,63 @@ export function parseShootDateTime(eventDateRaw = '', eventTimeRaw = '', message
   if (!eventDateRaw || !String(eventDateRaw).trim()) {
     return {
       isValid: false,
-      error: 'Shoot Date is missing from this enquiry.',
+      error: 'Shoot date is required to create a Google Calendar event.',
     };
   }
 
   const rawDateStr = String(eventDateRaw).trim();
-  let dateObj = null;
+  let dateIsoString = null;
 
-  // Pattern 1: YYYY-MM-DD
-  if (/^\d{4}-\d{2}-\d{2}/.test(rawDateStr)) {
-    const [year, month, day] = rawDateStr.split('T')[0].split('-').map(Number);
-    dateObj = { year, month, day };
+  // Format 1: YYYY-MM-DD
+  const ymdMatch = rawDateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (ymdMatch) {
+    const y = ymdMatch[1];
+    const m = ymdMatch[2].padStart(2, '0');
+    const d = ymdMatch[3].padStart(2, '0');
+    dateIsoString = `${y}-${m}-${d}`;
   }
-  // Pattern 2: DD/MM/YYYY or DD-MM-YYYY
-  else if (/^\d{1,2}[/-]\d{1,2}[/-]\d{4}/.test(rawDateStr)) {
-    const parts = rawDateStr.split(/[/-]/).map(Number);
-    dateObj = { day: parts[0], month: parts[1], year: parts[2] };
-  }
-  // Pattern 3: Standard Date parse
-  else {
-    const parsed = new Date(rawDateStr);
-    if (!isNaN(parsed.getTime())) {
-      dateObj = {
-        year: parsed.getFullYear(),
-        month: parsed.getMonth() + 1,
-        day: parsed.getDate(),
-      };
+
+  // Format 2: DD/MM/YYYY or DD-MM-YYYY
+  if (!dateIsoString) {
+    const dmyMatch = rawDateStr.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+    if (dmyMatch) {
+      const d = dmyMatch[1].padStart(2, '0');
+      const m = dmyMatch[2].padStart(2, '0');
+      const y = dmyMatch[3];
+      dateIsoString = `${y}-${m}-${d}`;
     }
   }
 
-  if (!dateObj || !dateObj.year || !dateObj.month || !dateObj.day) {
+  // Format 3: JavaScript Date parsable string
+  if (!dateIsoString) {
+    const parsed = new Date(rawDateStr);
+    if (!isNaN(parsed.getTime())) {
+      dateIsoString = parsed.toISOString().split('T')[0];
+    }
+  }
+
+  if (!dateIsoString) {
     return {
       isValid: false,
-      error: `Invalid shoot date format: "${rawDateStr}".`,
+      error: `Could not parse shoot date "${eventDateRaw}". Please use YYYY-MM-DD format.`,
     };
   }
 
-  // Format YYYY-MM-DD
-  const yyyy = String(dateObj.year);
-  const mm = String(dateObj.month).padStart(2, '0');
-  const dd = String(dateObj.day).padStart(2, '0');
-  const dateIsoString = `${yyyy}-${mm}-${dd}`;
-
-  // Time extraction
-  let isTentativeTime = true;
+  // Parse time or fallback to 10:00 AM tentatively
   let startHour = 10;
   let startMin = 0;
-  let durationHours = 2;
+  let durationHours = 3;
+  let isTentativeTime = true;
 
-  const combinedTimeText = `${eventTimeRaw || ''} ${message || ''}`.toLowerCase();
-
-  // Check 12-hour AM/PM pattern: e.g. "11:30 am", "4:00 pm", "5pm", "10 am"
-  const ampmMatch = combinedTimeText.match(/\b(1[0-2]|0?[1-9])(?::([0-5][0-9]))?\s*(am|pm)\b/);
-  // Check 24-hour pattern: e.g. "14:30", "16:00"
-  const h24Match = combinedTimeText.match(/\b([01]?[0-9]|2[0-3]):([0-5][0-9])\b/);
+  const rawTimeCandidate = String(eventTimeRaw || '').trim() || String(message || '');
+  const ampmMatch = rawTimeCandidate.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
+  const h24Match = String(eventTimeRaw || '').trim().match(/^(\d{1,2}):(\d{2})$/);
 
   if (ampmMatch) {
     isTentativeTime = false;
     let hour = parseInt(ampmMatch[1], 10);
     const minute = ampmMatch[2] ? parseInt(ampmMatch[2], 10) : 0;
-    const isPm = ampmMatch[3] === 'pm';
+    const isPm = ampmMatch[3].toLowerCase() === 'pm';
     if (isPm && hour < 12) hour += 12;
     if (!isPm && hour === 12) hour = 0;
     startHour = hour;
