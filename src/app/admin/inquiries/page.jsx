@@ -12,7 +12,6 @@ import GoogleCalendarSettingsModal, {
 const PAGE_SIZE = 10;
 const FIREBASE_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'reelxpress-a862c';
 
-// Robust parsing for multiple date formats (ISO timestamp, YYYY-MM-DD, DD/MM/YYYY, Firestore timestamp)
 function parseDateSafe(val) {
   if (!val) return null;
   if (val instanceof Date) {
@@ -36,13 +35,11 @@ function parseDateSafe(val) {
   const s = val.trim();
   if (!s) return null;
 
-  // Format: YYYY-MM-DD
   const ymd = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
   if (ymd) {
     return new Date(parseInt(ymd[1], 10), parseInt(ymd[2], 10) - 1, parseInt(ymd[3], 10));
   }
 
-  // Format: DD-MM-YYYY or DD/MM/YYYY
   const dmy = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
   if (dmy) {
     return new Date(parseInt(dmy[3], 10), parseInt(dmy[2], 10) - 1, parseInt(dmy[1], 10));
@@ -52,10 +49,8 @@ function parseDateSafe(val) {
   return isNaN(d.getTime()) ? null : d;
 }
 
-// Checks if two dates fall on the same calendar day in local or Asia/Kolkata timezone
 function isSameDay(d1, d2) {
   if (!d1 || !d2) return false;
-  // Local browser check
   if (
     d1.getFullYear() === d2.getFullYear() &&
     d1.getMonth() === d2.getMonth() &&
@@ -63,7 +58,6 @@ function isSameDay(d1, d2) {
   ) {
     return true;
   }
-  // Asia/Kolkata timezone check
   try {
     const fmt = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Asia/Kolkata',
@@ -86,23 +80,19 @@ export default function AdminInquiriesPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
-  // Search & Filters
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Selected inquiry for detail modal
   const [selectedInquiry, setSelectedInquiry] = useState(null);
 
-  // Inquiry marked for deletion confirmation
   const [inquiryToDelete, setInquiryToDelete] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
   const [copiedInquiryId, setCopiedInquiryId] = useState(null);
 
-  // Google Calendar Integration States
   const [calendarStatus, setCalendarStatus] = useState({
     configured: false,
     connected: false,
@@ -117,7 +107,6 @@ export default function AdminInquiriesPage() {
     message: '',
   });
 
-  // Fetch Google Calendar connection status
   const refreshCalendarStatus = async () => {
     try {
       const res = await fetch('/api/google-calendar/status');
@@ -137,7 +126,6 @@ export default function AdminInquiriesPage() {
   useEffect(() => {
     refreshCalendarStatus();
 
-    // Check if redirected back after OAuth flow
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('calendar_connected') === 'true') {
@@ -148,11 +136,7 @@ export default function AdminInquiriesPage() {
     }
   }, []);
 
-  /**
-   * Add to Google Calendar handler with full validation & duplicate prevention
-   */
   const handleAddToCalendar = async (inq) => {
-    // 1. Missing date check
     if (!inq.eventDate || !String(inq.eventDate).trim()) {
       setValidationModal({
         isOpen: true,
@@ -162,20 +146,17 @@ export default function AdminInquiriesPage() {
       return;
     }
 
-    // 2. Prevent duplicate event creation if already synced
     if (inq.googleCalendarSyncStatus === 'synced' && inq.googleCalendarEventUrl) {
       window.open(inq.googleCalendarEventUrl, '_blank', 'noopener,noreferrer');
       return;
     }
 
-    // 3. Connect check: If admin hasn't connected Google Calendar yet
     if (!calendarStatus?.connected) {
       setPendingCalendarEnquiry(inq);
       setIsCalendarModalOpen(true);
       return;
     }
 
-    // 4. API Request to create event in Google Calendar
     setSyncingInquiryId(inq.id);
     try {
       const res = await fetch('/api/google-calendar/sync-event', {
@@ -186,7 +167,6 @@ export default function AdminInquiriesPage() {
       const data = await res.json();
 
       if (data.success) {
-        // Update in-memory enquiries list with synced status & URL
         setInquiries((prev) =>
           prev.map((item) =>
             item.id === inq.id
@@ -238,7 +218,6 @@ export default function AdminInquiriesPage() {
     }
   };
 
-  // Prevent background scrolling while modal is open
   useEffect(() => {
     if (selectedInquiry || inquiryToDelete) {
       const originalOverflow = document.body.style.overflow;
@@ -274,6 +253,7 @@ export default function AdminInquiriesPage() {
     const shootDate = inq.eventDate || inq.date || 'Not specified';
     const shootTime = inq.eventTime || inq.time || '';
     const city = inq.city || 'Bengaluru';
+    const locality = inq.locality || '';
     const status = inq.status || 'New';
     const source = inq.sourcePage || inq.source || 'Website';
     const message = inq.enquiryMessage || inq.message || inq.notes || 'None';
@@ -291,7 +271,7 @@ export default function AdminInquiriesPage() {
       `✉️ Email: ${email}`,
       `🎬 Service: ${service}`,
       `📅 Shoot Date: ${shootDate}${shootTime ? ` at ${shootTime}` : ''}`,
-      `📍 Location: ${city}, India`,
+      `📍 Location: ${locality ? `${locality}, ` : ''}${city}, India`,
       `📌 Status: ${status}`,
       `🌐 Source: ${source}`,
       received ? `⏰ Received: ${received}` : '',
@@ -366,13 +346,11 @@ export default function AdminInquiriesPage() {
     }
   };
 
-  // Real-time Firestore onSnapshot listener + fast API verification
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
     setErrorNotice(null);
 
-    // 1. Fast REST check to verify Firestore connectivity & status immediately
     fetch('/api/enquiries')
       .then(async (res) => {
         const data = await res.json().catch(() => ({}));
@@ -393,7 +371,6 @@ export default function AdminInquiriesPage() {
         console.warn('API enquiries check notice:', err);
       });
 
-    // 2. Real-time Firestore onSnapshot push listener
     const unsubscribe = subscribeToEnquiries({
       onData: (data) => {
         if (!isMounted) return;
@@ -461,7 +438,6 @@ export default function AdminInquiriesPage() {
         body: JSON.stringify({ id, status: newStatus, adminEmail: user?.email || 'admin@reelxpress.com' }),
       });
       showToast(`Status updated to "${newStatus}".`);
-      // Optimistic update in state
       setInquiries((prev) =>
         prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
       );
@@ -508,6 +484,7 @@ export default function AdminInquiriesPage() {
       'Selected Package / Service',
       'Event Date',
       'City',
+      'Locality',
       'Status',
       'Submitted Date',
       'Google Calendar Sync',
@@ -523,6 +500,7 @@ export default function AdminInquiriesPage() {
       `"${(inq.selectedService || inq.package || inq.companyName || '').replace(/"/g, '""')}"`,
       `"${(inq.eventDate || inq.date || '').replace(/"/g, '""')}"`,
       `"${(inq.city || 'Bengaluru').replace(/"/g, '""')}"`,
+      `"${(inq.locality || '').replace(/"/g, '""')}"`,
       `"${(inq.status || 'New').replace(/"/g, '""')}"`,
       `"${(inq.createdAt || inq.formattedDate || '').replace(/"/g, '""')}"`,
       `"${(inq.googleCalendarSyncStatus || 'not_synced').replace(/"/g, '""')}"`,
@@ -542,11 +520,9 @@ export default function AdminInquiriesPage() {
     showToast(`Exported ${filteredInquiries.length} enquiry(ies) to CSV!`);
   };
 
-  // Filtered and sorted enquiries
   const filteredInquiries = useMemo(() => {
     let result = [...inquiries];
 
-    // Search filter
     if (search.trim()) {
       const term = search.toLowerCase().trim();
       result = result.filter(
@@ -559,21 +535,19 @@ export default function AdminInquiriesPage() {
           (inq.selectedService && inq.selectedService.toLowerCase().includes(term)) ||
           (inq.eventDate && inq.eventDate.toLowerCase().includes(term)) ||
           (inq.city && inq.city.toLowerCase().includes(term)) ||
+          (inq.locality && inq.locality.toLowerCase().includes(term)) ||
           (inq.enquiryMessage && inq.enquiryMessage.toLowerCase().includes(term))
       );
     }
 
-    // Status filter
     if (statusFilter !== 'all') {
       const target = statusFilter.toLowerCase();
       result = result.filter((inq) => (inq.status || '').toLowerCase() === target);
     }
 
-    // Date filter
     if (dateFilter !== 'all') {
       const now = new Date();
       result = result.filter((inq) => {
-        // Collect all potential candidate dates (submission date and shoot date)
         const candidateDates = [
           parseDateSafe(inq.createdAt),
           parseDateSafe(inq.timestampDate),
@@ -606,7 +580,6 @@ export default function AdminInquiriesPage() {
       });
     }
 
-    // Sort
     result.sort((a, b) => {
       const timeA = new Date(a.createdAt || a.timestampDate || 0).getTime();
       const timeB = new Date(b.createdAt || b.timestampDate || 0).getTime();
@@ -616,12 +589,10 @@ export default function AdminInquiriesPage() {
     return result;
   }, [inquiries, search, statusFilter, dateFilter, sortBy]);
 
-  // Reset page when filter changes
   useEffect(() => {
     setCurrentPage(1);
   }, [search, statusFilter, dateFilter, sortBy]);
 
-  // Pagination calculation
   const totalItems = filteredInquiries.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
   const paginatedInquiries = useMemo(() => {
@@ -631,7 +602,6 @@ export default function AdminInquiriesPage() {
 
   return (
     <div className="space-y-6 select-none">
-      {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-6 right-6 z-[100050] px-5 py-3 rounded-2xl bg-emerald-950/95 border border-emerald-500/50 text-white text-sm shadow-[0_15px_40px_rgba(0,0,0,0.8)] flex items-center gap-2.5 animate-fadeIn">
           <span className="material-symbols-outlined text-emerald-400">check_circle</span>
@@ -639,7 +609,6 @@ export default function AdminInquiriesPage() {
         </div>
       )}
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
         <div>
           <div className="flex items-center gap-2.5 mb-2">
@@ -664,7 +633,6 @@ export default function AdminInquiriesPage() {
         </div>
 
         <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
-          {/* Google Calendar Status / Connect Button */}
           <button
             onClick={() => {
               setPendingCalendarEnquiry(null);
@@ -719,7 +687,6 @@ export default function AdminInquiriesPage() {
         </div>
       </div>
 
-      {/* Database Setup Notice Banner (Shown if Firestore 404 occurs) */}
       {errorNotice && (
         <div className="p-5 rounded-2xl bg-amber-950/60 border border-amber-500/50 text-amber-100 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-fadeIn">
           <div className="flex items-start gap-3">
@@ -747,9 +714,7 @@ export default function AdminInquiriesPage() {
         </div>
       )}
 
-      {/* Search & Filter Toolbar */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-3 p-4 rounded-2xl bg-[#151215] border border-white/10 shadow-lg">
-        {/* Search */}
         <div className="md:col-span-4 relative">
           <input
             type="text"
@@ -763,7 +728,6 @@ export default function AdminInquiriesPage() {
           </span>
         </div>
 
-        {/* Status Filter Tabs */}
         <div className="md:col-span-4 flex items-center gap-1 p-1 rounded-xl bg-[#0c0a0c] border border-white/10 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {['all', 'New', 'Contacted', 'Booked', 'Lost'].map((st) => (
             <button
@@ -780,7 +744,6 @@ export default function AdminInquiriesPage() {
           ))}
         </div>
 
-        {/* Date Filter Dropdown */}
         <div className="md:col-span-2">
           <select
             value={dateFilter}
@@ -794,7 +757,6 @@ export default function AdminInquiriesPage() {
           </select>
         </div>
 
-        {/* Sort Dropdown */}
         <div className="md:col-span-2">
           <select
             value={sortBy}
@@ -807,7 +769,6 @@ export default function AdminInquiriesPage() {
         </div>
       </div>
 
-      {/* Enquiries Table Card */}
       <div className="rounded-3xl bg-[#151215] border border-white/10 overflow-hidden shadow-xl">
         {loading ? (
           <div className="py-20 text-center text-text-muted text-sm">
@@ -855,7 +816,6 @@ export default function AdminInquiriesPage() {
                       className="hover:bg-white/[0.02] transition-colors group cursor-pointer"
                       onClick={() => setSelectedInquiry(inq)}
                     >
-                      {/* Name & Company */}
                       <td className="py-4 px-5">
                         <div className="font-extrabold text-white text-base">
                           {inq.customerName || inq.fullName}
@@ -881,7 +841,6 @@ export default function AdminInquiriesPage() {
                         )}
                       </td>
 
-                      {/* Email & Phone */}
                       <td className="py-4 px-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-1.5 text-xs text-white/90">
                           <span className="material-symbols-outlined text-[15px] text-[#F28C3C]">mail</span>
@@ -893,7 +852,6 @@ export default function AdminInquiriesPage() {
                         </div>
                       </td>
 
-                      {/* Service Type */}
                       <td className="py-4 px-4">
                         <div className="text-xs font-semibold text-white/90 max-w-[220px] truncate" title={inq.selectedService || inq.serviceType}>
                           {inq.selectedService || inq.serviceType}
@@ -903,13 +861,12 @@ export default function AdminInquiriesPage() {
                         </div>
                       </td>
 
-                      {/* Event Date & Location */}
                       <td className="py-4 px-4 whitespace-nowrap">
                         <div className="text-xs text-white">
                           📅 {inq.eventDate || 'Date not specified'}
                         </div>
                         <div className="text-[11px] text-text-muted mt-0.5">
-                          📍 {inq.city || 'Bengaluru'}
+                          📍 {inq.locality ? `${inq.locality}, ` : ''}{inq.city || 'Bengaluru'}
                         </div>
                         {inq.googleCalendarSyncStatus === 'synced' ? (
                           <div className="mt-1">
@@ -928,7 +885,6 @@ export default function AdminInquiriesPage() {
                         ) : null}
                       </td>
 
-                      {/* Status Dropdown */}
                       <td className="py-4 px-4" onClick={(e) => e.stopPropagation()}>
                         <select
                           value={
@@ -964,10 +920,8 @@ export default function AdminInquiriesPage() {
                         </select>
                       </td>
 
-                      {/* Action Buttons */}
                       <td className="py-4 px-5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="inline-flex items-center gap-1.5">
-                          {/* WhatsApp Button */}
                           <a
                             href={waLink}
                             target="_blank"
@@ -980,7 +934,6 @@ export default function AdminInquiriesPage() {
                             </svg>
                           </a>
 
-                          {/* Google Calendar Action Button */}
                           {inq.googleCalendarSyncStatus === 'synced' ? (
                             <a
                               href={inq.googleCalendarEventUrl || 'https://calendar.google.com'}
@@ -1021,7 +974,6 @@ export default function AdminInquiriesPage() {
                             </button>
                           )}
 
-                          {/* Copy Enquiry Details Button */}
                           <button
                             type="button"
                             onClick={(e) => handleCopyEnquiry(inq, e)}
@@ -1037,7 +989,6 @@ export default function AdminInquiriesPage() {
                             </span>
                           </button>
 
-                          {/* Email Button */}
                           <a
                             href={mailLink}
                             title="Email Customer"
@@ -1046,7 +997,6 @@ export default function AdminInquiriesPage() {
                             <span className="material-symbols-outlined text-sm">mail</span>
                           </a>
 
-                          {/* Delete Button */}
                           <button
                             onClick={() => setInquiryToDelete(inq)}
                             title="Delete Enquiry"
@@ -1064,7 +1014,6 @@ export default function AdminInquiriesPage() {
           </div>
         )}
 
-        {/* Pagination Bar */}
         {totalItems > 0 && (
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-t border-white/10 text-xs text-text-muted bg-[#0c0a0c]">
             <div>
@@ -1100,9 +1049,6 @@ export default function AdminInquiriesPage() {
         )}
       </div>
 
-      {/* =========================================================================
-          ENQUIRY DETAIL DRAWER / MODAL
-         ========================================================================= */}
       {selectedInquiry && (
         <div
           data-lenis-prevent
@@ -1172,10 +1118,10 @@ export default function AdminInquiriesPage() {
 
                 <div>
                   <span className="text-[11px] uppercase tracking-wider text-text-muted font-bold block mb-1">
-                    Location / City
+                    Location / City &amp; Locality
                   </span>
                   <span className="text-white font-semibold">
-                    {selectedInquiry.city || 'Bengaluru'}
+                    {selectedInquiry.locality ? `${selectedInquiry.locality}, ` : ''}{selectedInquiry.city || 'Bengaluru'}
                   </span>
                 </div>
 
@@ -1190,7 +1136,6 @@ export default function AdminInquiriesPage() {
                   </div>
                 )}
 
-                {/* Google Calendar Sync Info Card */}
                 <div className="col-span-2 p-3.5 rounded-xl bg-[#4285F4]/10 border border-[#4285F4]/25 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <GoogleCalendarIcon className="w-5 h-5 text-[#4285F4] shrink-0" />
@@ -1270,7 +1215,6 @@ export default function AdminInquiriesPage() {
                 </div>
               </div>
 
-              {/* Status Update Options */}
               <div className="pt-2">
                 <span className="text-[11px] uppercase tracking-wider text-text-muted font-bold block mb-2">
                   Update Enquiry Status
@@ -1296,7 +1240,6 @@ export default function AdminInquiriesPage() {
               </div>
             </div>
 
-            {/* Quick Contact Footer */}
             <div className="mt-8 pt-5 border-t border-white/10 flex flex-wrap gap-3">
               <a
                 href={`https://wa.me/${(selectedInquiry.phone || '').replace(/\D/g, '')}?text=${encodeURIComponent(
@@ -1318,7 +1261,6 @@ export default function AdminInquiriesPage() {
                 <span>Send Email</span>
               </a>
 
-              {/* Copy Details */}
               <button
                 type="button"
                 onClick={() => handleCopyEnquiry(selectedInquiry)}
@@ -1365,9 +1307,6 @@ export default function AdminInquiriesPage() {
         </div>
       )}
 
-      {/* =========================================================================
-          DELETE CONFIRMATION MODAL
-         ========================================================================= */}
       {inquiryToDelete && (
         <div
           data-lenis-prevent
@@ -1410,9 +1349,6 @@ export default function AdminInquiriesPage() {
         </div>
       )}
 
-      {/* =========================================================================
-          GOOGLE CALENDAR SETTINGS & CONNECTION MODAL
-         ========================================================================= */}
       <GoogleCalendarSettingsModal
         isOpen={isCalendarModalOpen}
         onClose={() => {
@@ -1422,7 +1358,6 @@ export default function AdminInquiriesPage() {
         status={calendarStatus}
         onStatusChange={(newStatus) => {
           setCalendarStatus(newStatus);
-          // If there was an enquiry waiting to be synced, auto-sync it!
           if (newStatus.connected && pendingCalendarEnquiry) {
             const inqToSync = pendingCalendarEnquiry;
             setPendingCalendarEnquiry(null);
@@ -1435,9 +1370,6 @@ export default function AdminInquiriesPage() {
         pendingEnquiry={pendingCalendarEnquiry}
       />
 
-      {/* =========================================================================
-          VALIDATION ALERT MODAL (Shoot Date Missing)
-         ========================================================================= */}
       {validationModal.isOpen && (
         <div
           data-lenis-prevent

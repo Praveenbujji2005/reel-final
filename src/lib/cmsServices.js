@@ -16,9 +16,6 @@ import {
   FAQ_DATA,
 } from './data';
 
-// =============================================================================
-// LOCAL PERSISTENCE KEYS
-// =============================================================================
 export const CMS_STORAGE_KEYS = {
   hero: 'reelxpress_cms_hero',
   pricing: 'reelxpress_cms_pricing',
@@ -27,17 +24,12 @@ export const CMS_STORAGE_KEYS = {
   activity: 'reelxpress_cms_activity_logs',
 };
 
-// Legacy keys for seamless backward compatibility
 const LEGACY_STORAGE_KEYS = {
   hero: 'reelxpress_cms_hero_slides',
   pricing: 'reelxpress_cms_pricing_plans',
 };
 
-// =============================================================================
-// 1. BASELINE CATALOG SEED DATA
-// =============================================================================
 
-// Default 6 client reviews
 export const INITIAL_TESTIMONIALS = [
   {
     id: 'testi_1',
@@ -119,9 +111,7 @@ export const INITIAL_TESTIMONIALS = [
   },
 ];
 
-// Default 10 pricing packages (Instant x4, Business x2, Wedding x4)
 export const INITIAL_PRICING_PLANS = [
-  // Instant
   {
     id: 'instant-hourly',
     category: 'instant',
@@ -218,7 +208,6 @@ export const INITIAL_PRICING_PLANS = [
     ],
     ctaText: 'Book Full Day',
   },
-  // Business
   {
     id: 'business-brand',
     category: 'business',
@@ -267,7 +256,6 @@ export const INITIAL_PRICING_PLANS = [
     ],
     ctaText: 'Enquire now',
   },
-  // Wedding
   {
     id: 'wedding-basic',
     category: 'wedding',
@@ -364,9 +352,31 @@ export const INITIAL_PRICING_PLANS = [
     ],
     ctaText: 'Book Platinum',
   },
+  {
+    id: 'luxe-exclusive',
+    category: 'luxe',
+    tag: 'LUXE EXPERIENCE',
+    name: 'ReelXpress Luxe',
+    description: 'Our premium tier — handpicked creators, cinematic shooting, and an experience built for the finest events.',
+    price: '₹ 19,999',
+    priceSuffix: '+ GST per event',
+    badge: 'LUXURY',
+    isPopular: true,
+    enabled: true,
+    order: 11,
+    shootType: 'ReelXpress Luxe (Starts at ₹19,999)',
+    inclusions: [
+      'iPhone 16/17 Pro only',
+      'Top 1% creators',
+      'Cinematic direction',
+      'Same-day delivery',
+      'Dedicated creative director on-site',
+      'High-bitrate 4K HDR ProRes capture',
+    ],
+    ctaText: 'See Luxe',
+  },
 ];
 
-// Default FAQs
 export const INITIAL_FAQS = (FAQ_DATA || []).map((faq, idx) => ({
   id: 'faq_' + (idx + 1),
   question: faq.question || faq.q || '',
@@ -376,7 +386,6 @@ export const INITIAL_FAQS = (FAQ_DATA || []).map((faq, idx) => ({
   order: idx + 1,
 }));
 
-// Default Hero slides
 export const INITIAL_HERO_SLIDES = (REEL_PORTFOLIO || []).map((reel, idx) => ({
   id: String(reel.id !== undefined && reel.id !== null ? reel.id : `hero_${idx + 1}`),
   title: reel.title || `Featured Reel ${idx + 1}`,
@@ -391,18 +400,11 @@ export const INITIAL_HERO_SLIDES = (REEL_PORTFOLIO || []).map((reel, idx) => ({
   order: reel.order || idx + 1,
 }));
 
-// =============================================================================
-// 2. HELPER FUNCTIONS: TIMEOUT & CACHE & MERGE
-// =============================================================================
 
-/**
- * Server-safe browser localStorage reader
- */
 function getLocal(key, defaultVal) {
   if (typeof window === 'undefined') return defaultVal;
   try {
     let raw = localStorage.getItem(key);
-    // Legacy fallback check if modern key not found
     if (!raw) {
       for (const [canonical, legacy] of Object.entries(LEGACY_STORAGE_KEYS)) {
         if (CMS_STORAGE_KEYS[canonical] === key) {
@@ -423,9 +425,6 @@ function getLocal(key, defaultVal) {
   }
 }
 
-/**
- * Server-safe browser localStorage writer (updates both canonical & legacy keys)
- */
 function setLocal(key, val) {
   if (typeof window === 'undefined') return;
   try {
@@ -440,9 +439,6 @@ function setLocal(key, val) {
   } catch {}
 }
 
-// =============================================================================
-// SYNCHRONOUS CACHED GETTERS (Instant 0ms bootstrap for public components)
-// =============================================================================
 
 export function getCachedHeroSlides() {
   const cached = getLocal(CMS_STORAGE_KEYS.hero, null);
@@ -480,14 +476,11 @@ export function getCachedFaqs() {
   return INITIAL_FAQS;
 }
 
-// =============================================================================
-// REQUEST DEDUPLICATION, IN-MEMORY CACHE & RESILIENT FETCH ENGINE
-// =============================================================================
 
 const inFlightQueries = new Map();
 const memoryCache = new Map();
-const MEMORY_CACHE_TTL = 3 * 60 * 1000; // 3 minutes fresh in-memory
-const failureCooldown = new Map(); // 15-second cooldown per query key if failed
+const MEMORY_CACHE_TTL = 3 * 60 * 1000;
+const failureCooldown = new Map();
 const COOLDOWN_MS = 15000;
 
 export function invalidateCmsCache(type) {
@@ -514,9 +507,6 @@ export function invalidateCmsCache(type) {
   }
 }
 
-/**
- * Classify errors for accurate diagnosis & appropriate recovery
- */
 function classifyError(err) {
   if (!err) return { type: 'unknown', isTimeout: false, isOffline: false, message: 'Unknown error' };
   const msg = (err.message || String(err)).toLowerCase();
@@ -538,9 +528,6 @@ function classifyError(err) {
   };
 }
 
-/**
- * Updates localStorage when a query (or delayed background query) succeeds
- */
 function updateLocalStorageFromCollection(colName, docs) {
   if (typeof window === 'undefined' || !Array.isArray(docs)) return;
   const colToKeyMap = {
@@ -561,20 +548,10 @@ function updateLocalStorageFromCollection(colName, docs) {
   setLocal(key, merged);
 }
 
-/**
- * Robust safeQueryDocs Engine:
- * 1. Configurable request timeout (options.timeoutMs, default 3000ms).
- * 2. Per-collection in-flight request deduplication via shared Promise.
- * 3. Prevents overlapping fallback requests.
- * 4. Distinct classification of timeouts, offline errors, and empty collections.
- * 5. Does NOT treat timeout as an empty collection (returns null so cache/defaults are kept).
- * 6. Updates memory cache and localStorage when a delayed Firestore request eventually succeeds.
- */
 async function safeQueryDocs(colName, sortField, sortDir = 'asc', options = {}) {
   const timeoutMs = options.timeoutMs || 3000;
   const queryKey = `${colName}_${sortField || 'none'}_${sortDir}`;
 
-  // 1. In-memory cache check (instant 0ms)
   if (!options.forceRefresh && memoryCache.has(queryKey)) {
     const cached = memoryCache.get(queryKey);
     if (Date.now() - cached.timestamp < MEMORY_CACHE_TTL) {
@@ -582,12 +559,10 @@ async function safeQueryDocs(colName, sortField, sortDir = 'asc', options = {}) 
     }
   }
 
-  // 2. Per-collection in-flight request deduplication
   if (inFlightQueries.has(queryKey)) {
     return inFlightQueries.get(queryKey);
   }
 
-  // 3. Failure cooldown check (prevents spammed timeouts when offline)
   if (!options.forceRefresh && failureCooldown.has(queryKey)) {
     const failedAt = failureCooldown.get(queryKey);
     if (Date.now() - failedAt < COOLDOWN_MS) {
@@ -599,7 +574,6 @@ async function safeQueryDocs(colName, sortField, sortDir = 'asc', options = {}) 
     let primaryResolved = false;
     let directFirestorePromise = null;
 
-    // ATTEMPT 1: Direct Firestore client query
     if (isFirebaseConfigured && db) {
       try {
         let q;
@@ -613,9 +587,6 @@ async function safeQueryDocs(colName, sortField, sortDir = 'asc', options = {}) 
 
         directFirestorePromise = getDocs(q);
 
-        // Delayed background resolution handler:
-        // If Firestore takes longer than timeoutMs but eventually succeeds,
-        // it updates memoryCache and localStorage, and notifies listeners.
         directFirestorePromise
           .then((snap) => {
             if (snap) {
@@ -624,7 +595,6 @@ async function safeQueryDocs(colName, sortField, sortDir = 'asc', options = {}) 
               failureCooldown.delete(queryKey);
               updateLocalStorageFromCollection(colName, docs);
 
-              // If this finished after the timeout had already triggered fallback, notify UI
               if (!primaryResolved && typeof window !== 'undefined') {
                 window.dispatchEvent(
                   new CustomEvent('cms-cache-invalidated', {
@@ -641,7 +611,6 @@ async function safeQueryDocs(colName, sortField, sortDir = 'asc', options = {}) 
             }
           });
 
-        // Race against configurable timeout
         const snap = await Promise.race([
           directFirestorePromise,
           new Promise((_, reject) =>
@@ -655,7 +624,7 @@ async function safeQueryDocs(colName, sortField, sortDir = 'asc', options = {}) 
           memoryCache.set(queryKey, { data: docs, timestamp: Date.now() });
           failureCooldown.delete(queryKey);
           updateLocalStorageFromCollection(colName, docs);
-          return docs; // Legitimate empty [] or populated docs
+          return docs;
         }
       } catch (err) {
         primaryResolved = false;
@@ -666,8 +635,6 @@ async function safeQueryDocs(colName, sortField, sortDir = 'asc', options = {}) 
       }
     }
 
-    // ATTEMPT 2: Client-side sequential fallback to internal /api/cms endpoint (Node.js direct connection)
-    // Runs ONLY if Attempt 1 did not already resolve
     if (typeof window !== 'undefined') {
       try {
         const typeMap = {
@@ -704,9 +671,7 @@ async function safeQueryDocs(colName, sortField, sortDir = 'asc', options = {}) 
       }
     }
 
-    // Cooldown on failure
     failureCooldown.set(queryKey, Date.now());
-    // Return null (NOT empty array []) so caller treats this as network failure, NOT as "no items in DB"
     return null;
   })().finally(() => {
     inFlightQueries.delete(queryKey);
@@ -716,19 +681,9 @@ async function safeQueryDocs(colName, sortField, sortDir = 'asc', options = {}) 
   return queryPromise;
 }
 
-/**
- * Intelligent Catalog Merge:
- * Combines default baseline items with Firestore modifications:
- * 1. Default items form the initial catalog.
- * 2. Documents from Firestore override defaults with updated fields.
- * 3. Deleted items (_deleted === true) are excluded.
- * 4. Custom items created by admin are appended.
- * 5. Returns sorted list by order.
- */
 function mergeCloudWithDefaults(defaults, cloudDocs, options = {}) {
   const map = new Map();
 
-  // Populate default baseline items with stringified IDs
   (defaults || []).forEach((item) => {
     if (!item) return;
     const key = String(item.id !== undefined && item.id !== null ? item.id : '').trim();
@@ -742,7 +697,6 @@ function mergeCloudWithDefaults(defaults, cloudDocs, options = {}) {
       if (!cloudItem || cloudItem.id === undefined || cloudItem.id === null) return;
 
       const rawId = String(cloudItem.id).trim();
-      // Handle legacy aliases (e.g. plan_business_brand -> business-brand)
       const targetId = rawId === 'plan_business_brand' ? 'business-brand' : rawId;
 
       if (cloudItem._deleted === true) {
@@ -753,7 +707,6 @@ function mergeCloudWithDefaults(defaults, cloudDocs, options = {}) {
 
       const existing = map.get(targetId) || map.get(rawId) || {};
 
-      // Testimonial specific: Keep quote and review strictly synchronized
       const text =
         cloudItem.review ||
         cloudItem.quote ||
@@ -761,7 +714,6 @@ function mergeCloudWithDefaults(defaults, cloudDocs, options = {}) {
         existing.quote ||
         '';
 
-      // FAQ specific: Keep question and answer synchronized
       const question =
         cloudItem.question ||
         cloudItem.q ||
@@ -819,9 +771,6 @@ function mergeCloudWithDefaults(defaults, cloudDocs, options = {}) {
   return result;
 }
 
-// =============================================================================
-// 3. ACTIVITY LOGGING
-// =============================================================================
 export async function logAdminActivity(action, details, adminEmail = 'admin@reelxpress.com') {
   const entry = {
     id: 'act_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
@@ -859,12 +808,8 @@ export async function getActivityLogs() {
   ]);
 }
 
-// =============================================================================
-// 4. TESTIMONIALS & REVIEWS CMS
-// =============================================================================
 
 export async function getTestimonials(options = {}) {
-  // Instant check from memory cache if fresh
   const memoryKey = 'cms_testimonials_order_asc';
   if (!options.forceRefresh && memoryCache.has(memoryKey)) {
     const mem = memoryCache.get(memoryKey);
@@ -887,9 +832,6 @@ export async function getTestimonials(options = {}) {
   return cached && cached.length > 0 ? cached : INITIAL_TESTIMONIALS;
 }
 
-/**
- * Real-time Firestore subscription for Testimonials
- */
 export function subscribeToTestimonials(callback) {
   if (typeof window === 'undefined' || !isFirebaseConfigured || !db) {
     return () => {};
@@ -946,7 +888,6 @@ export async function saveTestimonial(testimonial, adminEmail) {
   let writeSuccess = false;
   let lastError = null;
 
-  // 1. Direct Firestore write
   if (isFirebaseConfigured && db) {
     try {
       await setDoc(doc(db, 'cms_testimonials', tId), payload, { merge: true });
@@ -957,7 +898,6 @@ export async function saveTestimonial(testimonial, adminEmail) {
     }
   }
 
-  // 2. Server API sync: ALWAYS sync to server route (which writes to Firestore on server + revalidates)
   if (typeof window !== 'undefined') {
     try {
       const res = await fetch('/api/cms', {
@@ -985,7 +925,6 @@ export async function saveTestimonial(testimonial, adminEmail) {
     );
   }
 
-  // Update in-memory cache and localStorage immediately
   const currentList = getCachedTestimonials();
   const updated = isNew
     ? [...currentList, payload]
@@ -1025,7 +964,6 @@ export async function deleteTestimonial(testimonialId, adminEmail) {
     }
   }
 
-  // Always sync deletion to server store
   if (typeof window !== 'undefined') {
     try {
       const res = await fetch(
@@ -1049,7 +987,6 @@ export async function deleteTestimonial(testimonialId, adminEmail) {
     );
   }
 
-  // Update in-memory cache and localStorage immediately
   const currentList = getCachedTestimonials();
   const updated = currentList.filter((t) => t.id !== testimonialId);
   setLocal(CMS_STORAGE_KEYS.testimonials, updated);
@@ -1060,12 +997,8 @@ export async function deleteTestimonial(testimonialId, adminEmail) {
   return { success: true, id: testimonialId };
 }
 
-// =============================================================================
-// 5. PRICING PLANS CMS
-// =============================================================================
 
 export async function getPricingPlans(options = {}) {
-  // Instant check from memory cache if fresh
   const memoryKey = 'cms_pricing_order_asc';
   if (!options.forceRefresh && memoryCache.has(memoryKey)) {
     const mem = memoryCache.get(memoryKey);
@@ -1088,9 +1021,6 @@ export async function getPricingPlans(options = {}) {
   return cached && cached.length > 0 ? cached : INITIAL_PRICING_PLANS;
 }
 
-/**
- * Real-time Firestore subscription for Pricing Plans
- */
 export function subscribeToPricingPlans(callback) {
   if (typeof window === 'undefined' || !isFirebaseConfigured || !db) {
     return () => {};
@@ -1141,7 +1071,6 @@ export async function savePricingPlan(plan, adminEmail) {
   let writeSuccess = false;
   let lastError = null;
 
-  // 1. Direct Firestore write
   if (isFirebaseConfigured && db) {
     try {
       await setDoc(doc(db, 'cms_pricing', planId), payload, { merge: true });
@@ -1152,7 +1081,6 @@ export async function savePricingPlan(plan, adminEmail) {
     }
   }
 
-  // 2. Server API sync: ALWAYS sync to server route (which writes to Firestore on server + revalidates)
   if (typeof window !== 'undefined') {
     try {
       const res = await fetch('/api/cms', {
@@ -1180,7 +1108,6 @@ export async function savePricingPlan(plan, adminEmail) {
     );
   }
 
-  // Update in-memory cache and localStorage immediately
   const currentList = getCachedPricingPlans();
   const updated = isNew
     ? [...currentList, payload]
@@ -1219,7 +1146,6 @@ export async function deletePricingPlan(planId, adminEmail) {
     }
   }
 
-  // Always sync deletion to server store
   if (typeof window !== 'undefined') {
     try {
       const res = await fetch(
@@ -1243,7 +1169,6 @@ export async function deletePricingPlan(planId, adminEmail) {
     );
   }
 
-  // Update in-memory cache and localStorage immediately
   const currentList = getCachedPricingPlans();
   const updated = currentList.filter((p) => p.id !== planId);
   setLocal(CMS_STORAGE_KEYS.pricing, updated);
@@ -1254,12 +1179,8 @@ export async function deletePricingPlan(planId, adminEmail) {
   return { success: true, id: planId };
 }
 
-// =============================================================================
-// 6. FAQS CMS
-// =============================================================================
 
 export async function getFaqs(options = {}) {
-  // Instant check from memory cache if fresh
   const memoryKey = 'cms_faqs_order_asc';
   if (!options.forceRefresh && memoryCache.has(memoryKey)) {
     const mem = memoryCache.get(memoryKey);
@@ -1282,9 +1203,6 @@ export async function getFaqs(options = {}) {
   return cached && cached.length > 0 ? cached : INITIAL_FAQS;
 }
 
-/**
- * Real-time Firestore subscription for FAQs
- */
 export function subscribeToFaqs(callback) {
   if (typeof window === 'undefined' || !isFirebaseConfigured || !db) {
     return () => {};
@@ -1303,9 +1221,10 @@ export function subscribeToFaqs(callback) {
             }
           });
           items.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
-          if (items.length > 0) {
-            setLocal(CMS_STORAGE_KEYS.faqs, items);
-            callback(items);
+          const merged = mergeCloudWithDefaults(INITIAL_FAQS, items, { type: 'faqs' });
+          if (merged.length > 0) {
+            setLocal(CMS_STORAGE_KEYS.faqs, merged);
+            callback(merged);
           }
         }
       },
@@ -1343,7 +1262,6 @@ export async function saveFaq(faq, adminEmail) {
   let writeSuccess = false;
   let lastError = null;
 
-  // 1. Direct Firestore write
   if (isFirebaseConfigured && db) {
     try {
       await setDoc(doc(db, 'cms_faqs', faqId), payload, { merge: true });
@@ -1354,7 +1272,6 @@ export async function saveFaq(faq, adminEmail) {
     }
   }
 
-  // 2. Server API sync: ALWAYS sync to server route (which writes to Firestore on server + revalidates)
   if (typeof window !== 'undefined') {
     try {
       const res = await fetch('/api/cms', {
@@ -1382,7 +1299,6 @@ export async function saveFaq(faq, adminEmail) {
     );
   }
 
-  // Update in-memory cache and localStorage immediately
   const currentList = getCachedFaqs();
   const updated = isNew
     ? [...currentList, payload]
@@ -1421,7 +1337,6 @@ export async function deleteFaq(faqId, adminEmail) {
     }
   }
 
-  // Always sync deletion to server store
   if (typeof window !== 'undefined') {
     try {
       const res = await fetch(
@@ -1445,7 +1360,6 @@ export async function deleteFaq(faqId, adminEmail) {
     );
   }
 
-  // Update in-memory cache and localStorage immediately
   const currentList = getCachedFaqs();
   const updated = currentList.filter((f) => f.id !== faqId);
   setLocal(CMS_STORAGE_KEYS.faqs, updated);
@@ -1456,12 +1370,8 @@ export async function deleteFaq(faqId, adminEmail) {
   return { success: true, id: faqId };
 }
 
-// =============================================================================
-// 7. HERO CAROUSEL / REELS CMS
-// =============================================================================
 
 export async function getHeroSlides(options = {}) {
-  // Instant check from memory cache if fresh
   const memoryKey = 'cms_hero_order_asc';
   if (!options.forceRefresh && memoryCache.has(memoryKey)) {
     const mem = memoryCache.get(memoryKey);
@@ -1484,9 +1394,6 @@ export async function getHeroSlides(options = {}) {
   return cached && cached.length > 0 ? cached : INITIAL_HERO_SLIDES;
 }
 
-/**
- * Real-time Firestore subscription for Hero Slides
- */
 export function subscribeToHeroSlides(callback) {
   if (typeof window === 'undefined' || !isFirebaseConfigured || !db) {
     return () => {};
@@ -1544,7 +1451,6 @@ export async function saveHeroSlide(slide, adminEmail) {
   let writeSuccess = false;
   let lastError = null;
 
-  // 1. Direct Firestore write
   if (isFirebaseConfigured && db) {
     try {
       await setDoc(doc(db, 'cms_hero', slideId), payload, { merge: true });
@@ -1555,7 +1461,6 @@ export async function saveHeroSlide(slide, adminEmail) {
     }
   }
 
-  // 2. Server API sync: ALWAYS sync to server route (which writes to Firestore on server + revalidates)
   if (typeof window !== 'undefined') {
     try {
       const res = await fetch('/api/cms', {
@@ -1583,7 +1488,6 @@ export async function saveHeroSlide(slide, adminEmail) {
     );
   }
 
-  // Update in-memory cache and localStorage immediately
   const currentList = getCachedHeroSlides();
   const updated = isNew
     ? [...currentList, payload]
@@ -1604,7 +1508,6 @@ export async function deleteHeroSlide(slideId, adminEmail) {
   let deleteSuccess = false;
   let lastError = null;
 
-  // Retrieve cached slide to inspect storage file path
   const currentList = getCachedHeroSlides();
   const existingSlide = currentList.find((s) => s.id === slideId);
 
@@ -1626,7 +1529,6 @@ export async function deleteHeroSlide(slideId, adminEmail) {
     }
   }
 
-  // Always sync deletion to server store
   if (typeof window !== 'undefined') {
     try {
       const res = await fetch(
@@ -1650,12 +1552,10 @@ export async function deleteHeroSlide(slideId, adminEmail) {
     );
   }
 
-  // Safely delete associated Storage file if present
   if (existingSlide && (existingSlide.storagePath || (existingSlide.videoUrl && existingSlide.videoUrl.includes('firebasestorage')))) {
     deleteStorageFile(existingSlide.storagePath || existingSlide.videoUrl).catch(() => {});
   }
 
-  // Update in-memory cache and localStorage immediately
   const updated = currentList.filter((s) => s.id !== slideId);
   setLocal(CMS_STORAGE_KEYS.hero, updated);
 
@@ -1665,14 +1565,7 @@ export async function deleteHeroSlide(slideId, adminEmail) {
   return { success: true, id: slideId };
 }
 
-// =============================================================================
-// 8. IMAGE UPLOAD HELPER (Client-Side Compression + Firebase Storage with base64 Data URL fallback)
-// =============================================================================
 
-/**
- * Compresses an image file in-browser to max 1080x1920 (vertical 9:16 portrait)
- * to ensure lightning-fast uploads and prevent Firestore 1MB document limit breaches.
- */
 async function compressImageFile(file, maxWidth = 1080, maxHeight = 1920, quality = 0.85) {
   if (
     typeof window === 'undefined' ||
@@ -1727,10 +1620,8 @@ async function compressImageFile(file, maxWidth = 1080, maxHeight = 1920, qualit
 export async function uploadImageFile(file, folder = 'uploads') {
   if (!file) throw new Error('No file provided for upload.');
 
-  // Pre-compress image for ultra-fast upload & safe storage
   const targetFile = await compressImageFile(file);
 
-  // Direct Firebase Storage upload if accessible
   if (isFirebaseConfigured && storage) {
     try {
       const sanitizedName = (targetFile.name || file.name || 'image.jpg').replace(/[^a-zA-Z0-9.]/g, '_');
@@ -1748,7 +1639,6 @@ export async function uploadImageFile(file, folder = 'uploads') {
     }
   }
 
-  // Server API fallback (persists to /public/uploads/images)
   if (typeof window !== 'undefined') {
     try {
       const formData = new FormData();
@@ -1767,7 +1657,6 @@ export async function uploadImageFile(file, folder = 'uploads') {
     }
   }
 
-  // Fast reliable client fallback: convert compressed file to base64 Data URL so images preview and persist immediately
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result);
@@ -1776,10 +1665,6 @@ export async function uploadImageFile(file, folder = 'uploads') {
   });
 }
 
-/**
- * Safely delete a file from Firebase Storage
- * Accepts a full Firebase Storage download URL or relative path (e.g. 'hero-videos/...')
- */
 export async function deleteStorageFile(storagePathOrUrl) {
   if (!storagePathOrUrl || !isFirebaseConfigured || !storage) return false;
   try {
@@ -1798,15 +1683,9 @@ export async function deleteStorageFile(storagePathOrUrl) {
   }
 }
 
-/**
- * Upload Video to Firebase Storage using uploadBytesResumable with 0-100% progress tracking
- * Dedicated storage path: hero-videos/
- * Generates unique filename, returns downloadURL, storagePath, and metadata
- */
 export async function uploadHeroVideo(file, onProgress) {
   if (!file) throw new Error('No video file selected.');
 
-  // Validate file format: MP4 and WebM (plus quicktime / mov)
   const validFormats = ['video/mp4', 'video/webm', 'video/quicktime'];
   const ext = (file.name || '').split('.').pop()?.toLowerCase();
   const validExtensions = ['mp4', 'webm', 'mov'];
@@ -1815,20 +1694,17 @@ export async function uploadHeroVideo(file, onProgress) {
     throw new Error('Unsupported video format. Please upload an MP4 or WebM video.');
   }
 
-  // Validate file size: maximum 100MB
-  const MAX_SIZE = 100 * 1024 * 1024; // 100MB
+  const MAX_SIZE = 100 * 1024 * 1024;
   if (file.size > MAX_SIZE) {
     throw new Error(`Video file size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds maximum limit of 100MB.`);
   }
 
-  // Generate unique filename in dedicated hero-videos/ path
   const timestamp = Date.now();
   const safeName = (file.name || 'video.mp4')
     .replace(/[^a-zA-Z0-9._-]/g, '_')
     .replace(/_{2,}/g, '_');
   const storagePath = `hero-videos/${timestamp}_${safeName}`;
 
-  // 1. Direct Firebase Storage using uploadBytesResumable
   if (isFirebaseConfigured && storage) {
     return new Promise((resolve, reject) => {
       try {
@@ -1855,7 +1731,6 @@ export async function uploadHeroVideo(file, onProgress) {
           },
           (error) => {
             console.error('[uploadHeroVideo] Firebase Storage upload error:', error);
-            // Fallback to server API if client network/rules block
             uploadViaServerApi(file, onProgress, storagePath)
               .then(resolve)
               .catch(() => reject(new Error(`Firebase Storage upload failed: ${error.message || 'Permission denied'}`)));
@@ -1887,7 +1762,6 @@ export async function uploadHeroVideo(file, onProgress) {
     });
   }
 
-  // 2. Fallback to server API if Storage not initialized
   return uploadViaServerApi(file, onProgress, storagePath);
 }
 
@@ -1922,9 +1796,6 @@ async function uploadViaServerApi(file, onProgress, storagePath) {
   };
 }
 
-/**
- * Backward compatible wrapper for uploadVideoFile
- */
 export async function uploadVideoFile(file, folder = 'hero-videos') {
   const result = await uploadHeroVideo(file);
   return result.downloadUrl || result.videoUrl;

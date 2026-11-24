@@ -5,7 +5,6 @@ import confetti from 'canvas-confetti';
 import { OCCASIONS_LIST, SHOOT_TYPE_CATEGORIES } from '@/lib/data';
 import ReelXpressWordmark from '@/components/ui/ReelXpressWordmark';
 
-// Compact modal popup for quick booking / contact form triggered from Navbar & mobile navigation
 export default function QuickContactModal({ isOpen, onClose }) {
   const [mounted, setMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,6 +17,7 @@ export default function QuickContactModal({ isOpen, onClose }) {
     date: '',
     type: OCCASIONS_LIST[0] || 'Quick Shoot (1 Hour - Single Reel)',
     city: 'Bengaluru',
+    locality: '',
   });
   const [errorMessage, setErrorMessage] = useState(null);
 
@@ -25,7 +25,6 @@ export default function QuickContactModal({ isOpen, onClose }) {
     setMounted(true);
   }, []);
 
-  // Lock body scroll and listen for Escape key
   useEffect(() => {
     if (!isOpen) {
       setIsSuccess(false);
@@ -62,10 +61,11 @@ export default function QuickContactModal({ isOpen, onClose }) {
       companyName: formData.companyName.trim(),
       selectedService: formData.type,
       serviceType: formData.type,
-      city: formData.city.trim(),
+      city: formData.city.trim() || 'Bengaluru',
+      locality: formData.locality.trim(),
       eventDate: formData.date,
-      enquiryMessage: `Quick booking enquiry for ${formData.type} in ${formData.city} on ${formData.date}${formData.companyName ? ` (Brand: ${formData.companyName})` : ''}`,
-      message: `Quick booking enquiry for ${formData.type} in ${formData.city} on ${formData.date}${formData.companyName ? ` (Brand: ${formData.companyName})` : ''}`,
+      enquiryMessage: `Quick booking enquiry for ${formData.type} in ${formData.city}${formData.locality ? ` (${formData.locality})` : ''} on ${formData.date}${formData.companyName ? ` (Brand: ${formData.companyName})` : ''}`,
+      message: `Quick booking enquiry for ${formData.type} in ${formData.city}${formData.locality ? ` (${formData.locality})` : ''} on ${formData.date}${formData.companyName ? ` (Brand: ${formData.companyName})` : ''}`,
       sourcePage: 'Quick Contact Modal',
       source: 'quick_modal',
     };
@@ -85,7 +85,6 @@ export default function QuickContactModal({ isOpen, onClose }) {
       }
 
       setIsSuccess(true);
-      // Trigger celebratory confetti burst
       try {
         confetti({
           particleCount: 70,
@@ -131,13 +130,11 @@ export default function QuickContactModal({ isOpen, onClose }) {
         className="relative w-full max-w-[440px] rounded-3xl bg-[#110e13]/98 border border-[#FF5E1E]/40 p-5 sm:p-7 shadow-[0_25px_80px_rgba(255,94,30,0.3),0_10px_30px_rgba(0,0,0,0.8)] backdrop-blur-2xl text-left text-text-primary overflow-hidden transition-all duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Ambient Top Glow */}
         <div
           className="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-24 bg-[#ff6d29]/25 blur-3xl pointer-events-none rounded-full"
           aria-hidden="true"
         />
 
-        {/* Close Button (Min 44x44px touch target) */}
         <button
           type="button"
           onClick={handleResetAndClose}
@@ -149,7 +146,6 @@ export default function QuickContactModal({ isOpen, onClose }) {
 
         {!isSuccess ? (
           <div>
-            {/* Header Badge & Title */}
             <div className="mb-4 pr-10">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ff6d29]/15 border border-[#ff6d29]/40 text-[#ff8f50] text-[10px] font-bold uppercase tracking-wider mb-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#ff6d29] animate-pulse" />
@@ -164,7 +160,6 @@ export default function QuickContactModal({ isOpen, onClose }) {
               </p>
             </div>
 
-            {/* Quick Contact Form */}
             {errorMessage && (
               <div className="mb-3 p-3 rounded-xl bg-red-950/70 border border-red-500/50 text-red-200 text-xs flex items-start gap-2 animate-fadeIn">
                 <span className="material-symbols-outlined text-sm text-red-400 shrink-0 mt-0.5">error</span>
@@ -173,7 +168,6 @@ export default function QuickContactModal({ isOpen, onClose }) {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-3">
-              {/* Full Name & Company Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
                   <label className="block text-[11px] uppercase tracking-wider font-bold text-text-muted mb-1">
@@ -202,7 +196,6 @@ export default function QuickContactModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* Email & Phone Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
                   <label className="block text-[11px] uppercase tracking-wider font-bold text-text-muted mb-1">
@@ -231,7 +224,6 @@ export default function QuickContactModal({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* Shoot Type & Date Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
                   <label className="block text-[11px] uppercase tracking-wider font-bold text-text-muted mb-1">
@@ -247,20 +239,36 @@ export default function QuickContactModal({ isOpen, onClose }) {
                 </div>
                 <div>
                   <label className="block text-[11px] uppercase tracking-wider font-bold text-text-muted mb-1">
-                    City / Area*
+                    Select City*
                   </label>
-                  <input
-                    type="text"
+                  <select
                     required
-                    placeholder="e.g. Bengaluru"
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-surface-base border border-border-specular text-white placeholder:text-text-muted/50 focus:border-[#ff6d29] focus:outline-none focus:ring-1 focus:ring-[#ff6d29]/50 transition-all text-[16px] sm:text-sm"
-                  />
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-surface-base border border-border-specular text-white focus:border-[#ff6d29] focus:outline-none focus:ring-1 focus:ring-[#ff6d29]/50 transition-all text-[16px] sm:text-sm cursor-pointer"
+                  >
+                    <option value="Bengaluru">Bengaluru (Default)</option>
+                    <option value="Chennai">Chennai</option>
+                    <option value="Hyderabad">Hyderabad</option>
+                    <option value="Vizag">Vizag</option>
+                    <option value="Mumbai">Mumbai</option>
+                  </select>
                 </div>
               </div>
 
-              {/* Shoot Type Dropdown */}
+              <div>
+                <label className="block text-[11px] uppercase tracking-wider font-bold text-text-muted mb-1">
+                  Locality / Area
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Indiranagar, Koramangala, Anna Nagar..."
+                  value={formData.locality}
+                  onChange={(e) => setFormData({ ...formData, locality: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-surface-base border border-border-specular text-white placeholder:text-text-muted/50 focus:border-[#ff6d29] focus:outline-none focus:ring-1 focus:ring-[#ff6d29]/50 transition-all text-[16px] sm:text-sm"
+                />
+              </div>
+
               <div>
                 <label className="block text-[11px] uppercase tracking-wider font-bold text-text-muted mb-1">
                   Selected Service*
@@ -282,7 +290,6 @@ export default function QuickContactModal({ isOpen, onClose }) {
                 </select>
               </div>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -303,7 +310,6 @@ export default function QuickContactModal({ isOpen, onClose }) {
             </form>
           </div>
         ) : (
-          /* Success Card */
           <div className="text-center py-6 px-2 animate-scaleUp">
             <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 text-emerald-400 flex items-center justify-center mx-auto mb-4">
               <span className="material-symbols-outlined text-3xl">check</span>

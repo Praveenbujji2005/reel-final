@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 
-// Tracks page scroll percentage for the top gradient progress bar
 export function useScrollPosition() {
   const [scrollProgress, setScrollProgress] = useState(0);
 

@@ -15,9 +15,6 @@ import {
 export const CREATOR_QUERIES_COLLECTION = 'creator_queries';
 const LOCAL_STORAGE_KEY = 'reelxpress_creator_queries_cache';
 
-/**
- * Validates creator application input data
- */
 export function validateCreatorQueryData(data) {
   const errors = [];
   const fullName = (data.fullName || data.name || data.customerName || '').trim();
@@ -49,9 +46,6 @@ export function validateCreatorQueryData(data) {
   };
 }
 
-/**
- * Normalizes a creator application document from Firestore
- */
 export function normalizeCreatorQuery(id, raw = {}) {
   const fullName = raw.fullName || raw.name || raw.customerName || 'Anonymous Creator';
   const email = raw.email || 'No email provided';
@@ -60,11 +54,10 @@ export function normalizeCreatorQuery(id, raw = {}) {
   const instagramLink = raw.instagramLink || raw.instagram || raw.portfolio || '';
   const phoneModel = raw.phoneModel || raw.device || 'iPhone 13 Pro or newer';
   const reason = raw.reason || raw.message || raw.notes || 'No reason provided.';
-  const status = raw.status || 'New'; // 'New' | 'Reviewing' | 'Approved' | 'Rejected' | 'Contacted'
+  const status = raw.status || 'New';
   const sourcePage = raw.sourcePage || raw.source || '/creators';
   const createdAt = raw.createdAt || new Date().toISOString();
 
-  // Safe parsing of Firestore Timestamps
   let timestampDate = null;
   if (raw.timestamp?.toDate && typeof raw.timestamp.toDate === 'function') {
     timestampDate = raw.timestamp.toDate();
@@ -114,9 +107,6 @@ export function normalizeCreatorQuery(id, raw = {}) {
   };
 }
 
-/**
- * Helper to convert plain object to Firestore REST API payload
- */
 export function toFirestoreFields(obj) {
   const fields = {};
   for (const [key, val] of Object.entries(obj)) {
@@ -140,9 +130,6 @@ export function toFirestoreFields(obj) {
   return { fields };
 }
 
-/**
- * Helper to parse Firestore REST API document to plain object
- */
 export function parseFirestoreDoc(docItem) {
   if (!docItem) return null;
   const fields = docItem.fields || {};
@@ -160,9 +147,6 @@ export function parseFirestoreDoc(docItem) {
   return normalizeCreatorQuery(data.id, data);
 }
 
-/**
- * Local cache helpers
- */
 function getLocalCache() {
   if (typeof window === 'undefined') return [];
   try {
@@ -180,9 +164,6 @@ function setLocalCache(items) {
   } catch {}
 }
 
-/**
- * Submit a creator query/application directly to Firebase Firestore
- */
 export async function createCreatorQuery(queryData) {
   const validation = validateCreatorQueryData(queryData);
   if (!validation.isValid) {
@@ -213,7 +194,7 @@ export async function createCreatorQuery(queryData) {
     device: phoneModel,
     reason,
     message: reason,
-    status: 'New', // Standardized: 'New' | 'Reviewing' | 'Approved' | 'Rejected' | 'Contacted'
+    status: 'New',
     sourcePage,
     createdAt,
   };
@@ -221,7 +202,6 @@ export async function createCreatorQuery(queryData) {
   let savedDocId = null;
   let lastError = null;
 
-  // 1. Direct Firestore REST API (Works reliably on Server / Node.js & client)
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || firebaseConfig?.apiKey;
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || firebaseConfig?.projectId;
 
@@ -263,7 +243,6 @@ export async function createCreatorQuery(queryData) {
     }
   }
 
-  // 2. Firebase Client SDK (If REST didn't succeed or when called in browser)
   if (!savedDocId && db) {
     try {
       const docRef = await addDoc(collection(db, CREATOR_QUERIES_COLLECTION), {
@@ -278,7 +257,6 @@ export async function createCreatorQuery(queryData) {
     }
   }
 
-  // Fallback ID if Firestore is currently initializing
   if (!savedDocId && lastError) {
     console.warn('[Firestore] Creator query saved locally; cloud sync pending:', lastError?.message);
   }
@@ -288,7 +266,6 @@ export async function createCreatorQuery(queryData) {
     cloudSynced: Boolean(savedDocId),
   });
 
-  // Update client cache
   const cached = getLocalCache();
   cached.unshift(normalized);
   setLocalCache(cached);
@@ -296,15 +273,11 @@ export async function createCreatorQuery(queryData) {
   return normalized;
 }
 
-/**
- * Fetch all creator queries from Firestore
- */
 export async function getCreatorQueriesFromFirestore() {
   const results = [];
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || firebaseConfig?.apiKey;
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || firebaseConfig?.projectId;
 
-  // 1. Try Firebase Client SDK first
   if (db) {
     try {
       const q = query(collection(db, CREATOR_QUERIES_COLLECTION), orderBy('createdAt', 'desc'));
@@ -321,7 +294,6 @@ export async function getCreatorQueriesFromFirestore() {
     }
   }
 
-  // 2. Fallback to Firestore REST API
   if (apiKey && projectId) {
     try {
       const restUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${CREATOR_QUERIES_COLLECTION}?key=${apiKey}`;
@@ -333,7 +305,6 @@ export async function getCreatorQueriesFromFirestore() {
           const parsed = parseFirestoreDoc(d);
           if (parsed) results.push(parsed);
         }
-        // Sort newest first
         results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         if (results.length > 0) {
           setLocalCache(results);
@@ -345,17 +316,12 @@ export async function getCreatorQueriesFromFirestore() {
     }
   }
 
-  // 3. Fallback to cached items
   return getLocalCache();
 }
 
-/**
- * Update creator query status in Firestore
- */
 export async function updateCreatorQueryStatusInFirestore(id, newStatus, adminEmail = 'admin@reelxpress.com') {
   let updated = false;
 
-  // Client SDK update
   if (db) {
     try {
       const docRef = doc(db, CREATOR_QUERIES_COLLECTION, id);
@@ -370,7 +336,6 @@ export async function updateCreatorQueryStatusInFirestore(id, newStatus, adminEm
     }
   }
 
-  // REST API update
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || firebaseConfig?.apiKey;
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || firebaseConfig?.projectId;
   if (!updated && apiKey && projectId) {
@@ -393,7 +358,6 @@ export async function updateCreatorQueryStatusInFirestore(id, newStatus, adminEm
     }
   }
 
-  // Update local cache
   const cached = getLocalCache();
   const idx = cached.findIndex((item) => item.id === id);
   if (idx >= 0) {
@@ -404,9 +368,6 @@ export async function updateCreatorQueryStatusInFirestore(id, newStatus, adminEm
   return { success: true, id, status: newStatus };
 }
 
-/**
- * Delete a creator query document from Firestore
- */
 export async function deleteCreatorQueryFromFirestore(id) {
   let deleted = false;
 
@@ -432,7 +393,6 @@ export async function deleteCreatorQueryFromFirestore(id) {
     }
   }
 
-  // Update local cache
   const cached = getLocalCache();
   const filtered = cached.filter((item) => item.id !== id);
   setLocalCache(filtered);
@@ -440,9 +400,6 @@ export async function deleteCreatorQueryFromFirestore(id) {
   return { success: true, id };
 }
 
-/**
- * Set up real-time listener for creator queries
- */
 export function subscribeToCreatorQueries({ onData, onError }) {
   if (!db) {
     if (onError) onError(new Error('Firestore is not initialized.'));

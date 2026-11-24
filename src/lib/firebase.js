@@ -11,15 +11,11 @@ import {
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-// Silence internal Firestore multi-tab lease election and index backfill notices
 try {
   setLogLevel('silent');
 } catch {
-  // Ignore in environments where setLogLevel is not permitted
 }
 
-// Suppress benign Firestore multi-tab internal lease election errors in the browser console
-// so that Next.js / Turbopack dev error overlays are not triggered when non-primary tabs retry
 if (typeof window !== 'undefined' && typeof console !== 'undefined' && console.error) {
   const originalConsoleError = console.error.bind(console);
   console.error = (...args) => {
@@ -36,10 +32,6 @@ if (typeof window !== 'undefined' && typeof console !== 'undefined' && console.e
   };
 }
 
-/**
- * Firebase Configuration for ReelXpress
- * Values are read from NEXT_PUBLIC_FIREBASE_* environment variables with reliable defaults for live Vercel deployments.
- */
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'AIzaSyBq9zNDqw6Oww_-_EWZ2muvdiGvVuHWQqI',
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'reelxpress-a862c.firebaseapp.com',
@@ -51,9 +43,6 @@ const firebaseConfig = {
   databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL || 'https://reelxpress-a862c-default-rtdb.firebaseio.com',
 };
 
-/**
- * Determines whether valid Firebase credentials have been configured in environment variables.
- */
 export const isFirebaseConfigured = Boolean(
   firebaseConfig.apiKey &&
   firebaseConfig.apiKey.length > 10 &&
@@ -73,7 +62,6 @@ if (typeof window !== 'undefined' || process.env.NODE_ENV !== 'test') {
       app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
       auth = getAuth(app);
 
-      // Initialize Firestore with client-side IndexedDB persistence if supported in browser
       if (typeof window !== 'undefined' && typeof indexedDB !== 'undefined') {
         try {
           db = initializeFirestore(app, {
@@ -82,18 +70,15 @@ if (typeof window !== 'undefined' || process.env.NODE_ENV !== 'test') {
             }),
           });
         } catch {
-          // If initializeFirestore was already called or persistence not available
           db = getFirestore(app);
         }
 
-        // Disable automatic persistent cache index creation to prevent background lease contention
         try {
           const indexManager = getPersistentCacheIndexManager(db);
           if (indexManager) {
             disablePersistentCacheIndexAutoCreation(indexManager);
           }
         } catch {
-          // Ignore if indexManager is unsupported
         }
       } else {
         db = getFirestore(app);

@@ -15,7 +15,6 @@ import {
   deleteServerEnquiry,
 } from '@/lib/serverEnquiriesStore';
 
-// In-memory rate limiter: max 6 submissions per IP per 5 minutes
 const rateLimitMap = new Map();
 
 function isRateLimited(ip) {
@@ -42,7 +41,6 @@ export async function POST(request) {
       request.headers.get('x-real-ip') ||
       'anonymous_ip';
 
-    // Anti-Spam: Rate Limit Check
     if (isRateLimited(ip)) {
       return NextResponse.json(
         {
@@ -55,7 +53,6 @@ export async function POST(request) {
 
     const body = await request.json();
 
-    // Anti-Spam: Honeypot trap
     if (body.website_trap || body.bot_honey) {
       return NextResponse.json({
         success: true,
@@ -63,7 +60,6 @@ export async function POST(request) {
       });
     }
 
-    // Backend validation
     const validation = validateEnquiryData(body);
     if (!validation.isValid) {
       return NextResponse.json(
@@ -82,6 +78,7 @@ export async function POST(request) {
     const selectedService = body.selectedService || body.serviceType || body.type || 'General Shoot';
     const enquiryMessage = body.enquiryMessage || body.message || body.notes || '';
     const city = body.city || 'Bengaluru';
+    const locality = (body.locality || body.area || '').trim();
     const eventDate = body.eventDate || body.date || '';
     const sourcePage = body.sourcePage || body.source || 'Website Booking Form';
     const createdAt = new Date().toISOString();
@@ -97,6 +94,7 @@ export async function POST(request) {
       enquiryMessage,
       message: enquiryMessage,
       city,
+      locality,
       eventDate,
       status: 'New',
       sourcePage,
@@ -107,7 +105,6 @@ export async function POST(request) {
     let cloudSynced = false;
     let syncErrorNotice = null;
 
-    // 1. Attempt write to Cloud Firestore
     try {
       savedEnquiry = await createEnquiry(enquiryPayload);
       cloudSynced = true;
@@ -117,7 +114,6 @@ export async function POST(request) {
       syncErrorNotice = firestoreErr.message;
     }
 
-    // 2. Resilient Server Persistence: Store on server so leads are never lost
     const serverRecord = saveServerEnquiry({
       ...(savedEnquiry || enquiryPayload),
       cloudSynced,
@@ -155,7 +151,6 @@ export async function GET(request) {
     const status = searchParams.get('status') || 'all';
     const sortBy = searchParams.get('sortBy') || 'newest';
 
-    // 1. Fetch from Cloud Firestore
     let firestoreList = [];
     let firestoreError = null;
     try {
@@ -164,16 +159,12 @@ export async function GET(request) {
       firestoreError = err.message;
     }
 
-    // 2. Fetch from local server storage
     const serverList = readServerEnquiries().map((item) => normalizeEnquiry(item.id, item));
 
-    // 3. Merge: de-duplicate by ID or email+createdAt
     const map = new Map();
-    // Prioritize firestore list
     for (const item of firestoreList) {
       map.set(item.id, { ...item, cloudSynced: true });
     }
-    // Add server items not yet in map
     for (const item of serverList) {
       if (!map.has(item.id)) {
         map.set(item.id, item);
@@ -182,7 +173,6 @@ export async function GET(request) {
 
     let combined = Array.from(map.values());
 
-    // Filter by search
     if (search.trim()) {
       const term = search.toLowerCase().trim();
       combined = combined.filter(
@@ -198,13 +188,11 @@ export async function GET(request) {
       );
     }
 
-    // Filter by status
     if (status !== 'all') {
       const target = status.toLowerCase();
       combined = combined.filter((inq) => (inq.status || '').toLowerCase() === target);
     }
 
-    // Sort
     combined.sort((a, b) => {
       const timeA = new Date(a.createdAt || 0).getTime();
       const timeB = new Date(b.createdAt || 0).getTime();
@@ -268,10 +256,8 @@ export async function PATCH(request) {
       );
     }
 
-    // Update in local server store
     updateServerEnquiryStatus(id, status, adminEmail);
 
-    // Try update in Firestore
     try {
       await updateEnquiryStatusInFirestore(id, status, adminEmail);
     } catch {}
@@ -297,10 +283,8 @@ export async function DELETE(request) {
       );
     }
 
-    // Delete in local server store
     deleteServerEnquiry(id);
 
-    // Try delete in Firestore
     try {
       await deleteEnquiryFromFirestore(id);
     } catch {}

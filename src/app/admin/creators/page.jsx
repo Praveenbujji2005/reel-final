@@ -16,19 +16,16 @@ export default function AdminCreatorsPage() {
   const [errorNotice, setErrorNotice] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
 
-  // Search & Filters
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Selected item for modal
   const [selectedCreator, setSelectedCreator] = useState(null);
   const [creatorToDelete, setCreatorToDelete] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Prevent background scrolling while modal is open
   useEffect(() => {
     if (selectedCreator || creatorToDelete) {
       const originalOverflow = document.body.style.overflow;
@@ -70,13 +67,11 @@ export default function AdminCreatorsPage() {
     }
   };
 
-  // Real-time Firestore onSnapshot listener + fast API verification
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
     setErrorNotice(null);
 
-    // 1. Initial fast API fetch
     fetch('/api/creators')
       .then(async (res) => {
         const data = await res.json().catch(() => ({}));
@@ -97,7 +92,6 @@ export default function AdminCreatorsPage() {
         console.warn('API creator queries check notice:', err);
       });
 
-    // 2. Real-time Firestore push listener
     const unsubscribe = subscribeToCreatorQueries({
       onData: (data) => {
         if (!isMounted) return;
@@ -130,18 +124,15 @@ export default function AdminCreatorsPage() {
     };
   }, []);
 
-  // Filtered & Sorted creator queries
   const filteredCreators = useMemo(() => {
     let result = [...creators];
 
-    // Status filter
     if (statusFilter !== 'all') {
       result = result.filter(
         (c) => (c.status || 'new').toLowerCase() === statusFilter.toLowerCase()
       );
     }
 
-    // Search query
     if (search.trim()) {
       const q = search.toLowerCase().trim();
       result = result.filter((c) => {
@@ -164,7 +155,6 @@ export default function AdminCreatorsPage() {
       });
     }
 
-    // Sorting
     result.sort((a, b) => {
       const timeA = new Date(a.createdAt || 0).getTime();
       const timeB = new Date(b.createdAt || 0).getTime();
@@ -174,14 +164,12 @@ export default function AdminCreatorsPage() {
     return result;
   }, [creators, statusFilter, search, sortBy]);
 
-  // Pagination calculations
   const totalPages = Math.ceil(filteredCreators.length / PAGE_SIZE) || 1;
   const paginatedCreators = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
     return filteredCreators.slice(start, start + PAGE_SIZE);
   }, [filteredCreators, currentPage]);
 
-  // Metrics
   const metrics = useMemo(() => {
     const total = creators.length;
     const newCount = creators.filter((c) => (c.status || '').toLowerCase() === 'new').length;
@@ -190,7 +178,6 @@ export default function AdminCreatorsPage() {
     return { total, newCount, reviewingCount, approvedCount };
   }, [creators]);
 
-  // Handle status update
   const handleStatusChange = async (id, newStatus) => {
     setActionLoading(true);
     try {
@@ -222,7 +209,6 @@ export default function AdminCreatorsPage() {
     }
   };
 
-  // Handle delete
   const handleDelete = async () => {
     if (!creatorToDelete) return;
     setActionLoading(true);
@@ -248,7 +234,6 @@ export default function AdminCreatorsPage() {
     }
   };
 
-  // WhatsApp quick contact link builder
   const getWhatsAppLink = (creator) => {
     const rawPhone = (creator.mobileNumber || creator.phone || '').replace(/\D/g, '');
     const cleanPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
@@ -335,7 +320,6 @@ export default function AdminCreatorsPage() {
 
   return (
     <div className="space-y-8 select-none">
-      {/* Toast Feedback */}
       {toastMessage && (
         <div className="fixed top-6 right-6 z-[100050] px-5 py-3 rounded-2xl bg-emerald-950/95 border border-emerald-500/50 text-white text-sm shadow-2xl flex items-center gap-2.5 animate-fadeIn">
           <span className="material-symbols-outlined text-emerald-400">check_circle</span>
@@ -343,7 +327,6 @@ export default function AdminCreatorsPage() {
         </div>
       )}
 
-      {/* Header & Controls */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-white/10">
         <div>
           <div className="flex items-center gap-3">
@@ -395,7 +378,6 @@ export default function AdminCreatorsPage() {
         </div>
       </div>
 
-      {/* KPI Cards Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-[#151215] border border-white/10">
           <div className="text-xs uppercase tracking-wider font-bold text-text-muted mb-1 flex items-center justify-between">
@@ -431,10 +413,8 @@ export default function AdminCreatorsPage() {
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
       <div className="p-4 rounded-2xl bg-[#151215] border border-white/10 space-y-4">
         <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
-          {/* Search Input */}
           <div className="relative flex-1">
             <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40 text-lg">
               search
@@ -451,7 +431,6 @@ export default function AdminCreatorsPage() {
             />
           </div>
 
-          {/* Sort Select */}
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -462,7 +441,6 @@ export default function AdminCreatorsPage() {
           </select>
         </div>
 
-        {/* Status Pills */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/5">
           <span className="text-xs font-bold text-text-muted uppercase tracking-wider mr-2">Status:</span>
           {['all', 'new', 'reviewing', 'approved', 'contacted', 'rejected'].map((st) => (
@@ -484,7 +462,6 @@ export default function AdminCreatorsPage() {
         </div>
       </div>
 
-      {/* Creators Table / List */}
       {loading ? (
         <div className="p-16 rounded-3xl bg-[#151215] border border-white/10 text-center space-y-4">
           <div className="w-10 h-10 border-3 border-[#F28C3C] border-t-transparent rounded-full animate-spin mx-auto" />
@@ -523,7 +500,6 @@ export default function AdminCreatorsPage() {
                     key={creator.id ?? `creator-${idx}`}
                     className="hover:bg-white/[0.02] transition-colors group"
                   >
-                    {/* Creator Name & Initials */}
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#F28C3C] to-[#FFD700] text-black font-extrabold flex items-center justify-center shrink-0 shadow-md">
@@ -543,7 +519,6 @@ export default function AdminCreatorsPage() {
                       </div>
                     </td>
 
-                    {/* Device & Location */}
                     <td className="py-4 px-6">
                       <div className="space-y-1">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-xs font-semibold text-white">
@@ -557,7 +532,6 @@ export default function AdminCreatorsPage() {
                       </div>
                     </td>
 
-                    {/* Contact (Phone & Email) */}
                     <td className="py-4 px-6">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 font-mono text-xs text-white">
@@ -582,7 +556,6 @@ export default function AdminCreatorsPage() {
                       </div>
                     </td>
 
-                    {/* Instagram Link */}
                     <td className="py-4 px-6">
                       {creator.instagramLink ? (
                         <a
@@ -603,13 +576,11 @@ export default function AdminCreatorsPage() {
                       )}
                     </td>
 
-                    {/* Applied Date */}
                     <td className="py-4 px-6 text-xs text-text-muted whitespace-nowrap">
                       <div>{creator.formattedDate || new Date(creator.createdAt).toLocaleDateString('en-IN')}</div>
                       <div className="text-[11px] text-text-muted/60">{creator.formattedTime || ''}</div>
                     </td>
 
-                    {/* Status Dropdown */}
                     <td className="py-4 px-6">
                       <select
                         value={creator.status || 'New'}
@@ -624,7 +595,6 @@ export default function AdminCreatorsPage() {
                       </select>
                     </td>
 
-                    {/* Actions */}
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
@@ -658,7 +628,6 @@ export default function AdminCreatorsPage() {
             </table>
           </div>
 
-          {/* Pagination Bar */}
           {totalPages > 1 && (
             <div className="p-4 border-t border-white/10 flex items-center justify-between text-xs text-text-muted">
               <div>
@@ -690,9 +659,6 @@ export default function AdminCreatorsPage() {
         </div>
       )}
 
-      {/* =========================================================================
-          DETAILED CREATOR APPLICATION MODAL
-         ========================================================================= */}
       {selectedCreator && (
         <div
           data-lenis-prevent
@@ -704,7 +670,6 @@ export default function AdminCreatorsPage() {
             onWheel={(e) => e.stopPropagation()}
             className="w-full max-w-2xl rounded-3xl bg-[#151215] border border-border-amber p-6 sm:p-8 shadow-2xl relative max-h-[92vh] overflow-y-auto"
           >
-            {/* Ambient Top Glow */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-32 bg-primary-container/20 blur-3xl pointer-events-none rounded-full" />
 
             <button
@@ -714,7 +679,6 @@ export default function AdminCreatorsPage() {
               <span className="material-symbols-outlined text-lg">close</span>
             </button>
 
-            {/* Modal Header */}
             <div className="flex items-start gap-4 mb-6">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#F28C3C] to-[#FFD700] text-black font-black text-xl flex items-center justify-center shadow-lg">
                 {(selectedCreator.fullName || 'C').charAt(0).toUpperCase()}
@@ -733,7 +697,6 @@ export default function AdminCreatorsPage() {
               </div>
             </div>
 
-            {/* Quick Action Contact Bar */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 p-4 rounded-2xl bg-[#0c0a0c] border border-white/10">
               <a
                 href={getWhatsAppLink(selectedCreator)}
@@ -754,7 +717,6 @@ export default function AdminCreatorsPage() {
               </a>
             </div>
 
-            {/* Application Data Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 text-sm">
               <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-1">
                 <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
@@ -809,7 +771,6 @@ export default function AdminCreatorsPage() {
               </div>
             </div>
 
-            {/* Why Join ReelXpress Message */}
             <div className="mb-6 p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
               <span className="text-xs font-bold text-primary uppercase tracking-wider block">
                 Why they want to join reelXpress:
@@ -819,7 +780,6 @@ export default function AdminCreatorsPage() {
               </p>
             </div>
 
-            {/* Status Change Buttons */}
             <div className="space-y-2 pt-2 border-t border-white/10">
               <span className="text-xs font-bold text-text-muted uppercase tracking-wider block mb-2">
                 Update Application Status:
@@ -845,9 +805,6 @@ export default function AdminCreatorsPage() {
         </div>
       )}
 
-      {/* =========================================================================
-          DELETE CONFIRMATION MODAL
-         ========================================================================= */}
       {creatorToDelete && (
         <div
           data-lenis-prevent

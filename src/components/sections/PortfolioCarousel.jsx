@@ -12,11 +12,9 @@ function formatTime(seconds) {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
-// Overlapping fanned-out 3D reel portfolio carousel
-// Clicking any video card opens full-window vertical player with prominent "< Back" navigation
 export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
   const [reels, setReels] = useState(REEL_PORTFOLIO);
-  const [activeReelIndex, setActiveReelIndex] = useState(3); // Center card active by default (reel 4 of 7)
+  const [activeReelIndex, setActiveReelIndex] = useState(3);
   const [windowWidth, setWindowWidth] = useState(1200);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -24,19 +22,16 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
     setIsMounted(true);
   }, []);
 
-  // Full Window Video Mode state
   const [fullscreenIndex, setFullscreenIndex] = useState(null);
   const [isFullscreenPlaying, setIsFullscreenPlaying] = useState(false);
-  const [isFullscreenMuted, setIsFullscreenMuted] = useState(true); // Default muted autoplay
+  const [isFullscreenMuted, setIsFullscreenMuted] = useState(true);
   const [fullscreenCurrentTime, setFullscreenCurrentTime] = useState(0);
   const [fullscreenDuration, setFullscreenDuration] = useState(0);
   const fullscreenVideoRef = useRef(null);
 
-  // Carousel card audio state (null = all muted autoplay; number = this reel plays audio)
   const [unmutedIndex, setUnmutedIndex] = useState(null);
   const cardVideoRefs = useRef({});
 
-  // In-video Toast message state (replaces sound button)
   const [toast, setToast] = useState({ visible: false, message: '', icon: '' });
   const toastTimer = useRef(null);
 
@@ -48,7 +43,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
     }, 2800);
   }, []);
 
-  // Per-card media failure state for fallback handling
   const [failedImages, setFailedImages] = useState({});
 
   const dragStartX = useRef(0);
@@ -57,7 +51,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
 
   const totalCards = reels.length;
 
-  // Load dynamic hero slides from CMS / Firestore with real-time onSnapshot sync & fast-path cache
   useEffect(() => {
     const applySlides = (slides) => {
       if (slides && slides.length > 0) {
@@ -69,19 +62,15 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
       }
     };
 
-    // 1. Instant cache fast-path
     const cached = getCachedHeroSlides();
     applySlides(cached);
 
-    // 2. Initial fetch
     getHeroSlides()
       .then(applySlides)
       .catch(() => {});
 
-    // 3. Real-time Firestore onSnapshot subscription (live sync across all clients)
     const unsubscribeSnapshot = subscribeToHeroSlides(applySlides);
 
-    // 4. React to local tab admin updates
     const handleCmsUpdate = (e) => {
       if (!e.detail?.type || e.detail.type === 'hero') {
         getHeroSlides({ forceRefresh: true }).then(applySlides);
@@ -95,7 +84,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
     };
   }, []);
 
-  // Track window width for responsive 3D card layout calculations
   useEffect(() => {
     function handleResize() {
       setWindowWidth(window.innerWidth);
@@ -105,7 +93,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Synchronize carousel video audio: only the active/clicked unmuted card plays sound
   useEffect(() => {
     Object.entries(cardVideoRefs.current).forEach(([idxStr, videoEl]) => {
       const idx = Number(idxStr);
@@ -120,7 +107,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
     });
   }, [unmutedIndex]);
 
-  // Compute transform styles for each card based on activeReelIndex
   const getCardStyle = useCallback(
     (index) => {
       const isMobile = windowWidth < 640;
@@ -133,7 +119,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
         spacing = 124;
       }
 
-      // Calculate shortest circular difference in ring of totalCards for symmetrical alignment
       const rawDiff = index - activeReelIndex;
       let diff = ((rawDiff % totalCards) + totalCards) % totalCards;
       if (diff > totalCards / 2) {
@@ -217,29 +202,25 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
     [activeReelIndex, totalCards, windowWidth]
   );
 
-  // Center on a card
   const selectCard = useCallback(
     (index) => {
       const nextIndex = (index + totalCards) % totalCards;
       setActiveReelIndex(nextIndex);
-      // Seamlessly switch audio to newly centered reel if sound was turned on
       setUnmutedIndex((prev) => (prev !== null ? nextIndex : null));
     },
     [totalCards]
   );
 
-  // Open Full Window Video Mode when expand button is clicked
   const openFullscreen = useCallback(
     (index, e) => {
       if (e) e.stopPropagation();
 
-      // Mute carousel cards while in fullscreen mode
       setUnmutedIndex(null);
 
       setFullscreenIndex(index);
       setFullscreenCurrentTime(0);
       setIsFullscreenPlaying(true);
-      setIsFullscreenMuted(false); // Play with SOUND ON immediately
+      setIsFullscreenMuted(false);
 
       if (typeof document !== 'undefined') {
         document.body.style.overflow = 'hidden';
@@ -250,7 +231,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
     [showToast]
   );
 
-  // Close Full Window Video Mode (< Back Button)
   const closeFullscreen = useCallback(() => {
     if (fullscreenIndex === null) return;
 
@@ -262,7 +242,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
     setFullscreenIndex(null);
     setIsFullscreenPlaying(false);
 
-    // Keep active card unmuted on return to carousel
     setUnmutedIndex(returningIndex);
 
     if (typeof document !== 'undefined') {
@@ -270,7 +249,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
     }
   }, [fullscreenIndex]);
 
-  // Handle card click: select card and unmute/play sound on the carousel reel
   const handleCardClick = useCallback(
     (index) => {
       if (hasDragged.current) return;
@@ -278,14 +256,12 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
         selectCard(index);
         setUnmutedIndex(index);
       } else {
-        // Clicking active reel toggles sound
         setUnmutedIndex((prev) => (prev === index ? null : index));
       }
     },
     [activeReelIndex, selectCard]
   );
 
-  // Fullscreen video controls: toggle play/pause
   const toggleFullscreenPlay = useCallback((e) => {
     if (e) e.stopPropagation();
     if (!fullscreenVideoRef.current) return;
@@ -299,7 +275,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
     }
   }, []);
 
-  // Tapping the video surface unmutes audio with a toast message (or toggles play/pause if already unmuted)
   const handleVideoTap = useCallback((e) => {
     if (e) e.stopPropagation();
     if (!fullscreenVideoRef.current) return;
@@ -332,7 +307,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
     setFullscreenCurrentTime(fraction * fullscreenDuration);
   }, [fullscreenDuration]);
 
-  // Start playback in fullscreen when mounted
   useEffect(() => {
     if (fullscreenIndex !== null && fullscreenVideoRef.current) {
       fullscreenVideoRef.current.currentTime = 0;
@@ -352,7 +326,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
     }
   }, [fullscreenIndex, isFullscreenMuted]);
 
-  // Keyboard controls for fullscreen mode (Escape to go back, Space to toggle play, M for mute/unmute)
   useEffect(() => {
     if (fullscreenIndex === null) return;
     const handleKeyDown = (e) => {
@@ -374,7 +347,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [fullscreenIndex, closeFullscreen, toggleFullscreenPlay, showToast]);
 
-  // Touch and swipe gestures for carousel
   const handleTouchStart = (e) => {
     dragStartX.current = e.changedTouches[0].clientX;
     dragStartY.current = e.changedTouches[0].clientY;
@@ -399,7 +371,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
 
   return (
     <div id="fanned-carousel-container" suppressHydrationWarning className="my-6 md:my-10 relative w-full overflow-hidden sm:overflow-visible">
-      {/* 3D Perspective Stage Track */}
       <div
         id="fanned-carousel-track"
         suppressHydrationWarning
@@ -413,7 +384,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
           const reelIdKey = String(reel.id !== undefined && reel.id !== null ? reel.id : index);
           const hasFailed = Boolean(failedImages[reelIdKey]);
 
-          // Matching video thumbnail resolution
           const posterSrc =
             reel.poster ||
             reel.posterUrl ||
@@ -439,7 +409,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
                 }
               }}
             >
-              {/* Fallback View: Displayed only if media completely fails to load */}
               {hasFailed && (
                 <div className="absolute inset-0 bg-[#161217] flex flex-col items-center justify-center p-6 text-center z-10 border border-white/10">
                   <div className="w-10 h-10 rounded-full bg-primary-container/20 border border-primary-container/40 flex items-center justify-center text-primary-container mb-2">
@@ -450,7 +419,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
                 </div>
               )}
 
-              {/* Media Rendering: Video if mediaType === 'video' (or has videoUrl/videoSrc), Image otherwise */}
               {reel.mediaType === 'image' || (!reel.videoUrl && !reel.videoSrc) ? (
                 <img
                   src={reel.imageUrl || reel.poster || posterSrc}
@@ -476,7 +444,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
                 />
               )}
 
-              {/* Sound Toggle Indicator (Only for video slides) */}
               {(reel.videoUrl || reel.videoSrc) && reel.mediaType !== 'image' && (
                 <div
                   className="absolute top-3 right-3 z-30 pointer-events-auto"
@@ -508,7 +475,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
                 </div>
               )}
 
-              {/* Fullscreen Expand Action on Active Card */}
               {isCenter && (
                 <button
                   type="button"
@@ -530,7 +496,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
         })}
       </div>
 
-      {/* Navigation Controls: Prev Arrow, Pagination Dots, Next Arrow */}
       <div className="flex items-center justify-center gap-4 sm:gap-6 mt-4 md:mt-8 relative z-20">
         <button
           onClick={() => selectCard(activeReelIndex - 1)}
@@ -540,7 +505,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
           <span className="material-symbols-outlined text-lg sm:text-xl">arrow_back</span>
         </button>
 
-        {/* Pagination Dots */}
         <div id="carousel-dots" className="flex items-center gap-1.5 sm:gap-2 py-2">
           {reels.map((_, dotIdx) => (
             <button
@@ -569,13 +533,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
         </button>
       </div>
 
-      {/* =========================================================================
-          FULL WINDOW VIDEO MODE OVERLAY WITH PROMINENT "< BACK" NAVIGATION
-          - Completely clean: Zero shooter name, views, shoot name, or type when playing
-          - No sound button in UI: Replaced with automatic/interactive toast message
-          - No watermark in video, no box icon
-          - Mounted via createPortal onto document.body to stay above all navbars & layers
-          ========================================================================= */}
       {isMounted && fullscreenIndex !== null && reels[fullscreenIndex] && typeof document !== 'undefined' && createPortal(
         <div
           id="reel-fullscreen-mode"
@@ -584,9 +541,7 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
           aria-modal="true"
           aria-label="Full Screen Video Player"
         >
-          {/* Top Header Bar: Back Button, Toast Notification & Close Button */}
           <div className="w-full max-w-2xl flex items-center justify-between z-50 py-1 sm:py-2">
-            {/* Prominent Back Button */}
             <button
               type="button"
               onClick={closeFullscreen}
@@ -599,7 +554,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
               <span>Back</span>
             </button>
 
-            {/* In-Video Toast Message (Replaces bulky sound button) */}
             <div
               className={`transition-all duration-300 transform ${
                 toast.visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
@@ -615,7 +569,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
               </div>
             </div>
 
-            {/* Close Button */}
             <button
               type="button"
               onClick={closeFullscreen}
@@ -627,7 +580,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
             </button>
           </div>
 
-          {/* Center 9:16 Video Player Surface (Completely Clean: No watermark, no overlays) */}
           <div className="relative flex-1 flex items-center justify-center w-full min-h-0 my-2">
             <div
               className="relative w-full max-w-[420px] sm:max-w-[440px] h-full max-h-[76vh] sm:max-h-[82vh] aspect-[9/16] rounded-2xl sm:rounded-3xl overflow-hidden bg-black shadow-[0_25px_80px_rgba(0,0,0,0.95)] border border-white/20 flex items-center justify-center cursor-pointer group"
@@ -670,7 +622,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
                 />
               )}
 
-              {/* Big Splash Play button if paused in fullscreen */}
               {!isFullscreenPlaying && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px] z-20 pointer-events-none">
                   <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#ff6d29] text-white flex items-center justify-center shadow-[0_0_30px_rgba(255,109,41,0.8)] transform scale-100 group-hover:scale-110 transition-transform">
@@ -683,9 +634,7 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
             </div>
           </div>
 
-          {/* Bottom Fullscreen Control Deck: Pure Scrubber & Play/Pause (No shooter name, no views, no shoot name/type, no sound btn, no box icon) */}
           <div className="w-full max-w-xl z-50 flex flex-col gap-2 p-3 sm:p-3.5 rounded-2xl bg-[#141015]/95 border border-white/15 backdrop-blur-xl shadow-2xl">
-            {/* Scrubber Progress Bar */}
             <div
               onClick={(e) => handleFullscreenSeek(e)}
               className="relative w-full h-5 flex items-center cursor-pointer group/fscrub"
@@ -706,7 +655,6 @@ export default function PortfolioCarousel({ onShowToast: _onShowToast } = {}) {
               />
             </div>
 
-            {/* Control Actions Row: Clean Play/Pause, Timestamp & Back navigation */}
             <div className="flex items-center justify-between text-white">
               <div className="flex items-center gap-3">
                 <button

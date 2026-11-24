@@ -5,16 +5,7 @@ import TestimonialCard from './TestimonialCard';
 import { ROW_1_TESTIMONIALS, ROW_2_TESTIMONIALS } from '@/lib/data';
 import { getTestimonials, getCachedTestimonials, subscribeToTestimonials } from '@/lib/cmsServices';
 
-/**
- * TestimonialsSection Component
- *
- * Adaptive Architecture:
- * - Desktop (>= 768px): Full-width dual-row seamless infinite marquee (left & right)
- * - Mobile (< 768px): Touch-swipeable interactive card carousel with pagination dots & arrows
- *   eliminates cut-off cards, text truncation, and WebKit GPU tile memory exhaustion on iPhone.
- */
 
-// SKELETON PLACEHOLDER FOR TESTIMONIAL CARDS
 function TestimonialCardSkeleton() {
   return (
     <div className="w-[260px] xs:w-[280px] sm:w-[304px] md:w-[323px] h-[200px] rounded-2xl p-4 sm:p-5 md:p-6 bg-[#110e13] border border-white/10 flex flex-col justify-between ambient-skeleton shrink-0 shadow-lg">
@@ -45,7 +36,6 @@ export default function TestimonialsSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Mobile Carousel State
   const [mobileIndex, setMobileIndex] = useState(0);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
@@ -63,21 +53,17 @@ export default function TestimonialsSection() {
       setIsLoading(false);
     };
 
-    // 1. Instant check from cache for 0ms initial render
     const cached = getCachedTestimonials();
     if (cached && cached.length > 0) {
       applyTestimonials(cached);
     }
 
-    // 2. Initial fetch
     getTestimonials()
       .then(applyTestimonials)
       .finally(() => setIsLoading(false));
 
-    // 3. Real-time Firestore onSnapshot listener
     const unsubscribeSnapshot = subscribeToTestimonials(applyTestimonials);
 
-    // 4. React to live Admin updates in same tab
     const handleCmsUpdate = (e) => {
       if (!e.detail?.type || e.detail.type === 'testimonials') {
         getTestimonials({ forceRefresh: true }).then(applyTestimonials);
@@ -91,7 +77,6 @@ export default function TestimonialsSection() {
     };
   }, []);
 
-  // Pause animations when browser tab is inactive to preserve battery & CPU
   useEffect(() => {
     const handleVisibility = () => {
       setIsPaused(document.hidden);
@@ -103,7 +88,6 @@ export default function TestimonialsSection() {
   const allReviews = [...row1, ...row2];
   const totalMobile = allReviews.length || 1;
 
-  // Auto-advance mobile carousel every 5s if not paused
   useEffect(() => {
     if (isPaused || isLoading || totalMobile <= 1) return;
     const timer = setInterval(() => {
@@ -137,7 +121,6 @@ export default function TestimonialsSection() {
     }
   };
 
-  // Minimal duplication for seamless desktop infinite marquee loop
   const topRowList = row1.length <= 3 ? [...row1, ...row1] : row1;
   const bottomRowList = row2.length <= 3 ? [...row2, ...row2] : row2;
 
@@ -149,7 +132,6 @@ export default function TestimonialsSection() {
       id="testimonials"
       aria-label="Client Testimonials"
     >
-      {/* Section Header */}
       <div className="reveal-on-scroll text-center max-w-3xl mx-auto mb-10 md:mb-16 px-4 sm:px-6">
         <span className="text-primary text-label-md font-label-md uppercase tracking-wider block mb-2 font-bold">
           TESTIMONIALS
@@ -172,14 +154,6 @@ export default function TestimonialsSection() {
         </div>
       ) : (
         <>
-          {/* =========================================================================
-              MOBILE INTERACTIVE CAROUSEL (< 768px):
-              - Perfectly centered card with zero clipping
-              - Touch swipe gestures (left / right)
-              - Prev / Next buttons
-              - Pagination indicator dots
-              - Eliminates WebKit tile memory exhaustion and clipped cards
-             ========================================================================= */}
           <div className="block md:hidden px-4 max-w-md mx-auto">
             <div
               className="relative touch-pan-y"
@@ -201,7 +175,6 @@ export default function TestimonialsSection() {
               </div>
             </div>
 
-            {/* Mobile Controls: Prev, Pagination Dots, Next */}
             <div className="flex items-center justify-between mt-5 px-2">
               <button
                 onClick={prevMobile}
@@ -211,7 +184,6 @@ export default function TestimonialsSection() {
                 <span className="material-symbols-outlined text-lg">arrow_back</span>
               </button>
 
-              {/* Dots */}
               <div className="flex items-center gap-1.5 py-1">
                 {allReviews.map((_, dotIdx) => (
                   <button
@@ -241,14 +213,7 @@ export default function TestimonialsSection() {
             </div>
           </div>
 
-          {/* =========================================================================
-              DESKTOP DUAL-ROW MARQUEE (>= 768px):
-              - Preserves original aesthetic on tablet and desktop screens
-              - Seamless infinite marquee scrolling left and right
-              - Edge gradient masks
-             ========================================================================= */}
           <div className="hidden md:block relative w-full overflow-hidden">
-            {/* Edge Gradient Masks for Smooth Fade Out */}
             <div
               className="absolute left-0 inset-y-0 w-24 md:w-40 bg-gradient-to-r from-background via-background/70 to-transparent z-10 pointer-events-none"
               aria-hidden="true"
@@ -259,7 +224,6 @@ export default function TestimonialsSection() {
             />
 
             <div className="space-y-4 sm:space-y-6 fade-in-content">
-              {/* ROW 1: Scrolling LEFT */}
               <div className="testimonials-marquee-row flex overflow-hidden w-full testimonials-mask-fade">
                 <div
                   className="animate-marquee-left flex items-stretch shrink-0 gap-4 sm:gap-6 pr-4 sm:pr-6"
@@ -297,7 +261,6 @@ export default function TestimonialsSection() {
                 </div>
               </div>
 
-              {/* ROW 2: Scrolling RIGHT */}
               <div className="testimonials-marquee-row flex overflow-hidden w-full testimonials-mask-fade">
                 <div
                   className="animate-marquee-right-slow flex items-stretch shrink-0 gap-4 sm:gap-6 pr-4 sm:pr-6"

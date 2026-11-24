@@ -6,7 +6,6 @@ import confetti from 'canvas-confetti';
 export default function CreatorSuccessModal({ isOpen, onClose, applicationData }) {
   useEffect(() => {
     if (isOpen) {
-      // Trigger golden/orange celebratory confetti burst
       try {
         confetti({
           particleCount: 80,
@@ -15,7 +14,6 @@ export default function CreatorSuccessModal({ isOpen, onClose, applicationData }
           colors: ['#ff6d29', '#FFD700', '#ffffff', '#ff9e66'],
         });
       } catch {
-        // Fallback
       }
     }
   }, [isOpen]);
@@ -33,10 +31,8 @@ export default function CreatorSuccessModal({ isOpen, onClose, applicationData }
         className="relative w-full max-w-lg rounded-3xl bg-surface-deep border border-border-amber p-8 md:p-10 shadow-[0_25px_80px_rgba(255,109,41,0.35)] text-center text-text-primary overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Ambient Top Glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-24 bg-primary-container/30 blur-3xl pointer-events-none rounded-full" />
 
-        {/* Close Icon Button */}
         <button
           onClick={onClose}
           aria-label="Close Confirmation Modal"
@@ -45,7 +41,6 @@ export default function CreatorSuccessModal({ isOpen, onClose, applicationData }
           <span className="material-symbols-outlined text-lg">close</span>
         </button>
 
-        {/* Badge */}
         <div className="w-16 h-16 rounded-2xl bg-primary-container/20 border border-border-amber text-primary mx-auto mb-6 flex items-center justify-center shadow-[0_0_30px_rgba(255,109,41,0.5)]">
           <span className="material-symbols-outlined text-3xl">celebration</span>
         </div>
@@ -63,7 +58,6 @@ export default function CreatorSuccessModal({ isOpen, onClose, applicationData }
           Your application for the <span className="text-white font-medium">{applicationData?.phoneModel || 'iPhone'}</span> has been priority-queued.
         </p>
 
-        {/* Next Steps Box */}
         <div className="rounded-2xl bg-surface-container/60 border border-border-specular p-5 text-left mb-6 space-y-3">
           <div className="text-xs uppercase tracking-wider font-bold text-primary flex items-center gap-1.5">
             <span className="material-symbols-outlined text-sm">schedule</span>

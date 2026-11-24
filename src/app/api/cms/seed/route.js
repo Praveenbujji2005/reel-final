@@ -7,10 +7,6 @@ import { REEL_PORTFOLIO, FAQ_DATA } from '@/lib/data';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-/**
- * Seed / Initialize Firestore CMS Collections with initial baseline content
- * Populates: cms_hero, cms_pricing, cms_testimonials, cms_faqs
- */
 export async function POST(request) {
   try {
     if (!isFirebaseConfigured || !db) {
@@ -27,7 +23,6 @@ export async function POST(request) {
       faqs: { seeded: 0, existing: 0 },
     };
 
-    // 1. Seed cms_hero
     const heroSnap = await getDocs(collection(db, 'cms_hero'));
     if (heroSnap.empty) {
       for (const slide of REEL_PORTFOLIO) {
@@ -46,7 +41,6 @@ export async function POST(request) {
       results.hero.existing = heroSnap.size;
     }
 
-    // 2. Seed cms_pricing
     const pricingSnap = await getDocs(collection(db, 'cms_pricing'));
     if (pricingSnap.empty) {
       for (const plan of INITIAL_PRICING_PLANS) {
@@ -65,7 +59,6 @@ export async function POST(request) {
       results.pricing.existing = pricingSnap.size;
     }
 
-    // 3. Seed cms_testimonials
     const testSnap = await getDocs(collection(db, 'cms_testimonials'));
     if (testSnap.empty) {
       for (const t of INITIAL_TESTIMONIALS) {
@@ -83,7 +76,6 @@ export async function POST(request) {
       results.testimonials.existing = testSnap.size;
     }
 
-    // 4. Seed cms_faqs
     const faqSnap = await getDocs(collection(db, 'cms_faqs'));
     if (faqSnap.empty) {
       for (let i = 0; i < FAQ_DATA.length; i++) {

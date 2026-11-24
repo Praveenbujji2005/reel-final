@@ -7,13 +7,9 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const TOKEN_FILE = path.join(DATA_DIR, 'google_calendar_token.json');
 const CONFIG_FILE = path.join(DATA_DIR, 'google_calendar_config.json');
 
-// In-memory cache for fast serverless execution across warm Lambda invocations
 let memoryConfigCache = null;
 let memoryTokensCache = null;
 
-/**
- * Safely writes a file to disk, falling back to /tmp if process.cwd() is read-only (e.g. AWS Lambda / Vercel)
- */
 function safeWriteFile(filePath, content) {
   try {
     const dir = path.dirname(filePath);
@@ -23,7 +19,6 @@ function safeWriteFile(filePath, content) {
     fs.writeFileSync(filePath, content, 'utf-8');
     return true;
   } catch (err) {
-    // If running in a read-only filesystem (EROFS on Vercel/Lambda), fallback to /tmp
     try {
       const tmpDir = path.join('/tmp', 'reelexpress_data');
       if (!fs.existsSync(tmpDir)) {
@@ -38,9 +33,6 @@ function safeWriteFile(filePath, content) {
   }
 }
 
-/**
- * Safely reads a file from disk, checking local data directory and /tmp fallback
- */
 function safeReadFile(filePath) {
   try {
     if (fs.existsSync(filePath)) {
@@ -56,9 +48,6 @@ function safeReadFile(filePath) {
   return null;
 }
 
-/**
- * Safely removes a file from disk and /tmp fallback
- */
 function safeUnlinkFile(filePath) {
   try {
     if (fs.existsSync(filePath)) {
@@ -73,19 +62,13 @@ function safeUnlinkFile(filePath) {
   } catch {}
 }
 
-/**
- * Reads Google OAuth client configuration from in-memory cache, Firestore (production/Vercel),
- * safe local disk files, or environment variables.
- */
 export async function getGoogleCalendarConfig() {
   let fileConfig = {};
 
-  // 1. Check in-memory cache
   if (memoryConfigCache?.clientId && memoryConfigCache?.clientSecret) {
     fileConfig = { ...memoryConfigCache };
   }
 
-  // 2. Check Firestore (primary persistent storage across all Vercel serverless instances)
   if (!fileConfig.clientId && isFirebaseConfigured && db) {
     try {
       const docRef = doc(db, 'cms_settings', 'google_calendar');
@@ -106,7 +89,6 @@ export async function getGoogleCalendarConfig() {
     }
   }
 
-  // 3. Check disk file (local dev data/ or /tmp fallback)
   if (!fileConfig.clientId) {
     const raw = safeReadFile(CONFIG_FILE);
     if (raw) {
@@ -117,7 +99,6 @@ export async function getGoogleCalendarConfig() {
     }
   }
 
-  // 4. Fallback to process.env
   const clientId =
     process.env.GOOGLE_CLIENT_ID ||
     fileConfig.clientId ||
@@ -148,10 +129,6 @@ export async function getGoogleCalendarConfig() {
   };
 }
 
-/**
- * Saves Google OAuth client configuration to in-memory cache, Firestore (for Vercel),
- * and local safe disk files without throwing read-only filesystem errors.
- */
 export async function saveGoogleCalendarConfig({ clientId, clientSecret, redirectUri = '' }) {
   const config = {
     clientId: (clientId || '').trim(),
@@ -160,10 +137,8 @@ export async function saveGoogleCalendarConfig({ clientId, clientSecret, redirec
     updatedAt: new Date().toISOString(),
   };
 
-  // 1. Update in-memory cache immediately
   memoryConfigCache = { ...(memoryConfigCache || {}), ...config };
 
-  // 2. Persist to Firestore (handles Vercel read-only filesystem flawlessly)
   if (isFirebaseConfigured && db) {
     try {
       const docRef = doc(db, 'cms_settings', 'google_calendar');
@@ -182,17 +157,12 @@ export async function saveGoogleCalendarConfig({ clientId, clientSecret, redirec
     }
   }
 
-  // 3. Local disk safe write (non-blocking, never throws EROFS on Vercel)
   safeWriteFile(CONFIG_FILE, JSON.stringify(config, null, 2));
 
   return { success: true };
 }
 
-/**
- * Reads saved Google OAuth tokens from in-memory cache, Firestore, or local disk fallback
- */
 export async function getStoredTokens() {
-  // 1. In-memory cache
   if (
     memoryTokensCache &&
     memoryTokensCache.connected &&
@@ -201,7 +171,6 @@ export async function getStoredTokens() {
     return memoryTokensCache;
   }
 
-  // 2. Firestore persistence (works across serverless instances and cold starts on Vercel)
   if (isFirebaseConfigured && db) {
     try {
       const docRef = doc(db, 'cms_settings', 'google_calendar');
@@ -226,7 +195,6 @@ export async function getStoredTokens() {
     }
   }
 
-  // 3. Safe read from disk /tmp
   const raw = safeReadFile(TOKEN_FILE);
   if (raw) {
     try {
@@ -241,9 +209,6 @@ export async function getStoredTokens() {
   return null;
 }
 
-/**
- * Saves Google OAuth tokens to in-memory cache, Firestore, and local safe disk files
- */
 export async function saveTokens({ tokens, email = '', name = '' }) {
   const existing = (await getStoredTokens()) || {};
 
@@ -261,10 +226,8 @@ export async function saveTokens({ tokens, email = '', name = '' }) {
     updatedAt: new Date().toISOString(),
   };
 
-  // 1. Update in-memory cache
   memoryTokensCache = payload;
 
-  // 2. Persist to Firestore
   if (isFirebaseConfigured && db) {
     try {
       const docRef = doc(db, 'cms_settings', 'google_calendar');
@@ -285,15 +248,11 @@ export async function saveTokens({ tokens, email = '', name = '' }) {
     }
   }
 
-  // 3. Local disk safe write (non-blocking)
   safeWriteFile(TOKEN_FILE, JSON.stringify(payload, null, 2));
 
   return payload;
 }
 
-/**
- * Clears saved Google OAuth tokens (disconnect)
- */
 export async function clearTokens() {
   memoryTokensCache = null;
 
@@ -320,9 +279,6 @@ export async function clearTokens() {
   return { success: true };
 }
 
-/**
- * Gets connection status for client (safe: never returns secrets or refresh tokens)
- */
 export async function getCalendarConnectionStatus() {
   const config = await getGoogleCalendarConfig();
   const stored = await getStoredTokens();
@@ -348,9 +304,6 @@ export async function getCalendarConnectionStatus() {
   };
 }
 
-/**
- * Generates official Google OAuth 2.0 authorization URL
- */
 export async function getGoogleAuthUrl(requestOrigin = '') {
   const config = await getGoogleCalendarConfig();
   if (!config.clientId) {
@@ -372,7 +325,7 @@ export async function getGoogleAuthUrl(requestOrigin = '') {
     response_type: 'code',
     scope: scopes,
     access_type: 'offline',
-    prompt: 'consent', // Ensures refresh_token is returned
+    prompt: 'consent',
     include_granted_scopes: 'true',
   });
 
@@ -382,9 +335,6 @@ export async function getGoogleAuthUrl(requestOrigin = '') {
   };
 }
 
-/**
- * Exchanges authorization code for tokens
- */
 export async function exchangeCodeForTokens(code, requestOrigin = '') {
   const config = await getGoogleCalendarConfig();
   if (!config.clientId || !config.clientSecret) {
@@ -421,7 +371,6 @@ export async function exchangeCodeForTokens(code, requestOrigin = '') {
     expiry_date: data.expires_in ? Date.now() + data.expires_in * 1000 : null,
   };
 
-  // Fetch admin profile email to identify account
   let email = '';
   let name = '';
   try {
@@ -446,9 +395,6 @@ export async function exchangeCodeForTokens(code, requestOrigin = '') {
   };
 }
 
-/**
- * Returns a valid access token, automatically refreshing if expired
- */
 export async function getValidAccessToken() {
   const stored = await getStoredTokens();
   if (!stored || !stored.tokens) {
@@ -458,17 +404,14 @@ export async function getValidAccessToken() {
   const { tokens } = stored;
   const now = Date.now();
 
-  // If token is still valid for at least 60 seconds, reuse it
   if (tokens.access_token && tokens.expiry_date && tokens.expiry_date > now + 60 * 1000) {
     return tokens.access_token;
   }
 
-  // If no refresh token, cannot refresh
   if (!tokens.refresh_token) {
     throw new Error('AUTH_EXPIRED_NO_REFRESH');
   }
 
-  // Refresh the access token using Google's token endpoint
   const config = await getGoogleCalendarConfig();
   if (!config.clientId || !config.clientSecret) {
     throw new Error('Google OAuth credentials missing for token refresh.');
@@ -507,9 +450,6 @@ export async function getValidAccessToken() {
   return updatedTokens.access_token;
 }
 
-/**
- * Parses shoot date & time strings into RFC3339 format for Google Calendar (IST timezone)
- */
 export function parseShootDateTime(eventDateRaw = '', eventTimeRaw = '', message = '') {
   if (!eventDateRaw || !String(eventDateRaw).trim()) {
     return {
@@ -521,7 +461,6 @@ export function parseShootDateTime(eventDateRaw = '', eventTimeRaw = '', message
   const rawDateStr = String(eventDateRaw).trim();
   let dateIsoString = null;
 
-  // Format 1: YYYY-MM-DD
   const ymdMatch = rawDateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   if (ymdMatch) {
     const y = ymdMatch[1];
@@ -530,7 +469,6 @@ export function parseShootDateTime(eventDateRaw = '', eventTimeRaw = '', message
     dateIsoString = `${y}-${m}-${d}`;
   }
 
-  // Format 2: DD/MM/YYYY or DD-MM-YYYY
   if (!dateIsoString) {
     const dmyMatch = rawDateStr.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
     if (dmyMatch) {
@@ -541,7 +479,6 @@ export function parseShootDateTime(eventDateRaw = '', eventTimeRaw = '', message
     }
   }
 
-  // Format 3: JavaScript Date parsable string
   if (!dateIsoString) {
     const parsed = new Date(rawDateStr);
     if (!isNaN(parsed.getTime())) {
@@ -556,7 +493,6 @@ export function parseShootDateTime(eventDateRaw = '', eventTimeRaw = '', message
     };
   }
 
-  // Parse time or fallback to 10:00 AM tentatively
   let startHour = 10;
   let startMin = 0;
   let durationHours = 3;
@@ -589,7 +525,6 @@ export function parseShootDateTime(eventDateRaw = '', eventTimeRaw = '', message
   const endHourStr = String(endHour).padStart(2, '0');
   const endMinStr = String(endMin).padStart(2, '0');
 
-  // RFC3339 strings with IST offset (+05:30)
   const startDateTime = `${dateIsoString}T${startHourStr}:${startMinStr}:00+05:30`;
   const endDateTime = `${dateIsoString}T${endHourStr}:${endMinStr}:00+05:30`;
 
@@ -615,20 +550,17 @@ export function parseShootDateTime(eventDateRaw = '', eventTimeRaw = '', message
   };
 }
 
-/**
- * Creates an event in Google Calendar using the official Calendar v3 REST API
- */
 export async function createGoogleCalendarEvent(enquiry) {
   const customerName = (enquiry.customerName || enquiry.fullName || enquiry.name || 'Client').trim();
   const selectedService = (enquiry.selectedService || enquiry.serviceType || enquiry.type || 'Shoot').trim();
   const phone = (enquiry.phone || 'Not provided').trim();
   const email = (enquiry.email || 'Not provided').trim();
   const city = (enquiry.city || 'Bengaluru').trim();
+  const locality = (enquiry.locality || enquiry.area || '').trim();
   const sourcePage = (enquiry.sourcePage || enquiry.source || 'Website').trim();
   const message = (enquiry.enquiryMessage || enquiry.message || enquiry.notes || 'None').trim();
   const enquiryId = enquiry.id || 'N/A';
 
-  // 1. Date & Time Validation
   const dateTimeResult = parseShootDateTime(
     enquiry.eventDate || enquiry.date,
     enquiry.eventTime || enquiry.time,
@@ -639,13 +571,13 @@ export async function createGoogleCalendarEvent(enquiry) {
     throw new Error(dateTimeResult.error);
   }
 
-  // 2. Obtain a valid access token
   const accessToken = await getValidAccessToken();
 
-  // 3. Build Google Calendar Event Payload
   const eventTitle = `${customerName} - ${selectedService}${
     dateTimeResult.isTentativeTime ? ' (Tentative Time)' : ''
   }`;
+
+  const locationDisplay = locality ? `${locality}, ${city}, India` : `${city}, India`;
 
   const eventDescription = [
     `📅 REELXPRESS SHOOT BOOKING`,
@@ -654,7 +586,7 @@ export async function createGoogleCalendarEvent(enquiry) {
     `📞 Phone / WhatsApp: ${phone}`,
     `✉️ Email: ${email}`,
     `🎬 Service / Package: ${selectedService}`,
-    `📍 Location: ${city}, India`,
+    `📍 Location: ${locationDisplay}`,
     `🌐 Enquiry Source: ${sourcePage}`,
     `⏰ Shoot Time: ${dateTimeResult.formattedTime}`,
     `----------------------------------------`,
@@ -665,7 +597,7 @@ export async function createGoogleCalendarEvent(enquiry) {
     `✨ Scheduled automatically via reelXpress CMS`,
   ].join('\n');
 
-  const eventLocation = `${city}, India`;
+  const eventLocation = locationDisplay;
 
   const calendarPayload = {
     summary: eventTitle,
@@ -679,7 +611,6 @@ export async function createGoogleCalendarEvent(enquiry) {
       dateTime: dateTimeResult.endDateTime,
       timeZone: 'Asia/Kolkata',
     },
-    // Requirement 2: 30 minutes before reminder
     reminders: {
       useDefault: false,
       overrides: [
@@ -687,10 +618,9 @@ export async function createGoogleCalendarEvent(enquiry) {
         { method: 'email', minutes: 30 },
       ],
     },
-    colorId: '9', // Blueberry / Google Blue accent in Google Calendar
+    colorId: '9',
   };
 
-  // 4. Call official Google Calendar v3 API
   const calendarApiUrl = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
   const response = await fetch(calendarApiUrl, {
     method: 'POST',

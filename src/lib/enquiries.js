@@ -14,9 +14,6 @@ import {
 
 export const ENQUIRIES_COLLECTION = 'enquiries';
 
-/**
- * Validates enquiry input data
- */
 export function validateEnquiryData(data) {
   const errors = [];
   const customerName = (data.customerName || data.fullName || data.name || '').trim();
@@ -48,9 +45,6 @@ export function validateEnquiryData(data) {
   };
 }
 
-/**
- * Normalizes an enquiry document from Firestore (handling timestamps and fallbacks)
- */
 export function normalizeEnquiry(id, raw = {}) {
   const customerName = raw.customerName || raw.fullName || raw.name || 'Anonymous Client';
   const email = raw.email || 'No email provided';
@@ -59,12 +53,12 @@ export function normalizeEnquiry(id, raw = {}) {
   const selectedService = raw.selectedService || raw.serviceType || raw.type || 'General Shoot';
   const enquiryMessage = raw.enquiryMessage || raw.message || raw.notes || 'No message provided.';
   const city = raw.city || 'Bengaluru';
+  const locality = raw.locality || raw.area || '';
   const eventDate = raw.eventDate || raw.date || '';
   const status = raw.status || 'New';
   const sourcePage = raw.sourcePage || raw.source || 'Website Booking Form';
   const createdAt = raw.createdAt || new Date().toISOString();
 
-  // Safe parsing of Firestore Timestamps
   let timestampDate = null;
   if (raw.timestamp?.toDate && typeof raw.timestamp.toDate === 'function') {
     timestampDate = raw.timestamp.toDate();
@@ -106,6 +100,7 @@ export function normalizeEnquiry(id, raw = {}) {
     enquiryMessage,
     message: enquiryMessage,
     city,
+    locality,
     eventDate,
     status,
     sourcePage,
@@ -122,9 +117,6 @@ export function normalizeEnquiry(id, raw = {}) {
   };
 }
 
-/**
- * Helper to convert plain object to Firestore REST API payload
- */
 export function toFirestoreFields(obj) {
   const fields = {};
   for (const [key, val] of Object.entries(obj)) {
@@ -148,9 +140,6 @@ export function toFirestoreFields(obj) {
   return { fields };
 }
 
-/**
- * Helper to parse Firestore REST API document to plain object
- */
 export function parseFirestoreDoc(doc) {
   if (!doc) return null;
   const fields = doc.fields || {};
@@ -168,9 +157,6 @@ export function parseFirestoreDoc(doc) {
   return normalizeEnquiry(data.id, data);
 }
 
-/**
- * Timeout helper for Firestore operations
- */
 function withTimeout(promise, ms = 4000, label = 'Firestore operation') {
   return Promise.race([
     promise,
@@ -180,10 +166,6 @@ function withTimeout(promise, ms = 4000, label = 'Firestore operation') {
   ]);
 }
 
-/**
- * Submit an enquiry directly to Firebase Firestore
- * Throws a clear error if Firestore fails (never returns fake success)
- */
 export async function createEnquiry(enquiryData) {
   const validation = validateEnquiryData(enquiryData);
   if (!validation.isValid) {
@@ -212,8 +194,9 @@ export async function createEnquiry(enquiryData) {
     enquiryMessage,
     message: enquiryMessage,
     city,
+    locality,
     eventDate,
-    status: 'New', // Standardized: 'New' | 'Contacted' | 'Completed'
+    status: 'New',
     sourcePage,
     source: sourcePage,
     createdAt,
@@ -222,7 +205,6 @@ export async function createEnquiry(enquiryData) {
   let savedDocId = null;
   let lastError = null;
 
-  // 1. Direct Firestore REST API (Fastest and highly reliable on Server / Node.js)
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || firebaseConfig?.apiKey;
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || firebaseConfig?.projectId;
 
@@ -264,7 +246,6 @@ export async function createEnquiry(enquiryData) {
     }
   }
 
-  // 2. Firebase Client SDK (If REST didn't succeed or when called in browser)
   if (!savedDocId && db) {
     try {
       const docRef = await withTimeout(
@@ -305,9 +286,6 @@ export async function createEnquiry(enquiryData) {
   };
 }
 
-/**
- * Real-time listener for enquiries collection using Firestore onSnapshot
- */
 export function subscribeToEnquiries({ onData, onError }) {
   if (!isFirebaseConfigured || !db) {
     onError?.(new Error('Firebase is not configured. Please check environment variables in .env.local.'));
@@ -332,7 +310,6 @@ export function subscribeToEnquiries({ onData, onError }) {
       },
       (err) => {
         console.warn('[Firestore] onSnapshot error:', err);
-        // If ordered query requires an index that is building, fallback to raw collection
         if (err.code === 'failed-precondition' || err.message?.includes('index')) {
           return onSnapshot(
             colRef,
@@ -355,16 +332,12 @@ export function subscribeToEnquiries({ onData, onError }) {
   }
 }
 
-/**
- * Fetch all enquiries once from Firestore
- */
 export async function getEnquiriesFromFirestore({ search = '', status = 'all', sortBy = 'newest' } = {}) {
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || firebaseConfig?.apiKey;
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || firebaseConfig?.projectId;
 
   let list = [];
 
-  // A. Try REST API first (Server-safe)
   if (apiKey && projectId) {
     try {
       const restUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${ENQUIRIES_COLLECTION}?key=${apiKey}`;
@@ -378,7 +351,6 @@ export async function getEnquiriesFromFirestore({ search = '', status = 'all', s
     } catch {}
   }
 
-  // B. Client SDK if REST returned empty
   if (list.length === 0 && db) {
     try {
       const colRef = collection(db, ENQUIRIES_COLLECTION);
@@ -389,7 +361,6 @@ export async function getEnquiriesFromFirestore({ search = '', status = 'all', s
     }
   }
 
-  // Filter by search term
   if (search && search.trim()) {
     const term = search.toLowerCase().trim();
     list = list.filter(
@@ -403,13 +374,11 @@ export async function getEnquiriesFromFirestore({ search = '', status = 'all', s
     );
   }
 
-  // Filter by status
   if (status && status !== 'all') {
     const targetStatus = status.toLowerCase();
     list = list.filter((item) => (item.status || '').toLowerCase() === targetStatus);
   }
 
-  // Sort
   list.sort((a, b) => {
     const timeA = new Date(a.createdAt || 0).getTime();
     const timeB = new Date(b.createdAt || 0).getTime();
@@ -419,11 +388,7 @@ export async function getEnquiriesFromFirestore({ search = '', status = 'all', s
   return list;
 }
 
-/**
- * Update enquiry status in Firestore ('New' | 'Contacted' | 'Completed')
- */
 export async function updateEnquiryStatusInFirestore(id, newStatus, adminEmail = 'admin@reelxpress.com') {
-  // Normalize capitalized status
   const normalizedStatus =
     newStatus.toLowerCase() === 'completed' || newStatus.toLowerCase() === 'resolved'
       ? 'Completed'
@@ -433,7 +398,6 @@ export async function updateEnquiryStatusInFirestore(id, newStatus, adminEmail =
 
   const updatedAt = new Date().toISOString();
 
-  // A. REST API update
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || firebaseConfig?.apiKey;
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || firebaseConfig?.projectId;
 
@@ -459,7 +423,6 @@ export async function updateEnquiryStatusInFirestore(id, newStatus, adminEmail =
     } catch {}
   }
 
-  // B. Client SDK update
   if (db) {
     const docRef = doc(db, ENQUIRIES_COLLECTION, id);
     await updateDoc(docRef, {
@@ -473,14 +436,10 @@ export async function updateEnquiryStatusInFirestore(id, newStatus, adminEmail =
   throw new Error('Could not update status: Firestore database is not accessible.');
 }
 
-/**
- * Delete enquiry from Firestore
- */
 export async function deleteEnquiryFromFirestore(id) {
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || firebaseConfig?.apiKey;
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || firebaseConfig?.projectId;
 
-  // A. REST API delete
   if (apiKey && projectId) {
     try {
       const restUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${ENQUIRIES_COLLECTION}/${id}?key=${apiKey}`;
@@ -491,7 +450,6 @@ export async function deleteEnquiryFromFirestore(id) {
     } catch {}
   }
 
-  // B. Client SDK delete
   if (db) {
     const docRef = doc(db, ENQUIRIES_COLLECTION, id);
     await deleteDoc(docRef);
@@ -501,9 +459,6 @@ export async function deleteEnquiryFromFirestore(id) {
   throw new Error('Could not delete enquiry: Firestore database is not accessible.');
 }
 
-/**
- * Update Google Calendar sync status in Firestore
- */
 export async function updateEnquiryCalendarSyncInFirestore(id, syncData, adminEmail = 'admin@reelxpress.com') {
   const {
     googleCalendarEventId,
@@ -514,7 +469,6 @@ export async function updateEnquiryCalendarSyncInFirestore(id, syncData, adminEm
 
   const updatedAt = new Date().toISOString();
 
-  // A. REST API update
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || firebaseConfig?.apiKey;
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || firebaseConfig?.projectId;
 
@@ -552,7 +506,6 @@ export async function updateEnquiryCalendarSyncInFirestore(id, syncData, adminEm
     }
   }
 
-  // B. Client SDK update
   if (db) {
     const docRef = doc(db, ENQUIRIES_COLLECTION, id);
     await updateDoc(docRef, {
@@ -569,7 +522,6 @@ export async function updateEnquiryCalendarSyncInFirestore(id, syncData, adminEm
   return { success: true, id, ...syncData };
 }
 
-// Backward compatibility aliases
 export const createInquiry = createEnquiry;
 export const getInquiries = getEnquiriesFromFirestore;
 export const updateInquiryStatus = updateEnquiryStatusInFirestore;

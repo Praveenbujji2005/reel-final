@@ -17,7 +17,6 @@ function AdminLayoutInner({ children }) {
   const isAuthPage =
     pathname === '/admin/login' || pathname === '/admin/forgot-password';
 
-  // Fetch count of new inquiries & creator queries for sidebar badges
   useEffect(() => {
     if (isAuthenticated) {
       getInquiries({ status: 'new' })
@@ -35,19 +34,16 @@ function AdminLayoutInner({ children }) {
     }
   }, [isAuthenticated, pathname]);
 
-  // Route protection: redirect to login if unauthenticated
   useEffect(() => {
     if (!loading && !isAuthenticated && !isAuthPage) {
       router.push('/admin/login');
     }
   }, [loading, isAuthenticated, isAuthPage, router]);
 
-  // If on login / forgot-password, render clean full-screen wrapper
   if (isAuthPage) {
     return <div className="min-h-screen bg-[#0c0a0c] text-white">{children}</div>;
   }
 
-  // Loading spinner while verifying session
   if (loading || (!isAuthenticated && !isAuthPage)) {
     return (
       <div className="min-h-screen bg-[#0c0a0c] flex flex-col items-center justify-center text-white">
@@ -80,11 +76,7 @@ function AdminLayoutInner({ children }) {
 
   return (
     <div className="min-h-screen bg-[#0c0a0c] text-white flex flex-col md:flex-row font-sans selection:bg-[#F28C3C] selection:text-white">
-      {/* =========================================================================
-          DESKTOP SIDEBAR (Fixed Left Column)
-         ========================================================================= */}
       <aside className="hidden md:flex flex-col w-64 lg:w-72 bg-[#120f12] border-r border-white/10 shrink-0 sticky top-0 h-screen select-none z-40">
-        {/* Brand Header */}
         <div className="p-6 border-b border-white/10 flex items-center justify-between">
           <Link href="/admin" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-[#1c171c] border border-[#F28C3C]/40 flex items-center justify-center p-2 shadow-[0_0_15px_rgba(242,140,60,0.25)] group-hover:border-[#F28C3C] transition-all">
@@ -106,7 +98,6 @@ function AdminLayoutInner({ children }) {
           </Link>
         </div>
 
-        {/* Navigation Menu */}
         <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
           {navItems.map((item) => {
             const isActive =
@@ -157,7 +148,6 @@ function AdminLayoutInner({ children }) {
           </div>
         </nav>
 
-        {/* Admin User Footer & Sign Out */}
         <div className="p-4 border-t border-white/10 bg-[#0e0b0e]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
@@ -185,9 +175,6 @@ function AdminLayoutInner({ children }) {
         </div>
       </aside>
 
-      {/* =========================================================================
-          MOBILE TOP NAVBAR & DRAWER
-         ========================================================================= */}
       <header className="md:hidden sticky top-0 z-50 bg-[#120f12]/95 backdrop-blur-md border-b border-white/10 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-[#1c171c] border border-[#F28C3C]/40 flex items-center justify-center p-1.5">
@@ -214,7 +201,6 @@ function AdminLayoutInner({ children }) {
         </div>
       </header>
 
-      {/* Mobile Drawer Dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-x-0 top-[57px] bottom-0 z-40 bg-[#120f12] p-5 flex flex-col justify-between overflow-y-auto animate-fadeIn">
           <nav className="space-y-2">
@@ -270,9 +256,6 @@ function AdminLayoutInner({ children }) {
         </div>
       )}
 
-      {/* =========================================================================
-          MAIN ADMIN CONTENT VIEWPORT
-         ========================================================================= */}
       <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-10 overflow-y-auto">
         <div className="max-w-7xl mx-auto">{children}</div>
       </main>

@@ -1,6 +1,5 @@
 import Link from 'next/link';
 
-// Custom 404 page preserving the dark cinematic luxe styling
 export default function NotFound() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center bg-background text-text-primary">

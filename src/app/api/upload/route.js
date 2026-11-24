@@ -8,15 +8,9 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// Maximum allowed upload sizes
-const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
-const MAX_IMAGE_SIZE = 25 * 1024 * 1024;  // 25MB
+const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 25 * 1024 * 1024;
 
-/**
- * POST /api/upload
- * Handles media uploads for hero carousel videos, reels, and posters.
- * Uploads persistently to Firebase Cloud Storage bucket.
- */
 export async function POST(request) {
   try {
     const formData = await request.formData();
@@ -34,7 +28,6 @@ export async function POST(request) {
     const isVideo = mimeType.startsWith('video/') || (file.name && /\.(mp4|mov|webm|m4v)$/i.test(file.name));
     const isImage = mimeType.startsWith('image/') || (file.name && /\.(jpg|jpeg|png|webp|gif|avif|heic)$/i.test(file.name));
 
-    // Size limit verification
     const maxAllowed = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
     if (file.size > maxAllowed) {
       return NextResponse.json(
@@ -46,7 +39,6 @@ export async function POST(request) {
       );
     }
 
-    // Determine target folder
     let targetFolder = 'images';
     if (customFolder === 'hero-videos' || isVideo || customFolder === 'videos' || customFolder === 'hero') {
       targetFolder = 'hero-videos';
@@ -54,7 +46,6 @@ export async function POST(request) {
       targetFolder = customFolder;
     }
 
-    // Sanitize filename
     const originalName = file.name || (isVideo ? 'video.mp4' : 'image.jpg');
     const ext = path.extname(originalName) || (isVideo ? '.mp4' : '.jpg');
     const baseName = path.basename(originalName, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -64,7 +55,6 @@ export async function POST(request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // 1. Primary Cloud Storage: Upload to Firebase Cloud Storage
     if (isFirebaseConfigured && storage) {
       try {
         const storageRef = ref(storage, storagePath);
@@ -92,7 +82,6 @@ export async function POST(request) {
         });
       } catch (storageErr) {
         console.error('[API /api/upload] Firebase Storage upload error:', storageErr);
-        // If in production, do not write to ephemeral local disk
         if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
           return NextResponse.json(
             {
@@ -106,7 +95,6 @@ export async function POST(request) {
       }
     }
 
-    // 2. Development-only local filesystem fallback (for offline local development)
     if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
       const uploadsDir = path.join(process.cwd(), 'public', 'uploads', targetFolder);
       await mkdir(uploadsDir, { recursive: true });

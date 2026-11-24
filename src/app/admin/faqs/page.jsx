@@ -14,7 +14,6 @@ export default function AdminFaqsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Prevent background scrolling while modal is open
   useEffect(() => {
     if (editingFaq || faqToDelete) {
       const originalOverflow = document.body.style.overflow;
@@ -141,7 +140,6 @@ export default function AdminFaqsPage() {
         </div>
       )}
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -161,7 +159,6 @@ export default function AdminFaqsPage() {
         </button>
       </div>
 
-      {/* Search */}
       <div className="p-4 rounded-2xl bg-[#151215] border border-white/10">
         <input
           type="text"
@@ -172,7 +169,6 @@ export default function AdminFaqsPage() {
         />
       </div>
 
-      {/* FAQ List */}
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((n) => (
@@ -219,7 +215,6 @@ export default function AdminFaqsPage() {
                   </p>
                 </div>
 
-                {/* Actions */}
                 <div className="flex items-center gap-1.5 shrink-0">
                   <button
                     disabled={idx === 0}
@@ -254,7 +249,6 @@ export default function AdminFaqsPage() {
         </div>
       )}
 
-      {/* Edit / Create FAQ Modal */}
       {editingFaq && (
         <div
           data-lenis-prevent
@@ -368,7 +362,6 @@ export default function AdminFaqsPage() {
         </div>
       )}
 
-      {/* Delete Confirmation */}
       {faqToDelete && (
         <div
           data-lenis-prevent

@@ -15,7 +15,6 @@ export default function AdminLoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
-  // If already logged in, redirect straight to admin dashboard
   useEffect(() => {
     if (!loading && isAuthenticated) {
       router.push('/admin');
@@ -41,14 +40,12 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen bg-[#0c0a0c] flex items-center justify-center p-4 sm:p-6 relative overflow-hidden select-none">
-      {/* Background Radial Glow */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-[#F28C3C]/15 via-[#DC6A2C]/08 to-transparent blur-3xl pointer-events-none -z-10"
         aria-hidden="true"
       />
 
       <div className="w-full max-w-md">
-        {/* Logo & Headline */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-3 group mb-4">
             <div className="w-12 h-12 rounded-2xl bg-[#1c171c] border border-[#F28C3C]/50 flex items-center justify-center p-2.5 shadow-[0_0_25px_rgba(242,140,60,0.35)] group-hover:scale-105 transition-transform">
@@ -63,7 +60,6 @@ export default function AdminLoginPage() {
           </p>
         </div>
 
-        {/* Login Card */}
         <div className="rounded-3xl bg-[#151215]/90 border border-white/10 p-6 sm:p-8 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.7)]">
           {errorMessage && (
             <div className="mb-5 p-4 rounded-xl bg-red-950/70 border border-red-500/40 text-red-200 text-xs sm:text-sm flex items-start gap-2.5 animate-fadeIn">
@@ -84,7 +80,6 @@ export default function AdminLoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email / Username */}
             <div>
               <label className="block text-xs uppercase tracking-wider font-bold text-text-muted mb-1.5">
                 Admin Email / Username*
@@ -105,7 +100,6 @@ export default function AdminLoginPage() {
               </div>
             </div>
 
-            {/* Password with Show/Hide toggle */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs uppercase tracking-wider font-bold text-text-muted">
@@ -146,7 +140,6 @@ export default function AdminLoginPage() {
               </div>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLocked || isSubmitting}
@@ -165,7 +158,6 @@ export default function AdminLoginPage() {
 
         </div>
 
-        {/* Return to Site */}
         <div className="text-center mt-6">
           <Link
             href="/"

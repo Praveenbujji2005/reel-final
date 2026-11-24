@@ -32,7 +32,6 @@ export default function CreatorPageView() {
     setMounted(true);
   }, []);
 
-  // Form State
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -46,7 +45,6 @@ export default function CreatorPageView() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedData, setSubmittedData] = useState(null);
 
-  // Toast feedback state
   const [toast, setToast] = useState({
     visible: false,
     title: '',
@@ -99,7 +97,6 @@ export default function CreatorPageView() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (!formData.fullName.trim() || !formData.email.trim() || !formData.mobileNumber.trim()) {
       showToast({
         title: 'Missing Details',
@@ -121,7 +118,6 @@ export default function CreatorPageView() {
     setIsSubmitting(true);
 
     try {
-      // 1. Submit to API backend (persisting to Firebase Firestore + Server Store)
       const res = await fetch('/api/creators', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -145,7 +141,6 @@ export default function CreatorPageView() {
         icon: 'check_circle',
       });
 
-      // Reset form
       setFormData({
         fullName: '',
         email: '',
@@ -169,10 +164,8 @@ export default function CreatorPageView() {
 
   return (
     <>
-      {/* Top Navbar */}
       <Navbar onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
 
-      {/* Mobile Drawer Menu */}
       <MobileMenu
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
@@ -180,15 +173,10 @@ export default function CreatorPageView() {
 
       <main className="relative z-10 flex-1">
         
-        {/* ==========================================================================
-            1. HERO SECTION: Join Our Ecosystem
-            ========================================================================== */}
         <section className="relative pt-20 md:pt-28 pb-16 md:pb-24 px-6 md:px-margin max-w-[1440px] mx-auto overflow-hidden">
-          {/* Subtle Ambient Radial Glow */}
           <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-primary-container/15 blur-[120px] rounded-full pointer-events-none -z-10" />
 
           <div className="reveal-on-scroll text-center max-w-4xl mx-auto">
-            {/* Monumental Headline */}
             <h1 className="text-[36px] sm:text-[54px] md:text-display-xl font-display-xl font-black text-white tracking-tight leading-[1.12] md:leading-[1.08] mb-6">
               {CREATOR_HERO.titlePart1}
               <br />
@@ -197,12 +185,10 @@ export default function CreatorPageView() {
               </span>
             </h1>
 
-            {/* Sub-headline */}
             <p className="text-body-lg sm:text-title-lg font-body-lg text-text-muted max-w-2xl mx-auto leading-relaxed mb-10">
               {CREATOR_HERO.description}
             </p>
 
-            {/* Hero CTA Actions */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
               <button
                 onClick={scrollToApply}
@@ -221,7 +207,6 @@ export default function CreatorPageView() {
               </button>
             </div>
 
-            {/* Quick Highlights Strip: Crystal-Clear Glassmorphism */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 pt-2">
               {CREATOR_HERO.stats.map((stat, i) => (
                 <div
@@ -237,12 +222,10 @@ export default function CreatorPageView() {
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 1.5px rgba(255, 255, 255, 0.25)',
                   }}
                 >
-                  {/* Subtle Top Reflective Sheen */}
                   <div
                     className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none"
                     aria-hidden="true"
                   />
-                  {/* Ambient Glow on Hover */}
                   <div
                     className="absolute inset-0 bg-gradient-to-b from-[#FF7A33]/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                     aria-hidden="true"
@@ -266,9 +249,6 @@ export default function CreatorPageView() {
           </div>
         </section>
 
-        {/* ==========================================================================
-            2. WHY JOIN REELXPRESS? (8 Feature Perks)
-            ========================================================================== */}
         <section id="perks" className="py-16 md:py-24 px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28">
           <div className="reveal-on-scroll text-center max-w-3xl mx-auto mb-14">
             <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-primary font-bold mb-3">
@@ -319,12 +299,8 @@ export default function CreatorPageView() {
           </div>
         </section>
 
-        {/* ==========================================================================
-            3. WHO CAN APPLY? (6 Requirements + Callout Banner)
-            ========================================================================== */}
         <section id="eligibility" className="py-16 md:py-24 px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28">
           <div className="reveal-scale-on-scroll rounded-3xl bg-surface-deep/90 border border-border-amber/60 backdrop-blur-2xl p-8 sm:p-12 lg:p-16 shadow-[0_20px_80px_rgba(0,0,0,0.7)] relative overflow-hidden">
-            {/* Top Amber Light */}
             <div className="absolute top-0 right-1/4 w-96 h-48 bg-primary-container/20 blur-3xl pointer-events-none rounded-full" />
 
             <div className="reveal-on-scroll text-center max-w-3xl mx-auto mb-14">
@@ -340,7 +316,6 @@ export default function CreatorPageView() {
               </p>
             </div>
 
-            {/* Criteria Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
               {CREATOR_ELIGIBILITY.map((item, idx) => (
                 <div
@@ -366,7 +341,6 @@ export default function CreatorPageView() {
               ))}
             </div>
 
-            {/* Banner Callout */}
             <div className="reveal-on-scroll delay-200 rounded-2xl bg-gradient-to-r from-primary-container/25 via-primary-container/15 to-transparent border border-border-amber p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
               <div>
                 <div className="text-xs uppercase tracking-widest text-primary font-bold mb-1">
@@ -392,9 +366,6 @@ export default function CreatorPageView() {
           </div>
         </section>
 
-        {/* ==========================================================================
-            4. THE JOURNEY (5 Simple Steps)
-            ========================================================================== */}
         <section id="journey" className="py-16 md:py-24 px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28">
           <div className="reveal-on-scroll text-center max-w-3xl mx-auto mb-16">
             <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-primary font-bold mb-3">
@@ -452,9 +423,6 @@ export default function CreatorPageView() {
           </div>
         </section>
 
-        {/* ==========================================================================
-            5. REAL STORIES, REAL EARNINGS (Creator Proof)
-            ========================================================================== */}
         <section id="stories" className="py-16 md:py-24 px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28">
           <div className="reveal-on-scroll text-center max-w-3xl mx-auto mb-14">
             <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-primary font-bold mb-3">
@@ -478,7 +446,6 @@ export default function CreatorPageView() {
                 }`}
               >
                 <div>
-                  {/* Creator Header with Avatar Profile Photo */}
                   <div className="flex items-center gap-3.5 mb-6">
                     <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-[#FF7A33]/70 shadow-[0_0_16px_rgba(255,109,41,0.35)] shrink-0 bg-[#161118]">
                       <img
@@ -502,7 +469,6 @@ export default function CreatorPageView() {
                     </div>
                   </div>
 
-                  {/* Quote */}
                   <blockquote className="text-body-md sm:text-base text-text-primary leading-relaxed italic mb-6">
                     &ldquo;{item.quote}&rdquo;
                   </blockquote>
@@ -521,12 +487,8 @@ export default function CreatorPageView() {
           </div>
         </section>
 
-        {/* ==========================================================================
-            6. READY TO START? (Interactive Creator Application Form)
-            ========================================================================== */}
         <section id="apply" className="py-16 md:py-24 px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28">
           <div className="reveal-scale-on-scroll max-w-3xl mx-auto rounded-3xl bg-surface-base/90 border border-border-amber backdrop-blur-2xl p-8 sm:p-12 shadow-[0_20px_80px_rgba(255,109,41,0.25)] relative overflow-hidden">
-            {/* Ambient Background Light */}
             <div className="absolute top-0 right-0 w-80 h-80 bg-primary-container/15 blur-3xl rounded-full pointer-events-none" />
 
             <div className="reveal-on-scroll text-center mb-10">
@@ -555,7 +517,6 @@ export default function CreatorPageView() {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6" suppressHydrationWarning>
               
-              {/* Full Name & Email */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label htmlFor="fullName" className="block text-xs uppercase tracking-wider font-bold text-text-muted mb-2">
@@ -590,7 +551,6 @@ export default function CreatorPageView() {
                 </div>
               </div>
 
-              {/* Mobile Number & City/Area */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label htmlFor="mobileNumber" className="block text-xs uppercase tracking-wider font-bold text-text-muted mb-2">
@@ -625,7 +585,6 @@ export default function CreatorPageView() {
                 </div>
               </div>
 
-              {/* Instagram Profile & Phone Model */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label htmlFor="instagramLink" className="block text-xs uppercase tracking-wider font-bold text-text-muted mb-2">
@@ -664,7 +623,6 @@ export default function CreatorPageView() {
                 </div>
               </div>
 
-              {/* Why do you want to join */}
               <div>
                 <label htmlFor="reason" className="block text-xs uppercase tracking-wider font-bold text-text-muted mb-2">
                   Why do you want to join ReelXpress?
@@ -680,7 +638,6 @@ export default function CreatorPageView() {
                 />
               </div>
 
-              {/* Submit CTA */}
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -699,7 +656,6 @@ export default function CreatorPageView() {
                 )}
               </button>
 
-              {/* Disclaimer */}
               <p className="text-center text-xs text-text-muted pt-2">
                 By applying, you agree to our{' '}
                 <Link href="/terms" className="text-primary hover:underline font-semibold">
@@ -716,9 +672,6 @@ export default function CreatorPageView() {
           </div>
         </section>
 
-        {/* ==========================================================================
-            7. GOT QUESTIONS? (Frequently Asked Questions Accordion)
-            ========================================================================== */}
         <section id="faq" className="py-16 md:py-24 px-4 sm:px-6 md:px-margin max-w-4xl mx-auto scroll-mt-20 md:scroll-mt-28">
           <div className="reveal-on-scroll text-center mb-12">
             <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-primary font-bold mb-3">
@@ -772,17 +725,14 @@ export default function CreatorPageView() {
 
       </main>
 
-      {/* Footer */}
       <Footer />
 
-      {/* Application Success Celebration Modal */}
       <CreatorSuccessModal
         isOpen={isSuccessModalOpen}
         onClose={() => setIsSuccessModalOpen(false)}
         applicationData={submittedData}
       />
 
-      {/* Toast Notification */}
       <ToastNotification toast={toast} />
     </>
   );

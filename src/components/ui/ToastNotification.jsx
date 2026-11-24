@@ -1,6 +1,5 @@
 'use client';
 
-// Floating toast notification matching the original luxe design
 export default function ToastNotification({ toast }) {
   const isVisible = Boolean(toast?.visible);
 

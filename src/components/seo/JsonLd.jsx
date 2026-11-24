@@ -1,17 +1,6 @@
 import { SITE_CONFIG, SITE_URL } from '@/config/site';
 import { FAQ_DATA } from '@/lib/data';
 
-/**
- * Structured Data (JSON-LD) Component
- *
- * Provides Google Rich Snippets for:
- * 1. Organization (ReelXpress)
- * 2. LocalBusiness / ProfessionalService (Bengaluru)
- * 3. FAQPage (All verified FAQs)
- * 4. Service / Offer catalog (Instant, Business & Wedding Packages)
- *
- * NOTE: aggregateRating is omitted as requested until real review count/metrics are verified.
- */
 export default function JsonLd() {
   const organizationSchema = {
     '@context': 'https://schema.org',

@@ -36,7 +36,6 @@ export default function BlogHubPage() {
       <Navbar />
 
       <main className="relative z-10 pt-28 sm:pt-36 pb-20 px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto min-h-screen">
-        {/* Breadcrumbs */}
         <nav aria-label="Breadcrumb" className="mb-8">
           <ol className="flex items-center gap-2 text-xs sm:text-sm text-text-muted">
             <li>
@@ -51,7 +50,6 @@ export default function BlogHubPage() {
           </ol>
         </nav>
 
-        {/* Header */}
         <div className="max-w-3xl mb-12 sm:mb-16">
           <span className="text-primary text-xs sm:text-sm font-bold uppercase tracking-widest block mb-2">
             INDUSTRY INSIGHTS
@@ -64,7 +62,6 @@ export default function BlogHubPage() {
           </p>
         </div>
 
-        {/* Post Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           {BLOG_POSTS.map((post) => (
             <article

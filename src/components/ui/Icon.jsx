@@ -56,7 +56,6 @@ import {
 } from 'lucide-react';
 
 const ICON_MAP = {
-  // Key icons specified in the prompt
   arrow_back: ArrowLeft,
   arrow_forward: ArrowRight,
   north_east: ArrowUpRight,
@@ -71,7 +70,6 @@ const ICON_MAP = {
   shield: Shield,
   shield_lock: ShieldCheck,
 
-  // Fallback icon mappings for zero-font-flash
   military_tech: Medal,
   phone_iphone: Smartphone,
   currency_rupee: IndianRupee,
@@ -87,7 +85,6 @@ const ICON_MAP = {
   pause: Pause,
   play_arrow: Play,
 
-  // Common UI icons
   close: X,
   delete: Trash2,
   delete_forever: Trash2,
@@ -123,13 +120,6 @@ const ICON_MAP = {
   lock: Lock,
 };
 
-/**
- * Universal Zero-Flash Icon Component
- *
- * Renders an inline SVG icon powered by Lucide with zero reliance on web font loading.
- * Eliminates the Material Icons ligature text flash ("arrow_forward", "phone_iphone", etc.)
- * while maintaining exact sizing, color inheritance, and styling.
- */
 export default function Icon({
   name,
   className = '',
@@ -152,7 +142,6 @@ export default function Icon({
     );
   }
 
-  // Fallback for icons not in map: render with font-display block and ligature hiding protection
   return (
     <span
       className={`material-symbols-outlined select-none overflow-hidden inline-block align-middle ${className}`}

@@ -22,12 +22,11 @@ export default function AdminHeroPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isVideoUploading, setIsVideoUploading] = useState(false);
   const [videoUploadProgress, setVideoUploadProgress] = useState(0);
-  const [videoUploadStatus, setVideoUploadStatus] = useState(null); // 'uploading' | 'success' | 'error'
+  const [videoUploadStatus, setVideoUploadStatus] = useState(null);
   const [videoUploadError, setVideoUploadError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Prevent background scrolling while modal is open
   useEffect(() => {
     if (editingSlide || slideToDelete) {
       const originalOverflow = document.body.style.overflow;
@@ -125,7 +124,6 @@ export default function AdminHeroPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // 1. Validate file format: MP4 & WebM (and MOV)
     const validMimes = ['video/mp4', 'video/webm', 'video/quicktime'];
     const ext = (file.name || '').split('.').pop()?.toLowerCase();
     const validExts = ['mp4', 'webm', 'mov'];
@@ -138,7 +136,6 @@ export default function AdminHeroPage() {
       return;
     }
 
-    // 2. Validate file size: 100MB limit
     const MAX_SIZE = 100 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
       setVideoUploadError(
@@ -157,7 +154,6 @@ export default function AdminHeroPage() {
     try {
       const oldStoragePath = editingSlide?.storagePath || null;
 
-      // Direct Firebase Storage upload using uploadBytesResumable with progress tracking
       const result = await uploadHeroVideo(file, (progress) => {
         setVideoUploadProgress(progress);
       });
@@ -230,10 +226,8 @@ export default function AdminHeroPage() {
         uploadedAt: editingSlide.uploadedAt || new Date().toISOString(),
       };
 
-      // 1. Save directly to Firestore and server
       await saveHeroSlide(payload, user?.email);
 
-      // 2. If replacing video, safely clean up old Storage file now that Firestore save succeeded
       if (editingSlide._oldStoragePath && editingSlide._oldStoragePath !== payload.storagePath) {
         deleteStorageFile(editingSlide._oldStoragePath).catch(() => {});
       }
@@ -276,7 +270,6 @@ export default function AdminHeroPage() {
     copy[index] = copy[newIdx];
     copy[newIdx] = temp;
 
-    // Update order property
     copy.forEach((s, idx) => {
       s.order = idx + 1;
     });
@@ -301,7 +294,6 @@ export default function AdminHeroPage() {
 
   return (
     <div className="space-y-6 select-none">
-      {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-6 right-6 z-[100050] px-5 py-3 rounded-2xl bg-emerald-950/95 border border-emerald-500/50 text-white text-sm shadow-[0_15px_40px_rgba(0,0,0,0.8)] flex items-center gap-2.5 animate-fadeIn">
           <span className="material-symbols-outlined text-emerald-400">check_circle</span>
@@ -309,7 +301,6 @@ export default function AdminHeroPage() {
         </div>
       )}
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
         <div>
           <div className="flex items-center gap-3">
@@ -348,7 +339,6 @@ export default function AdminHeroPage() {
         </button>
       </div>
 
-      {/* Slides Grid */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((n) => (
@@ -386,7 +376,6 @@ export default function AdminHeroPage() {
                   : 'border-white/5 opacity-60'
               }`}
             >
-              {/* Image Preview Container (9:16 portrait) */}
               <div className="relative aspect-[9/16] bg-black/60 overflow-hidden group">
                 <img
                   src={slide.poster}
@@ -395,7 +384,6 @@ export default function AdminHeroPage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/60 pointer-events-none" />
 
-                {/* Top Badges */}
                 <div className="absolute top-3 inset-x-3 flex items-center justify-between text-xs">
                   <span className="px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md border border-white/20 text-white font-bold text-[11px]">
                     #{idx + 1} · {slide.category}
@@ -412,7 +400,6 @@ export default function AdminHeroPage() {
                   )}
                 </div>
 
-                {/* Center Video Play Action Icon */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-xl group-hover:scale-110 transition-transform">
                     <svg className="w-6 h-6 fill-[#F28C3C] translate-x-0.5" viewBox="0 0 24 24">
@@ -421,7 +408,6 @@ export default function AdminHeroPage() {
                   </div>
                 </div>
 
-                {/* Bottom Title inside Image */}
                 <div className="absolute inset-x-3 bottom-3 text-left">
                   <h3 className="font-extrabold text-white text-base leading-tight truncate">
                     {slide.title}
@@ -432,9 +418,7 @@ export default function AdminHeroPage() {
                 </div>
               </div>
 
-              {/* Card Footer Controls */}
               <div className="p-4 bg-[#110e11] border-t border-white/10 flex items-center justify-between text-xs">
-                {/* Reorder Buttons */}
                 <div className="flex items-center gap-1">
                   <button
                     disabled={idx === 0}
@@ -454,7 +438,6 @@ export default function AdminHeroPage() {
                   </button>
                 </div>
 
-                {/* Enable Toggle & Edit / Delete */}
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -490,9 +473,6 @@ export default function AdminHeroPage() {
         </div>
       )}
 
-      {/* =========================================================================
-          CREATE / EDIT SLIDE MODAL
-         ========================================================================= */}
       {editingSlide && (
         <div
           data-lenis-prevent
@@ -516,7 +496,6 @@ export default function AdminHeroPage() {
             </h3>
 
             <form onSubmit={handleSave} noValidate className="space-y-4">
-              {/* Title */}
               <div>
                 <label className="block text-xs uppercase tracking-wider font-bold text-text-muted mb-1.5">
                   Reel Title*
@@ -531,7 +510,6 @@ export default function AdminHeroPage() {
                 />
               </div>
 
-              {/* Creator & Category */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs uppercase tracking-wider font-bold text-text-muted mb-1.5">
@@ -561,7 +539,6 @@ export default function AdminHeroPage() {
                 </div>
               </div>
 
-              {/* Views Count & Instagram URL */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs uppercase tracking-wider font-bold text-text-muted mb-1.5">
@@ -589,7 +566,6 @@ export default function AdminHeroPage() {
                 </div>
               </div>
 
-              {/* Video URL & Video File Upload */}
               <div>
                 <label className="block text-xs uppercase tracking-wider font-bold text-text-muted mb-1.5 flex items-center justify-between">
                   <span>Reel Video (MP4 / WebM up to 100MB)</span>
@@ -659,7 +635,6 @@ export default function AdminHeroPage() {
                         Supports <span className="text-white font-medium">MP4</span> and <span className="text-white font-medium">WebM</span> formats (max 100MB). Video uploads directly to Firebase Storage bucket.
                       </p>
 
-                      {/* Upload Progress Bar */}
                       {isVideoUploading && (
                         <div className="space-y-1.5 pt-1">
                           <div className="flex items-center justify-between text-xs">
@@ -678,7 +653,6 @@ export default function AdminHeroPage() {
                         </div>
                       )}
 
-                      {/* Success State */}
                       {videoUploadStatus === 'success' && !isVideoUploading && (
                         <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2">
                           <span className="material-symbols-outlined text-sm shrink-0">check_circle</span>
@@ -688,7 +662,6 @@ export default function AdminHeroPage() {
                         </div>
                       )}
 
-                      {/* Error State */}
                       {videoUploadStatus === 'error' && (
                         <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2 min-w-0">
@@ -728,7 +701,6 @@ export default function AdminHeroPage() {
                 </div>
               </div>
 
-              {/* Poster Image File Upload & Preview */}
               <div>
                 <label className="block text-xs uppercase tracking-wider font-bold text-text-muted mb-1.5">
                   Reel Poster Image (Single Frame)
@@ -774,7 +746,6 @@ export default function AdminHeroPage() {
                 </div>
               </div>
 
-              {/* Status Toggle */}
               <div className="flex items-center gap-3 pt-2">
                 <input
                   type="checkbox"
@@ -812,9 +783,6 @@ export default function AdminHeroPage() {
         </div>
       )}
 
-      {/* =========================================================================
-          DELETE CONFIRMATION MODAL
-         ========================================================================= */}
       {slideToDelete && (
         <div
           data-lenis-prevent

@@ -4,15 +4,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { WHATSAPP_CONFIG, openWhatsApp, getWhatsAppUrl } from '@/config/whatsapp';
 
-/**
- * WhatsApp Chat Widget for ReelXpress
- *
- * Features:
- * - On Mobile (< 768px / mobile touch): Tapping directly launches native WhatsApp via official click-to-chat.
- * - On Laptop / Desktop (>= 768px): Tapping toggles the interactive mini WhatsApp chat window with message composer.
- * - Centralized business number: +91 84319 12122.
- * - Zero blockers, native iOS/Android universal link handoff, zero popup errors.
- */
 export default function WhatsAppWidget() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
@@ -27,7 +18,6 @@ export default function WhatsAppWidget() {
     setMounted(true);
   }, []);
 
-  // Detect mobile viewport or touch device
   useEffect(() => {
     const checkMobile = () => {
       const isNarrow = window.innerWidth < 768;
@@ -42,7 +32,6 @@ export default function WhatsAppWidget() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Set local user timestamp on client mount to avoid hydration mismatch
   useEffect(() => {
     try {
       const now = new Date();
@@ -50,11 +39,9 @@ export default function WhatsAppWidget() {
         now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       );
     } catch {
-      // Fallback stays as default
     }
   }, []);
 
-  // Auto-focus input when chat window opens (on desktop)
   useEffect(() => {
     if (isOpen && !isMobile) {
       const timer = setTimeout(() => {
@@ -64,7 +51,6 @@ export default function WhatsAppWidget() {
     }
   }, [isOpen, isMobile]);
 
-  // Handle Escape key to close widget
   useEffect(() => {
     function handleKeyDown(e) {
       if (e.key === 'Escape' && isOpen) {
@@ -75,7 +61,6 @@ export default function WhatsAppWidget() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  // Close when clicking outside chat window or launcher button
   useEffect(() => {
     function handleClickOutside(e) {
       if (!isOpen) return;
@@ -95,7 +80,6 @@ export default function WhatsAppWidget() {
     };
   }, [isOpen]);
 
-  // Handle launcher click: on mobile, direct WhatsApp launch; on laptop, toggle chat dialog
   const handleLauncherClick = (e) => {
     const isMobileNow =
       window.innerWidth < 768 ||
@@ -104,12 +88,9 @@ export default function WhatsAppWidget() {
       );
 
     if (isMobileNow) {
-      // Allow native <a> navigation or trigger openWhatsApp
-      // Does not preventDefault, letting standard link handoff occur cleanly
       return;
     }
 
-    // On laptop / desktop, prevent default link navigation and toggle the interactive chat box
     e.preventDefault();
     setIsOpen((prev) => !prev);
   };
@@ -120,7 +101,6 @@ export default function WhatsAppWidget() {
 
   const handleSend = (e) => {
     e.preventDefault();
-    // Redirects to official WhatsApp click-to-chat with URL-encoded message
     openWhatsApp(message);
     setMessage('');
     setIsOpen(false);
@@ -130,7 +110,6 @@ export default function WhatsAppWidget() {
 
   return (
     <div className="whatsapp-widget-root select-none">
-      {/* 1. Mini WhatsApp Chat Window (Active on Desktop / Laptop) */}
       {!isMobile && (
         <div
           id="whatsapp-chat-box"
@@ -146,10 +125,8 @@ export default function WhatsAppWidget() {
               : 'opacity-0 translate-y-3 scale-95 pointer-events-none'
           }`}
         >
-          {/* Chat Window Header (Dark Teal with ReelXpress Branding) */}
           <div className="bg-gradient-to-r from-[#075E54] via-[#0b6b60] to-[#128C7E] px-4 py-3.5 flex items-center justify-between text-white shadow-md relative z-10">
             <div className="flex items-center gap-3">
-              {/* ReelXpress Avatar with Online Indicator */}
               <div className="relative shrink-0">
                 <div className="w-10 h-10 rounded-full bg-[#151215] border-2 border-white/30 flex items-center justify-center p-1.5 shadow-inner">
                   <img
@@ -165,7 +142,6 @@ export default function WhatsAppWidget() {
                 />
               </div>
 
-              {/* Title & Subtitle */}
               <div className="flex flex-col text-left">
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-sm sm:text-base tracking-tight text-white leading-tight">
@@ -182,7 +158,6 @@ export default function WhatsAppWidget() {
               </div>
             </div>
 
-            {/* Close Button */}
             <button
               type="button"
               onClick={handleClose}
@@ -199,7 +174,6 @@ export default function WhatsAppWidget() {
             </button>
           </div>
 
-          {/* Chat Canvas (Subtle WhatsApp Doodle Background) */}
           <div
             className="p-4 sm:p-5 flex flex-col gap-3 min-h-[190px] max-h-[260px] overflow-y-auto relative"
             style={{
@@ -209,7 +183,6 @@ export default function WhatsAppWidget() {
               backgroundPosition: '0 0, 12px 12px',
             }}
           >
-            {/* Subtle WhatsApp doodle watermark overlay */}
             <div
               className="absolute inset-0 opacity-[0.04] pointer-events-none"
               style={{
@@ -218,14 +191,12 @@ export default function WhatsAppWidget() {
               aria-hidden="true"
             />
 
-            {/* Date Stamp */}
             <div className="flex justify-center my-0.5">
               <span className="text-[10px] uppercase font-bold text-gray-500 bg-white/75 backdrop-blur-xs px-2.5 py-0.5 rounded-full shadow-xs border border-gray-300/40">
                 Today
               </span>
             </div>
 
-            {/* Incoming Welcome Message Bubble from ReelXpress */}
             <div className="flex flex-col items-start relative z-10 animate-fadeIn">
               <div className="bg-white text-gray-900 rounded-2xl rounded-tl-xs p-3.5 shadow-[0_1px_3px_rgba(0,0,0,0.12)] max-w-[88%] text-left border border-gray-100">
                 <span className="block text-[11px] font-bold text-[#075E54] mb-1">
@@ -242,7 +213,6 @@ export default function WhatsAppWidget() {
             </div>
           </div>
 
-          {/* Message Composer Section */}
           <div className="bg-[#F0F2F5] p-3 border-t border-gray-200/90 relative z-10">
             <form onSubmit={handleSend} className="flex items-center gap-2" suppressHydrationWarning>
               <input
@@ -260,7 +230,6 @@ export default function WhatsAppWidget() {
                 aria-label="Send message to WhatsApp"
                 className="w-10 h-10 rounded-full bg-[#25D366] hover:bg-[#20ba5a] text-white flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#25D366]"
               >
-                {/* WhatsApp Send Paper Airplane Icon */}
                 <svg
                   className="w-4 h-4 fill-current translate-x-0.5"
                   viewBox="0 0 24 24"
@@ -274,7 +243,6 @@ export default function WhatsAppWidget() {
         </div>
       )}
 
-      {/* 2. Floating Circular WhatsApp Launcher Button */}
       <a
         href={getWhatsAppUrl()}
         target="_blank"
@@ -286,14 +254,12 @@ export default function WhatsAppWidget() {
         aria-haspopup={!isMobile ? 'dialog' : undefined}
         className="fixed bottom-[88px] sm:bottom-6 right-4 sm:right-6 z-[99995] w-14 h-14 min-w-[56px] min-h-[56px] rounded-full bg-gradient-to-tr from-[#20ba5a] to-[#25D366] text-white flex items-center justify-center shadow-[0_8px_24px_rgba(37,211,102,0.45)] hover:shadow-[0_12px_32px_rgba(37,211,102,0.65)] hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#25D366] group"
       >
-        {/* Soft pulse glow ring behind button */}
         <span
           className="absolute inset-0 rounded-full bg-[#25D366] opacity-30 group-hover:opacity-50 blur-md pointer-events-none transition-opacity -z-10"
           aria-hidden="true"
         />
 
         {!isMobile && isOpen ? (
-          /* Smooth Cross Close Icon (Desktop Open State) */
           <svg
             className="w-6 h-6 fill-none stroke-current stroke-2 transition-transform duration-200 rotate-0 group-hover:rotate-90"
             viewBox="0 0 24 24"
@@ -302,7 +268,6 @@ export default function WhatsAppWidget() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         ) : (
-          /* Official WhatsApp Brand Icon */
           <svg
             className="w-7 h-7 fill-current drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)] transition-transform duration-200 group-hover:scale-110"
             viewBox="0 0 24 24"

@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { formatTime } from '@/lib/utils';
 
-// Cinematic full-screen video lightbox modal for portrait reels
 export default function ReelModal({ isOpen, reel, onClose, onShowToast: _onShowToast }) {
   const videoRef = useRef(null);
   const progressContainerRef = useRef(null);
@@ -18,7 +17,6 @@ export default function ReelModal({ isOpen, reel, onClose, onShowToast: _onShowT
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  // Lock body scroll when video modal is open
   useEffect(() => {
     if (isOpen) {
       const originalOverflow = document.body.style.overflow;
@@ -29,7 +27,6 @@ export default function ReelModal({ isOpen, reel, onClose, onShowToast: _onShowT
     }
   }, [isOpen]);
 
-  // Initialize playback when modal opens with a new reel
   useEffect(() => {
     if (isOpen && reel && videoRef.current) {
       setHasError(false);
@@ -144,7 +141,6 @@ export default function ReelModal({ isOpen, reel, onClose, onShowToast: _onShowT
         id="reel-modal-card"
         className="relative w-full max-w-[390px] sm:max-w-[430px] max-h-[96vh] max-h-[96dvh] rounded-[28px] sm:rounded-[32px] overflow-hidden bg-[#120f13]/95 border border-white/15 flex flex-col shadow-[0_25px_80px_rgba(0,0,0,0.95)]"
       >
-        {/* Top Modal Header */}
         <div className="flex items-center justify-between px-3 sm:px-5 py-3 border-b border-white/10 bg-[#161316]/80 backdrop-blur-md z-30 flex-shrink-0">
           <button
             onClick={onClose}
@@ -165,7 +161,6 @@ export default function ReelModal({ isOpen, reel, onClose, onShowToast: _onShowT
           </button>
         </div>
 
-        {/* 9:16 Video Player Canvas */}
         <div
           id="modal-video-surface"
           className="relative flex-1 flex items-center justify-center bg-black overflow-hidden select-none min-h-0"
@@ -190,7 +185,6 @@ export default function ReelModal({ isOpen, reel, onClose, onShowToast: _onShowT
             className="w-full h-auto max-h-[58vh] max-h-[58dvh] sm:max-h-[62vh] sm:max-h-[62dvh] aspect-[9/16] object-contain mx-auto"
           />
 
-          {/* Center Play/Pause Splash Icon */}
           {!isPlaying && !isLoading && !hasError && (
             <button
               onClick={(e) => {
@@ -204,7 +198,6 @@ export default function ReelModal({ isOpen, reel, onClose, onShowToast: _onShowT
             </button>
           )}
 
-          {/* Buffering & Loading Message Overlay */}
           {isLoading && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px] z-25 pointer-events-none transition-all duration-300">
               <div className="w-12 h-12 rounded-full border-3 border-white/20 border-t-primary-container player-spinner mb-3" />
@@ -214,7 +207,6 @@ export default function ReelModal({ isOpen, reel, onClose, onShowToast: _onShowT
             </div>
           )}
 
-          {/* Playback Error Overlay */}
           {hasError && (
             <div className="absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-30">
               <span className="material-symbols-outlined text-4xl text-red-500 mb-2">error_outline</span>
@@ -235,10 +227,8 @@ export default function ReelModal({ isOpen, reel, onClose, onShowToast: _onShowT
           )}
         </div>
 
-        {/* Bottom Control Deck */}
         <div id="player-controls-deck" className="px-4 py-3 border-t border-white/10 bg-[#161316]/95 backdrop-blur-md flex-shrink-0 z-30">
 
-          {/* Scrubber Progress Bar */}
           <div
             ref={progressContainerRef}
             onClick={handleSeek}
@@ -256,7 +246,6 @@ export default function ReelModal({ isOpen, reel, onClose, onShowToast: _onShowT
             </div>
           </div>
 
-          {/* Controls Bar */}
           <div className="flex items-center justify-between gap-2 mt-1">
             <div className="flex items-center gap-2 sm:gap-3">
               <button
@@ -297,7 +286,6 @@ export default function ReelModal({ isOpen, reel, onClose, onShowToast: _onShowT
             </div>
 
             <div className="flex items-center gap-1.5 sm:gap-2">
-              {/* Speed Selector */}
               <div className="relative">
                 <button
                   onClick={() => setIsSpeedMenuOpen(!isSpeedMenuOpen)}

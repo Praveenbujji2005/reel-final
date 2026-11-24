@@ -3,14 +3,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { getPricingPlans, getCachedPricingPlans, subscribeToPricingPlans } from '@/lib/cmsServices';
 
-// Pricing Tabs
 const TABS = [
   { id: 'instant', label: 'Instant packages' },
   { id: 'business', label: 'Business packages' },
-  { id: 'wedding', label: 'Wedding & Luxe' },
+  { id: 'wedding', label: 'Wedding packages' },
 ];
 
-// 1. INSTANT PACKAGES (Fast on-site delivery in minutes)
 const INSTANT_PACKAGES = [
   {
     id: 'instant-hourly',
@@ -95,7 +93,6 @@ const INSTANT_PACKAGES = [
   },
 ];
 
-// 2. BUSINESS PACKAGES
 const BUSINESS_PACKAGES = [
   {
     id: 'business-brand',
@@ -142,7 +139,6 @@ const BUSINESS_PACKAGES = [
   },
 ];
 
-// 3. WEDDING PACKAGES
 const WEDDING_PACKAGES = [
   {
     id: 'wedding-basic',
@@ -227,7 +223,6 @@ const WEDDING_PACKAGES = [
   },
 ];
 
-// SKELETON LOADER FOR PRICING CARDS (Desktop Grid + Mobile Horizontal Slide)
 function PricingCardSkeleton({ count = 4, colsClass = 'md:grid-cols-2 lg:grid-cols-4' }) {
   return (
     <div
@@ -268,9 +263,7 @@ function PricingCardSkeleton({ count = 4, colsClass = 'md:grid-cols-2 lg:grid-co
   );
 }
 
-// Single Unified High-Contrast PriceBox Component
 function PriceBox({ price, priceSuffix, tag }) {
-  // Strip any '+ 18% GST', '+ GST', '+ 18% gst', '+ gst'
   const cleanSuffix = (priceSuffix || '')
     .replace(/\+?\s*18%\s*gst/gi, '')
     .replace(/\+?\s*gst/gi, '')
@@ -297,7 +290,6 @@ function PriceBox({ price, priceSuffix, tag }) {
   );
 }
 
-// Reusable Glassmorphism Pricing Card Component
 function PricingCard({ pkg, onBooking }) {
   return (
     <div
@@ -307,7 +299,6 @@ function PricingCard({ pkg, onBooking }) {
           : 'border border-white/10 hover:border-white/20 shadow-[0_10px_35px_rgba(0,0,0,0.6)]'
       } hover:-translate-y-1`}
     >
-      {/* Top Badge: Positioned with z-20 and guaranteed visible within container pt-5 headroom */}
       {pkg.badge && (
         <div className="absolute -top-3.5 right-6 sm:right-7 px-3.5 py-1 rounded-full bg-gradient-to-r from-[#FF7A33] to-[#FF5E1E] text-white text-[10px] font-extrabold uppercase tracking-wider shadow-[0_4px_14px_rgba(255,94,30,0.5)] z-20">
           {pkg.badge}
@@ -327,7 +318,6 @@ function PricingCard({ pkg, onBooking }) {
           {pkg.description}
         </p>
 
-        {/* Dedicated High-Contrast Price Box */}
         <PriceBox price={pkg.price} priceSuffix={pkg.priceSuffix} tag={pkg.tag} />
 
         <div>
@@ -383,13 +373,11 @@ function PricingCard({ pkg, onBooking }) {
   );
 }
 
-// Scroll-triggered reveal container with once: true and top badge headroom (pt-5)
 function ScrollRevealPricingCard({ pkg, onBooking, index = 0 }) {
   const [isVisible, setIsVisible] = useState(false);
   const cardRef = useRef(null);
 
   useEffect(() => {
-    // Reveal immediately on mobile or reduced-motion so horizontal sliding is instantaneous
     if (
       typeof window !== 'undefined' &&
       (window.innerWidth < 768 ||
@@ -427,7 +415,6 @@ function ScrollRevealPricingCard({ pkg, onBooking, index = 0 }) {
   );
 }
 
-// Adaptive Pricing Layout: Desktop Multi-Column Grid + Mobile Horizontal Sliding Carousel
 function PricingGridOrSlider({
   plans,
   onBooking,
@@ -485,7 +472,6 @@ function PricingGridOrSlider({
 
   return (
     <div className="w-full mb-14">
-      {/* Sliding track on mobile (< md), standard multi-column grid on desktop (>= md) */}
       <div
         ref={sliderRef}
         onScroll={handleScroll}
@@ -512,10 +498,8 @@ function PricingGridOrSlider({
         ))}
       </div>
 
-      {/* Mobile-Only Navigation Controls: Prev, Pagination Dots, Next (< md) */}
       {total > 1 && (
         <div className="flex md:hidden items-center justify-between mt-3 px-2 max-w-sm mx-auto">
-          {/* Previous Arrow */}
           <button
             onClick={prevSlide}
             disabled={activeSlide === 0}
@@ -529,7 +513,6 @@ function PricingGridOrSlider({
             </svg>
           </button>
 
-          {/* Pagination Dots */}
           <div className="flex items-center gap-1.5 py-1">
             {plans.map((_, dotIdx) => (
               <button
@@ -549,7 +532,6 @@ function PricingGridOrSlider({
             ))}
           </div>
 
-          {/* Next Arrow */}
           <button
             onClick={nextSlide}
             disabled={activeSlide === total - 1}
@@ -590,21 +572,17 @@ export default function PricingSection() {
       setIsLoading(false);
     };
 
-    // 1. Instant check from cache for 0ms initial render
     const cached = getCachedPricingPlans();
     if (cached && cached.length > 0) {
       applyPlans(cached);
     }
 
-    // 2. Initial fetch
     getPricingPlans()
       .then(applyPlans)
       .finally(() => setIsLoading(false));
 
-    // 3. Real-time Firestore onSnapshot listener
     const unsubscribeSnapshot = subscribeToPricingPlans(applyPlans);
 
-    // 4. React to live Admin updates in same tab
     const handleCmsUpdate = (e) => {
       if (!e.detail?.type || e.detail.type === 'pricing') {
         getPricingPlans({ forceRefresh: true }).then(applyPlans);
@@ -618,7 +596,6 @@ export default function PricingSection() {
     };
   }, []);
 
-  // Keyboard navigation for WAI-ARIA tabs pattern
   const handleTabKeyDown = (e, index) => {
     let newIndex = index;
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
@@ -670,10 +647,8 @@ export default function PricingSection() {
 
   return (
     <section className="relative py-16 md:py-24 px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28" id="pricing">
-      {/* Static Atmospheric Radial Ambient in Brand Orange */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[340px] bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,rgba(255,109,41,0.16),transparent_70%)] pointer-events-none -z-10" />
 
-      {/* 1. Pill Switcher Bar (Fully Keyboard Accessible) */}
       <div className="flex justify-center mb-10 sm:mb-14 px-2 overflow-x-auto no-scrollbar">
         <div
           role="tablist"
@@ -706,7 +681,6 @@ export default function PricingSection() {
         </div>
       </div>
 
-      {/* 2. Dynamic Section Headers based on Active Tab */}
       <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
         {activeTab === 'wedding' && (
           <>
@@ -751,7 +725,6 @@ export default function PricingSection() {
         )}
       </div>
 
-      {/* 3. Cards Display by Category Panel */}
       {isLoading ? (
         <PricingCardSkeleton
           count={activeTab === 'business' ? 2 : 4}
@@ -763,7 +736,6 @@ export default function PricingSection() {
         />
       ) : (
         <>
-          {/* ---------------- INSTANT PACKAGES (Desktop Grid + Mobile Sliding Carousel) ---------------- */}
           {activeTab === 'instant' && (
             <div
               role="tabpanel"
@@ -781,7 +753,6 @@ export default function PricingSection() {
             </div>
           )}
 
-          {/* ---------------- BUSINESS PACKAGES (Desktop 2-Card Grid + Mobile Sliding Carousel) ---------------- */}
           {activeTab === 'business' && (
             <div
               role="tabpanel"
@@ -799,7 +770,6 @@ export default function PricingSection() {
             </div>
           )}
 
-          {/* ---------------- WEDDING PACKAGES (Desktop 4-Card Grid + Mobile Sliding Carousel) ---------------- */}
           {activeTab === 'wedding' && (
             <div
               role="tabpanel"

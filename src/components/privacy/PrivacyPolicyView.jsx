@@ -44,17 +44,14 @@ export default function PrivacyPolicyView() {
 
   return (
     <>
-      {/* Top Navbar */}
       <Navbar onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
 
-      {/* Mobile Drawer */}
       <MobileMenu
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
       />
 
       <main className="relative z-10 flex-1">
-        {/* HERO SECTION */}
         <header className="relative pt-0 md:pt-20 pb-12 px-6 md:px-margin max-w-5xl mx-auto text-center flex flex-col items-center">
           <h1 className="text-display-md sm:text-display-lg md:text-display-xl font-display-xl font-extrabold tracking-tight text-text-primary mb-4">
             Privacy Policy
@@ -70,11 +67,9 @@ export default function PrivacyPolicyView() {
           </div>
         </header>
 
-        {/* POLICY CONTENT DOCUMENT */}
         <section className="px-4 sm:px-6 md:px-margin max-w-5xl mx-auto pb-20">
           <div className="rounded-3xl bg-surface-glass border border-border-specular backdrop-blur-2xl p-6 sm:p-10 md:p-14 shadow-[0_20px_70px_rgba(0,0,0,0.65)] space-y-12">
             
-            {/* A. Introduction and Scope */}
             <article className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -92,7 +87,6 @@ export default function PrivacyPolicyView() {
               </p>
             </article>
 
-            {/* B. Applicable Data Protection Laws */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -126,7 +120,6 @@ export default function PrivacyPolicyView() {
               </div>
             </article>
 
-            {/* C. Categories of Information Collected */}
             <article className="space-y-6 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -138,7 +131,6 @@ export default function PrivacyPolicyView() {
               </div>
 
               <div className="pl-0 sm:pl-13 grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* 1. Identification and Account Data */}
                 <div className="p-5 rounded-2xl bg-surface-deep/80 border border-border-specular space-y-2">
                   <div className="flex items-center gap-2 text-primary font-bold text-title-md">
                     <span className="material-symbols-outlined text-lg">badge</span>
@@ -149,7 +141,6 @@ export default function PrivacyPolicyView() {
                   </p>
                 </div>
 
-                {/* 2. Transaction-Related Information */}
                 <div className="p-5 rounded-2xl bg-surface-deep/80 border border-border-specular space-y-2">
                   <div className="flex items-center gap-2 text-primary font-bold text-title-md">
                     <span className="material-symbols-outlined text-lg">payments</span>
@@ -160,7 +151,6 @@ export default function PrivacyPolicyView() {
                   </p>
                 </div>
 
-                {/* 3. Platform Interaction and User Activity */}
                 <div className="p-5 rounded-2xl bg-surface-deep/80 border border-border-specular space-y-2">
                   <div className="flex items-center gap-2 text-primary font-bold text-title-md">
                     <span className="material-symbols-outlined text-lg">touch_app</span>
@@ -171,7 +161,6 @@ export default function PrivacyPolicyView() {
                   </p>
                 </div>
 
-                {/* 4. Technical, Device, and Location Information */}
                 <div className="p-5 rounded-2xl bg-surface-deep/80 border border-border-specular space-y-2">
                   <div className="flex items-center gap-2 text-primary font-bold text-title-md">
                     <span className="material-symbols-outlined text-lg">devices</span>
@@ -184,7 +173,6 @@ export default function PrivacyPolicyView() {
               </div>
             </article>
 
-            {/* D. Purposes for Processing Information */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -235,7 +223,6 @@ export default function PrivacyPolicyView() {
               </div>
             </article>
 
-            {/* E. Methods and Sources of Collection */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -257,7 +244,6 @@ export default function PrivacyPolicyView() {
               </div>
             </article>
 
-            {/* F. Storage, Processing, and Cross-Border Transfers */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -277,7 +263,6 @@ export default function PrivacyPolicyView() {
               </div>
             </article>
 
-            {/* G. Disclosure and Sharing of Information */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -300,7 +285,6 @@ export default function PrivacyPolicyView() {
               </div>
             </article>
 
-            {/* H. Use of Cookies and Tracking Tools */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -315,7 +299,6 @@ export default function PrivacyPolicyView() {
               </p>
             </article>
 
-            {/* I. User Rights and Choices */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -338,7 +321,6 @@ export default function PrivacyPolicyView() {
               </div>
             </article>
 
-            {/* J. Data Security and System Limitations */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -358,7 +340,6 @@ export default function PrivacyPolicyView() {
               </div>
             </article>
 
-            {/* K. Refund Information */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -373,7 +354,6 @@ export default function PrivacyPolicyView() {
               </p>
             </article>
 
-            {/* L. Policy Updates */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -388,7 +368,6 @@ export default function PrivacyPolicyView() {
               </p>
             </article>
 
-            {/* M. Contact Details */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -405,7 +384,6 @@ export default function PrivacyPolicyView() {
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Address */}
                   <div className="p-5 rounded-2xl bg-surface-deep/90 border border-border-specular space-y-1.5">
                     <div className="text-label-sm font-bold text-primary uppercase tracking-wider">
                       Registered Office
@@ -415,7 +393,6 @@ export default function PrivacyPolicyView() {
                     </p>
                   </div>
 
-                  {/* Email */}
                   <div className="p-5 rounded-2xl bg-surface-deep/90 border border-border-specular space-y-1.5 flex flex-col justify-between">
                     <div>
                       <div className="text-label-sm font-bold text-primary uppercase tracking-wider mb-1">
@@ -438,7 +415,6 @@ export default function PrivacyPolicyView() {
                     </button>
                   </div>
 
-                  {/* Phone */}
                   <div className="p-5 rounded-2xl bg-surface-deep/90 border border-border-specular space-y-1.5 flex flex-col justify-between">
                     <div>
                       <div className="text-label-sm font-bold text-primary uppercase tracking-wider mb-1">
@@ -464,7 +440,6 @@ export default function PrivacyPolicyView() {
               </div>
             </article>
 
-            {/* N. Governing Law */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -482,14 +457,11 @@ export default function PrivacyPolicyView() {
           </div>
         </section>
 
-        {/* FAQ Section */}
         <FaqSection />
       </main>
 
-      {/* Footer */}
       <Footer />
 
-      {/* System Toast Notification */}
       <ToastNotification toast={toast} />
     </>
   );

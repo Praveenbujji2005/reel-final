@@ -67,7 +67,6 @@ export default function AdminDashboardPage() {
         setLoading(false);
       }
 
-      // Fetch creator queries for dashboard stats
       try {
         const creatorRes = await fetch('/api/creators');
         const creatorData = await creatorRes.json();
@@ -88,7 +87,6 @@ export default function AdminDashboardPage() {
 
     loadCMSData();
 
-    // Real-time listener for enquiries
     const unsubscribe = subscribeToEnquiries({
       onData: (enquiries) => {
         const newCount = enquiries.filter((i) => (i.status || '').toLowerCase() === 'new').length;
@@ -101,7 +99,6 @@ export default function AdminDashboardPage() {
       },
       onError: (err) => {
         console.warn('[Dashboard] Real-time listener notice:', err?.message);
-        // Fallback fetch
         getEnquiriesFromFirestore()
           .then((list) => {
             if (Array.isArray(list)) {
@@ -134,7 +131,6 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-8 select-none">
-      {/* Top Welcome Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F28C3C]/15 border border-[#F28C3C]/30 text-[#F28C3C] text-xs font-bold uppercase tracking-wider mb-2">
@@ -168,11 +164,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* =========================================================================
-          KEY STATS CARDS
-         ========================================================================= */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
-        {/* Total Customer Inquiries */}
         <Link
           href="/admin/inquiries"
           className="rounded-2xl p-5 bg-[#151215] border border-white/10 hover:border-[#F28C3C]/60 transition-all hover:scale-[1.02] group"
@@ -196,7 +188,6 @@ export default function AdminDashboardPage() {
           </div>
         </Link>
 
-        {/* Creator Queries */}
         <Link
           href="/admin/creators"
           className="rounded-2xl p-5 bg-[#151215] border border-white/10 hover:border-emerald-500/60 transition-all hover:scale-[1.02] group"
@@ -220,7 +211,6 @@ export default function AdminDashboardPage() {
           </div>
         </Link>
 
-        {/* Hero Reel Slides */}
         <Link
           href="/admin/hero"
           className="rounded-2xl p-5 bg-[#151215] border border-white/10 hover:border-amber-500/60 transition-all hover:scale-[1.02] group"
@@ -239,7 +229,6 @@ export default function AdminDashboardPage() {
           <p className="mt-2 text-xs text-text-muted">Featured reels deck</p>
         </Link>
 
-        {/* Pricing Plans */}
         <Link
           href="/admin/pricing"
           className="rounded-2xl p-5 bg-[#151215] border border-white/10 hover:border-[#F28C3C]/60 transition-all hover:scale-[1.02] group"
@@ -258,7 +247,6 @@ export default function AdminDashboardPage() {
           <p className="mt-2 text-xs text-text-muted">Instant &amp; Luxe tiers</p>
         </Link>
 
-        {/* Testimonials & FAQs */}
         <Link
           href="/admin/testimonials"
           className="rounded-2xl p-5 bg-[#151215] border border-white/10 hover:border-purple-500/60 transition-all hover:scale-[1.02] group"
@@ -280,13 +268,8 @@ export default function AdminDashboardPage() {
         </Link>
       </div>
 
-      {/* =========================================================================
-          RECENT INQUIRIES & ACTIVITY LOG
-         ========================================================================= */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column (8 cols): Recent Customer Enquiries & Creator Applications */}
         <div className="lg:col-span-8 space-y-6">
-          {/* Customer Enquiries Card */}
           <div className="rounded-3xl bg-[#151215] border border-white/10 p-6 shadow-xl">
           <div className="flex items-center justify-between mb-5">
             <div>
@@ -379,7 +362,6 @@ export default function AdminDashboardPage() {
           )}
         </div>
 
-        {/* Creator Applications Card */}
         <div className="rounded-3xl bg-[#151215] border border-white/10 p-6 shadow-xl">
           <div className="flex items-center justify-between mb-5">
             <div>
@@ -472,9 +454,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-        {/* Right Column (4 cols): Quick Links & Activity */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Quick Actions Panel */}
           <div className="rounded-3xl bg-[#151215] border border-white/10 p-6 shadow-xl">
             <h3 className="text-base font-bold text-white mb-4">Quick Management</h3>
             <div className="space-y-2">
@@ -545,7 +525,6 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Activity Logs */}
           <div className="rounded-3xl bg-[#151215] border border-white/10 p-6 shadow-xl">
             <h3 className="text-base font-bold text-white mb-4">Audit Trail</h3>
             {activityLogs.length === 0 ? (

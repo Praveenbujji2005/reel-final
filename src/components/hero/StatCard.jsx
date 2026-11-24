@@ -2,29 +2,17 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-/**
- * StatCard Component with Smooth Increasing Count-Up Animation
- *
- * Glassmorphic stat card matching project theme:
- * - Smooth IntersectionObserver-triggered count-up animation
- * - Ease-out exponential deceleration for a luxury dynamic feel
- * - High-contrast bold numeric values with subtle amber/gold glow
- * - Uppercase letter-spaced muted descriptor
- * - Star icon badge for rating
- */
 export default function StatCard({ value, label, hasStar = false }) {
   const cardRef = useRef(null);
   const [displayValue, setDisplayValue] = useState(value);
   const hasAnimatedRef = useRef(false);
 
   useEffect(() => {
-    // Respect user's motion preferences
     if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setDisplayValue(value);
       return;
     }
 
-    // Parse the value string (e.g., '45,000+', '5,000+', '4.8')
     const str = String(value).trim();
     const hasPlus = str.endsWith('+');
     const cleaned = str.replace(/[^\d.]/g, '');
@@ -41,7 +29,6 @@ export default function StatCard({ value, label, hasStar = false }) {
       return;
     }
 
-    // Set initial 0 display
     setDisplayValue(isFloat ? '0.0' : hasPlus ? '0+' : '0');
 
     let animationFrameId;
@@ -50,13 +37,12 @@ export default function StatCard({ value, label, hasStar = false }) {
       if (hasAnimatedRef.current) return;
       hasAnimatedRef.current = true;
 
-      const duration = 1800; // 1.8 seconds smooth count up
+      const duration = 1800;
       const startTime = performance.now();
 
       const updateCounter = (currentTime) => {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        // Ease-out exponential deceleration
         const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
         const currentVal = targetNumber * ease;
 

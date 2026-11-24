@@ -13,7 +13,6 @@ import {
   deleteServerCreatorQuery,
 } from '@/lib/serverCreatorQueriesStore';
 
-// In-memory rate limiter: max 6 submissions per IP per 5 minutes
 const rateLimitMap = new Map();
 
 function isRateLimited(ip) {
@@ -40,7 +39,6 @@ export async function POST(request) {
       request.headers.get('x-real-ip') ||
       'anonymous_ip';
 
-    // Anti-Spam: Rate Limit Check
     if (isRateLimited(ip)) {
       return NextResponse.json(
         {
@@ -53,7 +51,6 @@ export async function POST(request) {
 
     const body = await request.json();
 
-    // Anti-Spam: Honeypot trap
     if (body.website_trap || body.bot_honey) {
       return NextResponse.json({
         success: true,
@@ -61,7 +58,6 @@ export async function POST(request) {
       });
     }
 
-    // Backend validation
     const validation = validateCreatorQueryData(body);
     if (!validation.isValid) {
       return NextResponse.json(
@@ -102,7 +98,6 @@ export async function POST(request) {
       createdAt,
     };
 
-    // Save to Firestore first
     let firestoreResult = null;
     try {
       firestoreResult = await createCreatorQuery(payload);
@@ -110,7 +105,6 @@ export async function POST(request) {
       console.warn('[API /api/creators] Firestore write notice:', fireErr.message);
     }
 
-    // Persist to server JSON store
     const serverSaved = saveServerCreatorQuery({
       ...payload,
       id: firestoreResult?.id || `creator_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
@@ -137,7 +131,6 @@ export async function GET(request) {
     const statusFilter = (searchParams.get('status') || 'all').toLowerCase();
     const searchQuery = (searchParams.get('search') || '').toLowerCase().trim();
 
-    // 1. Fetch from Firestore
     let cloudItems = [];
     try {
       cloudItems = await getCreatorQueriesFromFirestore();
@@ -145,10 +138,8 @@ export async function GET(request) {
       console.warn('[API /api/creators GET] Firestore read notice:', err.message);
     }
 
-    // 2. Fetch from server store
     const localItems = readServerCreatorQueries();
 
-    // 3. Merge and deduplicate by ID
     const itemMap = new Map();
     for (const item of localItems) {
       if (item && item.id) itemMap.set(item.id, item);
@@ -159,17 +150,14 @@ export async function GET(request) {
 
     let allItems = Array.from(itemMap.values());
 
-    // Sort newest first
     allItems.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
-    // Filter by status if specified
     if (statusFilter !== 'all') {
       allItems = allItems.filter(
         (q) => (q.status || 'new').toLowerCase() === statusFilter
       );
     }
 
-    // Filter by search query if specified
     if (searchQuery) {
       allItems = allItems.filter((q) => {
         const name = (q.fullName || q.name || '').toLowerCase();
@@ -215,14 +203,12 @@ export async function PATCH(request) {
       );
     }
 
-    // 1. Update in Firestore
     try {
       await updateCreatorQueryStatusInFirestore(id, status, adminEmail);
     } catch (fireErr) {
       console.warn('[API /api/creators PATCH] Firestore notice:', fireErr.message);
     }
 
-    // 2. Update in server store
     const updated = updateServerCreatorQueryStatus(id, status, adminEmail);
 
     return NextResponse.json({
@@ -252,14 +238,12 @@ export async function DELETE(request) {
       );
     }
 
-    // 1. Delete from Firestore
     try {
       await deleteCreatorQueryFromFirestore(id, adminEmail);
     } catch (fireErr) {
       console.warn('[API /api/creators DELETE] Firestore notice:', fireErr.message);
     }
 
-    // 2. Delete from server store
     deleteServerCreatorQuery(id);
 
     return NextResponse.json({

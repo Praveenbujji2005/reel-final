@@ -1,11 +1,5 @@
 'use client';
 
-/**
- * ReelXpress Official Brand Wordmark
- * Features crisp vector typography with the brand-signature orange 'X'
- * ViewBox is tightly bounded (55 38 397 65) for perfect alignment and baseline
- * matching with surrounding text and headings.
- */
 export default function ReelXpressWordmark({
   className = 'inline-block h-[0.92em] sm:h-[1.0em] w-auto align-middle drop-shadow-[0_0_14px_rgba(255,94,30,0.4)]',
   textColor = '#FFFFFF',
@@ -22,12 +16,10 @@ export default function ReelXpressWordmark({
       className={className}
       {...props}
     >
-      {/* Brand 'X' */}
       <path
         fill={xColor}
         d="M254.96,90.86c-3.47,3.21-6.94,6.43-10.41,9.64l-1.28-20.29-7.69-2.12-7.29,12.3-13.74.35,9.86-18.66-7.65-4.67c0-8.99.02-17.98.02-26.97,3.88,3.95,7.77,7.91,11.65,11.86,0,1.21-.01,2.42-.02,3.65-.02,1.43-.04,2.85-.07,4.25l8.2,4.76,7.17-12.2,13.53-.05-10.11,17.87,7.76,5.03c.02,5.09.05,10.17.07,15.26Z"
       />
-      {/* Typography: 'Reel' + 'press' */}
       <path
         fill={textColor}
         d="M90.61,71.38l14.06,16.75h-10.03l-14.06-16.75h-15.47v16.75h-8.54v-47.09h37.07c4.98,0,9.02,4.04,9.02,9.01v12.24c0,5.05-4.04,9.08-9.02,9.08h-3.03ZM92.16,63.31c1.08,0,2.02-.88,2.02-1.95v-10.29c0-1.14-.94-2.02-2.02-2.02h-27.05v14.26h27.05Z"

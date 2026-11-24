@@ -55,7 +55,6 @@ export default function GoogleCalendarSettingsModal({
       ? `${window.location.origin}/api/google-calendar/callback`
       : 'http://localhost:3000/api/google-calendar/callback';
 
-  // Fetch existing config preview when opening config accordion
   useEffect(() => {
     if (showConfig && !configForm.clientId) {
       fetch('/api/google-calendar/config')
@@ -72,7 +71,6 @@ export default function GoogleCalendarSettingsModal({
     }
   }, [showConfig]);
 
-  // Listen for OAuth completion from popup
   useEffect(() => {
     function handleMessage(e) {
       if (e.data?.type === 'GOOGLE_CALENDAR_CONNECTED') {
@@ -101,7 +99,6 @@ export default function GoogleCalendarSettingsModal({
       const res = await fetch('/api/google-calendar/auth-url');
       const data = await res.json();
       if (data.success && data.url) {
-        // Open official Google OAuth consent in centered popup window
         const width = 540;
         const height = 650;
         const left = window.screenX + (window.outerWidth - width) / 2;
@@ -202,7 +199,6 @@ export default function GoogleCalendarSettingsModal({
         className="w-full max-w-lg rounded-2xl bg-[#141014] border border-white/10 p-6 sm:p-7 shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative text-white max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between pb-5 border-b border-white/10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#4285F4]/15 border border-[#4285F4]/30 flex items-center justify-center text-[#4285F4]">
@@ -226,7 +222,6 @@ export default function GoogleCalendarSettingsModal({
           </button>
         </div>
 
-        {/* Notice if user arrived from clicking an enquiry button */}
         {pendingEnquiry && (
           <div className="my-4 p-3 rounded-xl bg-blue-950/50 border border-blue-500/40 text-blue-200 text-xs flex items-start gap-2.5">
             <span className="material-symbols-outlined text-blue-400 text-base shrink-0 mt-0.5">info</span>
@@ -238,7 +233,6 @@ export default function GoogleCalendarSettingsModal({
           </div>
         )}
 
-        {/* Status Card */}
         <div className="my-5 p-5 rounded-xl bg-white/[0.03] border border-white/10 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-xs uppercase tracking-wider text-text-muted font-bold">
@@ -323,7 +317,6 @@ export default function GoogleCalendarSettingsModal({
           )}
         </div>
 
-        {/* Configuration / Credentials Accordion (For custom Google Cloud OAuth apps) */}
         <div className="pt-2 border-t border-white/10">
           <button
             type="button"
@@ -338,7 +331,6 @@ export default function GoogleCalendarSettingsModal({
 
           {showConfig && (
             <div className="mt-3 space-y-4 text-xs animate-fadeIn">
-              {/* Redirect URI with copy button */}
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-text-muted mb-1">
                   Authorized Redirect URI (Copy to Google Cloud Console)
@@ -360,7 +352,6 @@ export default function GoogleCalendarSettingsModal({
                 </div>
               </div>
 
-              {/* Instructions */}
               <div className="p-3 rounded-lg bg-white/[0.02] border border-white/10 space-y-1.5 text-zinc-400">
                 <div className="font-bold text-white mb-1">Google Cloud Setup Instructions:</div>
                 <div>1. Go to Google Cloud Console &gt; APIs &amp; Services &gt; Credentials.</div>
@@ -370,7 +361,6 @@ export default function GoogleCalendarSettingsModal({
                 <div>5. Paste your Client ID &amp; Secret below or set in <code>.env.local</code>.</div>
               </div>
 
-              {/* Credentials Form */}
               <form onSubmit={handleSaveConfig} className="space-y-3 pt-2">
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-text-muted mb-1">

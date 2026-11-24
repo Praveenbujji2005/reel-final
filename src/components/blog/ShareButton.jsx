@@ -29,7 +29,6 @@ export default function ShareButton({ title, slug }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 2200);
       } catch {
-        // Fallback
       }
     }
   };

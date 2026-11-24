@@ -10,15 +10,16 @@ export default function ContactPageView() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const todayDate = new Date().toISOString().split('T')[0];
 
-  // Form State
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     phone: '',
     subject: 'Hourly Plan (₹2,200) - Single Event',
     eventDate: '',
+    city: 'Bengaluru',
+    locality: '',
     message: '',
-    website_trap: '', // Anti-spam honeypot
+    website_trap: '',
   });
 
   const [formErrors, setFormErrors] = useState({});
@@ -27,7 +28,6 @@ export default function ContactPageView() {
   const [serverError, setServerError] = useState('');
   const [referenceId, setReferenceId] = useState('');
 
-  // Read optional service query param (e.g. from mobile pricing CTAs)
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -81,7 +81,6 @@ export default function ContactPageView() {
     e.preventDefault();
     if (!validate()) return;
 
-    // Check honeypot
     if (formData.website_trap) {
       setSubmitSuccess(true);
       return;
@@ -101,9 +100,10 @@ export default function ContactPageView() {
       package: formData.subject.trim(),
       eventDate: formData.eventDate,
       date: formData.eventDate,
+      city: formData.city.trim() || 'Bengaluru',
+      locality: formData.locality.trim(),
       enquiryMessage: formData.message.trim() || 'No additional notes provided.',
       message: formData.message.trim() || 'No additional notes provided.',
-      city: 'Bengaluru',
       sourcePage: 'Contact Us Dedicated Page',
       source: 'contact_page',
     };
@@ -140,6 +140,8 @@ export default function ContactPageView() {
       phone: '',
       subject: 'Hourly Plan (₹2,200) - Single Event',
       eventDate: '',
+      city: 'Bengaluru',
+      locality: '',
       message: '',
       website_trap: '',
     });
@@ -151,33 +153,28 @@ export default function ContactPageView() {
 
   return (
     <div className="min-h-screen bg-[#080808] text-white flex flex-col selection:bg-primary-container selection:text-white">
-      {/* Top Navbar */}
       <Navbar
         onOpenMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
         isMobileMenuOpen={isMobileMenuOpen}
       />
 
-      {/* Mobile Drawer Menu */}
       <MobileMenu
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
       />
 
       <main className="flex-1 relative z-10 pt-28 sm:pt-36 pb-16 sm:pb-24 px-4 sm:px-6 md:px-margin max-w-7xl mx-auto w-full">
-        {/* Background Ambient Glows */}
         <div
           className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[340px] sm:w-[600px] h-[340px] sm:h-[600px] rounded-full bg-gradient-to-br from-[#FF5E1E]/15 via-[#5c1d00]/05 to-transparent blur-3xl pointer-events-none -z-10"
           aria-hidden="true"
         />
 
-        {/* Page Breadcrumb */}
         <nav className="mb-6 flex items-center gap-2 text-xs text-text-muted font-medium select-none" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-primary transition-colors">Home</Link>
           <span className="text-white/30">/</span>
           <span className="text-white">Contact Us</span>
         </nav>
 
-        {/* Section Heading */}
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white mb-4">
             Let&apos;s Connect with Our <span className="text-shimmer text-primary-container">Bengaluru Team</span>
@@ -187,12 +184,9 @@ export default function ContactPageView() {
           </p>
         </div>
 
-        {/* Two-Column Layout: Details & Form */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 items-start">
           
-          {/* LEFT COLUMN: Contact Details & Quick Info */}
           <div className="lg:col-span-5 space-y-6">
-            {/* Quick Contact Card */}
             <div className="rounded-3xl bg-[#110e13] border border-white/10 p-6 sm:p-8 shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
               <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2.5">
                 <span className="w-2 h-2 rounded-full bg-primary-container" />
@@ -200,7 +194,6 @@ export default function ContactPageView() {
               </h2>
 
               <ul className="space-y-6">
-                {/* Location */}
                 <li className="flex items-start gap-4">
                   <div className="w-11 h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-primary-container">
                     <span className="material-symbols-outlined text-xl">location_on</span>
@@ -213,7 +206,6 @@ export default function ContactPageView() {
                   </div>
                 </li>
 
-                {/* Direct Phone / WhatsApp */}
                 <li className="flex items-start gap-4">
                   <div className="w-11 h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-primary-container">
                     <span className="material-symbols-outlined text-xl">phone_iphone</span>
@@ -229,7 +221,6 @@ export default function ContactPageView() {
                   </div>
                 </li>
 
-                {/* Email */}
                 <li className="flex items-start gap-4">
                   <div className="w-11 h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-primary-container">
                     <span className="material-symbols-outlined text-xl">mail</span>
@@ -245,7 +236,6 @@ export default function ContactPageView() {
                   </div>
                 </li>
 
-                {/* Operating Hours */}
                 <li className="flex items-start gap-4">
                   <div className="w-11 h-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-primary-container">
                     <span className="material-symbols-outlined text-xl">schedule</span>
@@ -261,11 +251,9 @@ export default function ContactPageView() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Contact Form */}
           <div className="lg:col-span-7">
             <div className="rounded-3xl bg-[#110e13] border border-white/10 p-6 sm:p-8 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative">
               
-              {/* SUCCESS CONFIRMATION STATE */}
               {submitSuccess ? (
                 <div className="py-10 text-center space-y-6 fade-in-content">
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#FF5E1E] to-[#FF8800] text-white flex items-center justify-center mx-auto shadow-[0_0_35px_rgba(255,94,30,0.6)]">
@@ -308,7 +296,6 @@ export default function ContactPageView() {
                   </div>
                 </div>
               ) : (
-                /* INTERACTIVE CONTACT FORM */
                 <form onSubmit={handleSubmit} noValidate className="space-y-5">
                   <div>
                     <h2 className="text-2xl font-bold text-white tracking-tight">Send Us a Message</h2>
@@ -317,7 +304,6 @@ export default function ContactPageView() {
                     </p>
                   </div>
 
-                  {/* Server Error Notice */}
                   {serverError && (
                     <div className="p-4 rounded-2xl bg-red-950/40 border border-red-500/50 text-red-200 text-xs sm:text-sm flex items-start gap-3">
                       <span className="material-symbols-outlined text-red-400 text-lg shrink-0 mt-0.5">error</span>
@@ -328,7 +314,6 @@ export default function ContactPageView() {
                     </div>
                   )}
 
-                  {/* Honeypot anti-spam trap */}
                   <input
                     type="text"
                     name="website_trap"
@@ -340,7 +325,6 @@ export default function ContactPageView() {
                     aria-hidden="true"
                   />
 
-                  {/* Full Name */}
                   <div>
                     <label htmlFor="fullName" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
                       Full Name <span className="text-primary-container">*</span>
@@ -362,9 +346,7 @@ export default function ContactPageView() {
                     )}
                   </div>
 
-                  {/* Email & Phone Row */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Email */}
                     <div>
                       <label htmlFor="email" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
                         Email Address <span className="text-primary-container">*</span>
@@ -386,7 +368,6 @@ export default function ContactPageView() {
                       )}
                     </div>
 
-                    {/* Phone Number */}
                     <div>
                       <label htmlFor="phone" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
                         Phone Number <span className="text-primary-container">*</span>
@@ -409,7 +390,6 @@ export default function ContactPageView() {
                     </div>
                   </div>
 
-                  {/* Subject / Selected Package & Event Date Row */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="subject" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
@@ -426,6 +406,7 @@ export default function ContactPageView() {
                         <option value="Vehicle Shoot (₹3,999 onwards) - Automotive">Vehicle Shoot (₹3,999 onwards) - Automotive</option>
                         <option value="Half Day (₹8,500) - Four Hours">Half Day (₹8,500) - Four Hours</option>
                         <option value="Full Day (₹15,000) - Eight Hours">Full Day (₹15,000) - Eight Hours</option>
+                        <option value="ReelXpress Luxe (Starts at ₹19,999)">ReelXpress Luxe (Starts at ₹19,999)</option>
                         <option value="Wedding / Reception Reel Shoot">Wedding / Reception Reel Shoot</option>
                         <option value="Brand Launch / Corporate Event">Brand Launch / Corporate Event</option>
                         <option value="Custom / Other">Custom / Other</option>
@@ -434,6 +415,7 @@ export default function ContactPageView() {
                           'Vehicle Shoot (₹3,999 onwards) - Automotive',
                           'Half Day (₹8,500) - Four Hours',
                           'Full Day (₹15,000) - Eight Hours',
+                          'ReelXpress Luxe (Starts at ₹19,999)',
                           'Wedding / Reception Reel Shoot',
                           'Brand Launch / Corporate Event',
                           'Custom / Other',
@@ -465,7 +447,43 @@ export default function ContactPageView() {
                     </div>
                   </div>
 
-                  {/* Message / Notes (Optional) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="city" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
+                        Select City <span className="text-primary-container">*</span>
+                      </label>
+                      <select
+                        id="city"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 sm:py-3.5 rounded-xl bg-[#09080b] border border-white/15 text-white text-sm focus:outline-none focus:border-primary-container transition-colors cursor-pointer"
+                        required
+                      >
+                        <option value="Bengaluru">Bengaluru (Default)</option>
+                        <option value="Chennai">Chennai</option>
+                        <option value="Hyderabad">Hyderabad</option>
+                        <option value="Vizag">Vizag</option>
+                        <option value="Mumbai">Mumbai</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="locality" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
+                        Locality / Area
+                      </label>
+                      <input
+                        type="text"
+                        id="locality"
+                        name="locality"
+                        value={formData.locality}
+                        onChange={handleChange}
+                        placeholder="e.g. Indiranagar, Koramangala, Anna Nagar..."
+                        className="w-full px-4 py-3 sm:py-3.5 rounded-xl bg-[#09080b] border border-white/15 focus:border-primary-container text-white placeholder-text-muted/40 text-sm focus:outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label htmlFor="message" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
                       Message / Notes <span className="text-text-muted/60 lowercase font-normal">(optional)</span>
@@ -481,7 +499,6 @@ export default function ContactPageView() {
                     />
                   </div>
 
-                  {/* Submit Button */}
                   <div className="pt-2">
                     <button
                       type="submit"
@@ -520,7 +537,6 @@ export default function ContactPageView() {
         </div>
       </main>
 
-      {/* Footer */}
       <Footer />
     </div>
   );

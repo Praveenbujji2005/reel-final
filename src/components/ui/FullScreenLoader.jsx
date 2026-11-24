@@ -5,29 +5,11 @@ import { usePathname } from 'next/navigation';
 import Shuffle from './Shuffle/Shuffle';
 import { getHeroSlides, getPricingPlans, getTestimonials, getFaqs } from '@/lib/cmsServices';
 
-/**
- * FullScreenLoader Component for ReelXpress Pro
- *
- * Premium cinematic full-screen introductory loading animation powered by React Bits <Shuffle />.
- *
- * Life-Cycle Guarantees:
- * 1. Appears immediately when the website is opened or refreshed.
- * 2. Remains visible while the DOM initializes, fonts activate, critical assets preload,
- *    and Firestore CMS collections complete their initial queries.
- * 3. Does not prematurely disappear merely because the Shuffle text animation finished.
- * 4. Does not disappear before the website is genuinely ready.
- * 5. Handles slow network or failed API requests gracefully via Promise.allSettled and safety timeout fallback.
- * 6. Executes a smooth cinematic exit transition (slight scale reduction + opacity fade)
- *    revealing the fully loaded, interactive website underneath without layout jumps or flickering.
- * 7. Mobile-first responsive design matching 360px to 4K displays with 100dvh viewport bounds.
- */
 export default function FullScreenLoader() {
   const pathname = usePathname();
 
-  // If on admin dashboard or admin auth pages, bypass website loader
   const isAdmin = pathname?.startsWith('/admin');
 
-  // State coordination
   const [isMounted, setIsMounted] = useState(!isAdmin);
   const [isExiting, setIsExiting] = useState(false);
   const [websiteReady, setWebsiteReady] = useState(false);
@@ -35,12 +17,10 @@ export default function FullScreenLoader() {
 
   const hasExitedRef = useRef(false);
 
-  // Callback when React Bits Shuffle text finishes its slide animation
   const handleShuffleComplete = useCallback(() => {
     setShuffleFinished(true);
   }, []);
 
-  // Coordinate genuine website readiness conditions
   useEffect(() => {
     if (isAdmin) {
       setIsMounted(false);
@@ -49,7 +29,6 @@ export default function FullScreenLoader() {
 
     let isSubscribed = true;
 
-    // 1. Lock body scrolling while the full-screen loader is visible
     const originalBodyOverflow = document.body.style.overflow;
     const originalHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -58,9 +37,7 @@ export default function FullScreenLoader() {
       window.lenis.stop();
     }
 
-    // 2. Comprehensive Readiness Coordinator
     const coordinateLoadingReadiness = async () => {
-      // Condition A: DOM Content Loaded / Interactive
       const domPromise = new Promise((resolve) => {
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
           resolve(true);
@@ -73,7 +50,6 @@ export default function FullScreenLoader() {
         }
       });
 
-      // Condition B: Window Load Event (Stylesheets, initial scripts, synchronous resources)
       const windowLoadPromise = new Promise((resolve) => {
         if (document.readyState === 'complete') {
           resolve(true);
@@ -86,19 +62,16 @@ export default function FullScreenLoader() {
         }
       });
 
-      // Condition C: Web Fonts Ready (Plus Jakarta Sans, Cormorant, Material Symbols)
       const fontsPromise = (async () => {
         try {
           if ('fonts' in document) {
             await document.fonts.ready;
           }
         } catch {
-          // Graceful fallback if FontFaceSet is unsupported
         }
         return true;
       })();
 
-      // Condition D: Critical CMS Collections Pre-warm (Parallel Firestore reads with fallbacks)
       const cmsPromise = (async () => {
         try {
           await Promise.allSettled([
@@ -113,7 +86,6 @@ export default function FullScreenLoader() {
         return true;
       })();
 
-      // Condition E: Essential Brand Visual Assets Preload
       const assetsPromise = (async () => {
         const brandAssets = [
           '/brand/icon-gold.png',
@@ -127,7 +99,7 @@ export default function FullScreenLoader() {
             return new Promise((resolve) => {
               const img = new Image();
               img.onload = () => resolve(true);
-              img.onerror = () => resolve(false); // Gracefully proceed even if an asset fails
+              img.onerror = () => resolve(false);
               img.src = src;
             });
           })
@@ -135,7 +107,6 @@ export default function FullScreenLoader() {
         return true;
       })();
 
-      // Await all genuine readiness promises simultaneously
       await Promise.all([
         domPromise,
         windowLoadPromise,
@@ -151,8 +122,6 @@ export default function FullScreenLoader() {
 
     coordinateLoadingReadiness();
 
-    // 3. Fallback safety timer: guarantees the loader will never remain stuck indefinitely
-    // even if a 3rd-party script or network disconnects unexpectedly (6.5s limit)
     const safetyTimer = setTimeout(() => {
       if (isSubscribed) {
         setWebsiteReady(true);
@@ -160,7 +129,6 @@ export default function FullScreenLoader() {
       }
     }, 6500);
 
-    // 4. Shuffle completion safety timer in case ScrollTrigger observer is deferred (2.2s limit)
     const shuffleSafetyTimer = setTimeout(() => {
       if (isSubscribed) {
         setShuffleFinished(true);
@@ -176,13 +144,11 @@ export default function FullScreenLoader() {
     };
   }, [isAdmin]);
 
-  // Trigger Exit Transition once BOTH the website has genuinely loaded AND Shuffle text animated
   useEffect(() => {
     if (websiteReady && shuffleFinished && !hasExitedRef.current) {
       hasExitedRef.current = true;
       setIsExiting(true);
 
-      // Re-enable document scrolling right as exit begins
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
       if (typeof window !== 'undefined' && window.lenis) {
@@ -190,7 +156,6 @@ export default function FullScreenLoader() {
         window.lenis.resize();
       }
 
-      // Allow 600ms for smooth scale & opacity exit animation before unmounting from DOM
       const unmountTimer = setTimeout(() => {
         setIsMounted(false);
       }, 620);
@@ -225,21 +190,17 @@ export default function FullScreenLoader() {
         paddingRight: 'env(safe-area-inset-right, 0px)',
       }}
     >
-      {/* 1. Subtle Cinematic Warm Radial Glow Centered Behind Brand Text */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] sm:w-[620px] md:w-[860px] h-[340px] sm:h-[480px] rounded-full bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,rgba(255,109,41,0.14),transparent_70%)] blur-3xl pointer-events-none -z-10"
         aria-hidden="true"
       />
 
-      {/* 2. Soft Edge Vignette for Dark-Luxe Depth */}
       <div
         className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(0,0,0,0.7)_100%)] pointer-events-none -z-10"
         aria-hidden="true"
       />
 
-      {/* 3. Central Brand Stage */}
       <div className="relative z-10 flex flex-col items-center justify-center px-4 max-w-full">
-        {/* React Bits Shuffle Text Animation */}
         <Shuffle
           text="reelXpress"
           effect="slide"

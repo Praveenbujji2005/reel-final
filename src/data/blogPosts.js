@@ -1,11 +1,3 @@
-/**
- * Centralized Blog Posts Data Store
- *
- * Slugs match the official site specifications:
- * 1. wedding-videography-packages-india-2026-cost-breakdown
- * 2. car-delivery-shoot-bangalore
- * 3. top-10-wedding-reel-trends-india-2026
- */
 
 export const BLOG_POSTS = [
   {

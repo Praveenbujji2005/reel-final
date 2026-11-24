@@ -80,15 +80,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`dark ${plusJakartaSans.variable}`} suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
-        {/* Official Brand Favicon & Touch Icon */}
         <link rel="icon" href="/brand/icon-gold.png" type="image/png" />
         <link rel="apple-touch-icon" href="/brand/icon-gold.png" />
-        {/* Google Material Symbols Outlined Icon Font with display=block to prevent text flash */}
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block"
         />
-        {/* Same-origin proxy configuration for delivery SDK */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -100,34 +97,27 @@ export default function RootLayout({ children }) {
             `,
           }}
         />
-        {/* Structured Data JSON-LD Schemas */}
         <JsonLd />
       </head>
       <body
         className={`${plusJakartaSans.variable} ${cormorantGaramond.variable} bg-background text-text-primary antialiased selection:bg-primary-container selection:text-text-primary min-h-screen min-h-[100dvh] relative font-sans`}
         suppressHydrationWarning
       >
-        {/* Full-Screen reelXpress Loading Experience */}
         <FullScreenLoader />
 
         <ErrorBoundary>
           <SmoothScrollProvider>
-            {/* Top GPU Scroll Progress Bar */}
             <ScrollProgress />
 
-            {/* Background Ambient Glowing Orbs */}
             <AmbientOrbs />
 
-            {/* Application Page Flow */}
             <div className="relative z-10 flex flex-col min-h-screen min-h-[100dvh]">
               {children}
             </div>
           </SmoothScrollProvider>
 
-          {/* Persistent Floating Bottom-Left Action Buttons */}
           <FloatingActionButtons />
 
-          {/* Persistent Floating WhatsApp Chat Widget (Bottom-Right) */}
           <WhatsAppWidget />
         </ErrorBoundary>
       </body>

@@ -6,9 +6,6 @@ import StatCard from './StatCard';
 import PortfolioCarousel from '../sections/PortfolioCarousel';
 import Icon from '@/components/ui/Icon';
 
-/**
- * MobileStatItem with IntersectionObserver-triggered count-up animation
- */
 function MobileStatItem({ value, label, hasStar = false }) {
   const [displayValue, setDisplayValue] = useState(value);
   const itemRef = useRef(null);
@@ -105,21 +102,6 @@ function MobileStatItem({ value, label, hasStar = false }) {
   );
 }
 
-/**
- * Hero Component
- *
- * Streamlined dark-luxury hero section:
- * - Eyebrow badge, main headline, and sub-line with sequential reveals
- * - Desktop (>= 768px): Side-by-side primary CTAs & balanced 2-column StatCards row
- * - Mobile (< 768px): Redesigned mobile hero bottom section:
- *     1. Trust Chips (1 on first row, 2 per row) with glassmorphism
- *     2. Centered Book Now CTA button (Vibrant Luxury Orange)
- *     3. Service Tiles (All Event Shoot, Wedding Shoot, Vehicle Shoot with glassmorphism)
- *     4. 3-column Stats Row (10,000+ Reels, 12,000+ Booking Done, 4.8★ Rating)
- *     5. Animated subtle orange line beneath statistics
- *     6. 90px bottom padding to prevent WhatsApp widget overlap
- * - Key creative showcase ("THE REAL WORK") interactive 3D video portfolio carousel
- */
 export default function Hero({ onShowToast }) {
   const handleBookNow = useCallback((e) => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
@@ -146,20 +128,18 @@ export default function Hero({ onShowToast }) {
       aria-label="ReelXpress Hero"
       className="relative pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-12 sm:pb-16 px-4 sm:px-6 md:px-margin w-full max-w-[1600px] mx-auto text-center flex flex-col items-center overflow-visible scroll-mt-20 md:scroll-mt-28"
     >
-      {/* Subtle Grid Pattern Overlay */}
       <div
         className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none opacity-50 -z-10"
         aria-hidden="true"
       />
 
-      {/* Main Headline with Sequential Entrance */}
       <h1 className="reveal-on-scroll hero-animate-1 text-white w-full max-w-6xl mx-auto mb-6 sm:mb-8 select-none text-center">
         <span className="inline-flex flex-wrap items-center justify-center text-[clamp(15px,4.3vw,52px)] font-extrabold tracking-tight leading-[1.2]">
           <span className="whitespace-nowrap">Shoot The Moment</span>
           <img
-            src="/brand/reelxpress-gold-x.png"
+            src="/brand/reelxpress-orange-x.png"
             alt="reelXpress Mark"
-            className="inline-block h-[0.88em] w-auto mx-1.5 sm:mx-2.5 md:mx-3 object-contain drop-shadow-[0_0_14px_rgba(255,200,60,0.5)] shrink-0 select-none"
+            className="inline-block h-[0.88em] w-auto mx-1.5 sm:mx-2.5 md:mx-3 object-contain drop-shadow-[0_0_16px_rgba(255,109,41,0.6)] shrink-0 select-none"
             loading="eager"
           />
           <span className="whitespace-nowrap">Own The Spotlight</span>
@@ -169,16 +149,11 @@ export default function Hero({ onShowToast }) {
         </span>
       </h1>
 
-      {/* Sub-line */}
       <p className="reveal-on-scroll hero-animate-3 text-sm sm:text-lg md:text-xl font-normal text-white/75 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed">
         You live the moment. reelXpress captures it — instantly. Shot on latest iPhone gear with on-spot live editing.
       </p>
 
-      {/* =========================================================================
-          DESKTOP ONLY (>= 768px): CENTERED CTA & 2-CARD STATS ROW
-         ========================================================================= */}
       <div className="hidden md:flex reveal-on-scroll hero-animate-4 relative z-30 w-full max-w-xl mx-auto flex-row items-center justify-center gap-6 mb-10 px-4">
-        {/* Book Now Button: Vibrant Luxury Gradient */}
         <a
           href="#booking"
           onClick={handleBookNow}
@@ -190,30 +165,18 @@ export default function Hero({ onShowToast }) {
         </a>
       </div>
 
-      {/* Desktop StatCards (3-Column Layout: 10,000+ Reels, 12,000+ Booking Done, 4.8★ Rating) */}
       <div className="hidden md:block reveal-on-scroll hero-animate-5 relative z-30 w-full max-w-3xl mx-auto mb-14 px-4">
         <div className="grid grid-cols-3 gap-6">
           <StatCard value="10,000+" label="Reels delivered" />
           <StatCard value="12,000+" label="Booking Done" />
           <StatCard value="4.8" label="Average Rating" hasStar={true} />
         </div>
-        {/* Animated subtle orange line from left to right beneath the statistics */}
         <div className="relative w-64 mx-auto mt-6 h-[2px] overflow-hidden rounded-full bg-white/5">
           <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-[#FF7A33] to-transparent animate-stat-line-sweep" />
         </div>
       </div>
 
-      {/* =========================================================================
-          MOBILE ONLY (< 768px): REDESIGNED HERO BOTTOM SECTION
-          - 1. Trust Chips (Semi-transparent glass, subtle borders, bright orange icons)
-          - 2. Centered Book Now CTA Button (Vibrant Luxury Orange)
-          - 3. Service Tiles (All Event Shoot, Wedding Shoot, Vehicle Shoot with glassmorphism)
-          - 4. 3-Column Stats Row (10,000+ Reels, 12,000+ Booking Done, 4.8★ Rating)
-          - 5. Animated subtle orange line beneath statistics
-          - 90px bottom padding to prevent WhatsApp widget overlap
-         ========================================================================= */}
       <div className="md:hidden relative z-30 w-full max-w-lg mx-auto flex flex-col items-center pb-[90px] px-2 select-none">
-        {/* Subtle Brand Orange Radial Glow behind CTA area */}
         <div
           className="absolute top-24 left-1/2 -translate-x-1/2 w-[320px] h-[320px] rounded-full pointer-events-none -z-10"
           style={{
@@ -222,16 +185,13 @@ export default function Hero({ onShowToast }) {
           aria-hidden="true"
         />
 
-        {/* 1. TRUST CHIPS (Uniform semi-transparent glass, subtle border, vibrant orange icons) */}
         <div className="hero-animate-4 flex flex-col items-center gap-2.5 mb-7 w-full">
-          {/* Row 1: 1 chip */}
           <div className="flex justify-center">
             <div className="inline-flex items-center gap-2 bg-[#161218]/70 backdrop-blur-md border border-white/10 rounded-full py-2.5 px-4 text-[13px] sm:text-[14px] font-medium text-white shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
               <Icon name="star" size={17} className="text-[#FF7A33] drop-shadow-[0_0_8px_rgba(255,122,51,0.6)]" />
               <span>4.8★ Average Rating</span>
             </div>
           </div>
-          {/* Row 2: 2 chips */}
           <div className="flex items-center justify-center gap-2.5 w-full">
             <div className="inline-flex items-center gap-2 bg-[#161218]/70 backdrop-blur-md border border-white/10 rounded-full py-2.5 px-3.5 text-[13px] sm:text-[14px] font-medium text-white shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
               <Icon name="military_tech" size={17} className="text-[#FF7A33]" />
@@ -242,7 +202,6 @@ export default function Hero({ onShowToast }) {
               <span>Delivery in Minutes</span>
             </div>
           </div>
-          {/* Row 3: 2 chips */}
           <div className="flex items-center justify-center gap-2.5 w-full">
             <div className="inline-flex items-center gap-2 bg-[#161218]/70 backdrop-blur-md border border-white/10 rounded-full py-2.5 px-3.5 text-[13px] sm:text-[14px] font-medium text-white shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
               <Icon name="phone_iphone" size={17} className="text-[#FF7A33]" />
@@ -255,9 +214,7 @@ export default function Hero({ onShowToast }) {
           </div>
         </div>
 
-        {/* 2. CTA BUTTON (centered, ~72-76% screen width) */}
         <div className="hero-animate-5 flex flex-col items-center w-[74%] max-w-[310px] mb-8">
-          {/* BOOK NOW: Vibrant luxury orange gradient, radius 20px, height 60px, surface highlight */}
           <a
             href="#booking"
             onClick={handleBookNow}
@@ -268,9 +225,7 @@ export default function Hero({ onShowToast }) {
           </a>
         </div>
 
-        {/* 3. SERVICE TILES (3 in a row, equal width cards, 12px gap, semi-transparent glass) */}
         <div className="hero-animate-6 grid grid-cols-3 gap-3 w-full px-2 mb-8">
-          {/* All Event Shoot */}
           <Link
             href="/contact?service=All%20Event%20Shoot"
             className="flex flex-col items-center text-center p-3.5 py-4 rounded-[24px] bg-[#161218]/70 backdrop-blur-md border border-white/10 hover:border-[#FF7A33]/40 active:scale-95 transition-all shadow-[0_6px_20px_rgba(0,0,0,0.4)] cursor-pointer"
@@ -283,7 +238,6 @@ export default function Hero({ onShowToast }) {
             </span>
           </Link>
 
-          {/* Wedding Shoot */}
           <Link
             href="/contact?service=Wedding%20Shoot"
             className="flex flex-col items-center text-center p-3.5 py-4 rounded-[24px] bg-[#161218]/70 backdrop-blur-md border border-white/10 hover:border-[#FF7A33]/40 active:scale-95 transition-all shadow-[0_6px_20px_rgba(0,0,0,0.4)] cursor-pointer"
@@ -296,7 +250,6 @@ export default function Hero({ onShowToast }) {
             </span>
           </Link>
 
-          {/* Vehicle Shoot */}
           <Link
             href="/contact?service=Vehicle%20Shoot"
             className="flex flex-col items-center text-center p-3.5 py-4 rounded-[24px] bg-[#161218]/70 backdrop-blur-md border border-white/10 hover:border-[#FF7A33]/40 active:scale-95 transition-all shadow-[0_6px_20px_rgba(0,0,0,0.4)] cursor-pointer"
@@ -310,39 +263,27 @@ export default function Hero({ onShowToast }) {
           </Link>
         </div>
 
-        {/* 4. STATS ROW (3-Column Layout: 10,000+ Reels, 12,000+ Booking Done, 4.8★ Rating) */}
         <div className="hero-animate-7 w-full border-t border-white/10 pt-8 mt-2">
           <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center max-w-md mx-auto">
-            {/* Column 1: 10,000+ / Reels Delivered */}
             <MobileStatItem value="10,000+" label="Reels Delivered" />
 
-            {/* Column 2: 12,000+ / Booking Done */}
             <MobileStatItem value="12,000+" label="Booking Done" />
 
-            {/* Column 3: 4.8★ Average Rating */}
             <MobileStatItem value="4.8" label="Average Rating" hasStar={true} />
           </div>
 
-          {/* 5. Animated subtle orange gradient line beneath the statistics */}
           <div className="relative w-48 mx-auto mt-6 h-[2px] overflow-hidden rounded-full bg-white/5">
             <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-[#FF7A33] to-transparent animate-stat-line-sweep" />
           </div>
         </div>
       </div>
 
-      {/* =========================================================================
-          KEY CREATIVE SHOWCASE ("THE REAL WORK")
-          - Video carousel sits openly and seamlessly on the hero section background
-          - Preserves #showcase anchor for navbar navigation
-         ========================================================================= */}
       <div id="showcase" className="reveal-scale-on-scroll relative w-full max-w-7xl mx-auto mb-8 sm:mb-12 overflow-visible scroll-mt-20 md:scroll-mt-28">
-        {/* Ambient Warm Radial Glow Behind Showcase */}
         <div
           className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] sm:w-[620px] md:w-[920px] h-[340px] sm:h-[480px] rounded-full bg-gradient-to-br from-[#FF5E1E]/12 via-[#5c1d00]/05 to-transparent blur-3xl pointer-events-none -z-10"
           aria-hidden="true"
         />
 
-        {/* Section Header */}
         <div className="relative text-center max-w-3xl mx-auto mb-6 md:mb-10 z-20">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-glass-tinted border border-border-amber text-primary text-label-sm font-label-sm uppercase tracking-widest mb-3 shadow-[0_0_15px_rgba(255,94,30,0.2)]">
             <span className="w-1.5 h-1.5 rounded-full bg-primary-container rec-indicator" />
@@ -356,7 +297,6 @@ export default function Hero({ onShowToast }) {
           </p>
         </div>
 
-        {/* Fanned-Out Reel Portfolio Carousel */}
         <PortfolioCarousel onShowToast={onShowToast} />
       </div>
     </section>

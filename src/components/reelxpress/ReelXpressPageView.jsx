@@ -63,9 +63,6 @@ export default function ReelXpressPageView() {
       />
 
       <main className="relative z-10 flex-1 pt-24 sm:pt-28 md:pt-32 pb-16">
-        {/* =========================================================================
-            HERO / HEADER SECTION
-           ========================================================================= */}
         <section className="relative px-6 md:px-margin max-w-[1440px] mx-auto text-center mb-16 sm:mb-24">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] sm:w-[600px] h-[250px] sm:h-[350px] bg-primary-container/15 blur-[120px] rounded-full pointer-events-none -z-10" />
 
@@ -114,9 +111,6 @@ export default function ReelXpressPageView() {
           </div>
         </section>
 
-        {/* =========================================================================
-            STATS COUNTERS ROW (Increasing Count-Up Animation)
-           ========================================================================= */}
         <section className="reveal-on-scroll relative z-20 w-full max-w-4xl mx-auto mb-20 px-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <StatCard value="10,000+" label="Reels delivered" />
@@ -125,9 +119,6 @@ export default function ReelXpressPageView() {
           </div>
         </section>
 
-        {/* =========================================================================
-            THE 6 CORE ADVANTAGES (WHY REELXPRESS PILLARS)
-           ========================================================================= */}
         <section className="py-12 px-6 md:px-margin max-w-[1440px] mx-auto mb-20">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <span className="text-primary text-xs sm:text-sm font-bold uppercase tracking-[0.2em] block mb-2">
@@ -166,9 +157,6 @@ export default function ReelXpressPageView() {
           </div>
         </section>
 
-        {/* =========================================================================
-            HOW IT WORKS (3-STEP ACCELERATED PIPELINE)
-           ========================================================================= */}
         <section className="py-16 px-6 md:px-margin max-w-[1440px] mx-auto mb-20">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <span className="text-primary text-xs sm:text-sm font-bold uppercase tracking-[0.2em] block mb-2">
@@ -215,9 +203,6 @@ export default function ReelXpressPageView() {
           </div>
         </section>
 
-        {/* =========================================================================
-            COMPARISON MATRIX (REELXPRESS VS TRADITIONAL PRODUCTION)
-           ========================================================================= */}
         <section className="py-12 px-6 md:px-margin max-w-4xl mx-auto mb-20">
           <div className="text-center mb-10">
             <span className="text-primary text-xs sm:text-sm font-bold uppercase tracking-[0.2em] block mb-2">
@@ -256,9 +241,6 @@ export default function ReelXpressPageView() {
           </div>
         </section>
 
-        {/* =========================================================================
-            BOTTOM CALL TO ACTION BANNER
-           ========================================================================= */}
         <section className="px-6 md:px-margin max-w-[1440px] mx-auto text-center mb-12">
           <div className="p-8 sm:p-12 md:p-16 rounded-3xl bg-gradient-to-b from-[#1b151b] to-[#120f12] border border-border-amber relative overflow-hidden shadow-2xl">
             <div className="absolute top-0 right-0 w-96 h-96 bg-primary-container/10 blur-[100px] pointer-events-none" />

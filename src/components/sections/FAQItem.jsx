@@ -2,9 +2,6 @@
 
 import React from 'react';
 
-/**
- * Helper to highlight the brand 'X' in 'reelXpress' if present in question/answer text.
- */
 function renderBrandText(text) {
   if (!text || typeof text !== 'string') return text;
   if (!text.includes('reelXpress')) return text;
@@ -21,13 +18,6 @@ function renderBrandText(text) {
   ));
 }
 
-/**
- * FAQItem Component
- *
- * Semantic <details> and <summary> accordion component.
- * Ensures all questions and answers are present in server-rendered initial HTML
- * for full SEO crawlability while retaining interactive expansion.
- */
 export default function FAQItem({ faq, isOpen, onToggle, index }) {
   const triggerId = `faq-trigger-${index}`;
   const panelId = `faq-panel-${index}`;
@@ -41,7 +31,6 @@ export default function FAQItem({ faq, isOpen, onToggle, index }) {
           : 'bg-[#f8f1ec] border-[#ebded5] shadow-[0_2px_8px_rgba(41,23,15,0.04)] hover:bg-[#fffcf9] hover:border-[#dfc4b5] hover:-translate-y-0.5 hover:shadow-[0_4px_14px_rgba(41,23,15,0.06)]'
       } p-3.5 sm:p-4 md:p-5 list-none`}
     >
-      {/* Question Summary Trigger */}
       <summary
         id={triggerId}
         onClick={(e) => {
@@ -54,7 +43,6 @@ export default function FAQItem({ faq, isOpen, onToggle, index }) {
           {renderBrandText(faq.question || faq.q || '')}
         </span>
 
-        {/* Small circular icon button: '+' rotates 45° to '×' when open */}
         <span
           className={`faq-icon-btn w-6 h-6 sm:w-7 sm:h-7 rounded-full text-[#29170f] flex items-center justify-center shrink-0 transition-all duration-300 ease-out motion-reduce:transition-none ${
             isOpen ? 'rotate-45 bg-[#e3cdbf]' : 'rotate-0 bg-[#eddcd2] group-hover:bg-[#e4d2c7]'
@@ -71,7 +59,6 @@ export default function FAQItem({ faq, isOpen, onToggle, index }) {
         </span>
       </summary>
 
-      {/* Answer Region */}
       <div
         id={panelId}
         role="region"

@@ -6,21 +6,9 @@ import FAQItem from './FAQItem';
 import { FAQ_DATA } from '@/lib/data';
 import { getFaqs, getCachedFaqs, subscribeToFaqs } from '@/lib/cmsServices';
 
-/**
- * FaqSection Component (Redesigned & Database-Connected)
- *
- * Modern two-column FAQ layout:
- * - Left column: sticky & vertically aligned on desktop with section label,
- *   3-line headline, descriptive subtext, and dual pill action buttons.
- * - Right column: vertical stack of dynamic accordion items with smooth expansion,
- *   fetching from database with fallback, plus expandable 'View all questions' trigger.
- * - Accordion style: soft warm beige/cream background, subtle border, rounded-xl corners (12px),
- *   dark question text, '+' rotating to '×', and smooth CSS Grid expand/collapse.
- * - State: interactive expand/collapse toggle with smooth transitions.
- */
 export default function FaqSection() {
   const [faqs, setFaqs] = useState(FAQ_DATA);
-  const [openIndex, setOpenIndex] = useState(0);
+  const [openIndex, setOpenIndex] = useState(null);
   const [showAll, setShowAll] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -37,19 +25,15 @@ export default function FaqSection() {
       if (isMounted) setIsLoading(false);
     };
 
-    // 1. Instant check from cache for 0ms initial render
     const cached = getCachedFaqs();
     if (cached && cached.length > 0) {
       applyFaqs(cached);
     }
 
-    // 2. Fetch fresh CMS faqs
     getFaqs().then(applyFaqs).catch(() => {});
 
-    // 3. Real-time Firestore onSnapshot listener
     const unsubscribeSnapshot = subscribeToFaqs(applyFaqs);
 
-    // 4. Live update event for same-tab changes
     const handleCmsUpdate = (e) => {
       if (!e.detail?.type || e.detail.type === 'faqs') {
         getFaqs({ forceRefresh: true }).then(applyFaqs);
@@ -72,15 +56,12 @@ export default function FaqSection() {
 
   return (
     <section
-      className="py-16 md:py-space-2xl px-6 md:px-margin max-w-[1440px] mx-auto relative select-none scroll-mt-20 md:scroll-mt-28"
+      className="py-10 md:py-space-2xl px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto relative select-none scroll-mt-16 md:scroll-mt-28"
       id="faq"
       aria-label="Frequently Asked Questions"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 xl:gap-20 items-start">
-        {/* =========================================================================
-            LEFT COLUMN (Sticky on desktop)
-           ========================================================================= */}
-        <div className="reveal-on-scroll lg:col-span-5 lg:sticky lg:top-28 lg:self-start space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-14 xl:gap-20 items-start">
+        <div className="reveal-on-scroll lg:col-span-5 lg:sticky lg:top-28 lg:self-start space-y-4 sm:space-y-6">
           <span className="text-primary text-xs sm:text-sm font-bold uppercase tracking-[0.2em] block">
             FAQs
           </span>
@@ -124,9 +105,6 @@ export default function FaqSection() {
           </div>
         </div>
 
-        {/* =========================================================================
-            RIGHT COLUMN (Accordion List with ~12px gap)
-           ========================================================================= */}
         <div className="reveal-on-scroll lg:col-span-7 flex flex-col gap-3">
           {isLoading ? (
             <>
@@ -152,7 +130,6 @@ export default function FaqSection() {
                 />
               ))}
 
-              {/* Below list: Expand / Collapse Toggle if more than 6 FAQs */}
               {faqs.length > 6 && (
                 <div className="pt-2 sm:pt-3">
                   <button

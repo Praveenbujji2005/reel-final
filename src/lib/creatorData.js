@@ -1,5 +1,3 @@
-// Structured Data & Official Copy for the reelXpress Creator Ecosystem
-// Turn Your iPhone Into an Income Machine
 
 export const CREATOR_HERO = {
   badge: "",

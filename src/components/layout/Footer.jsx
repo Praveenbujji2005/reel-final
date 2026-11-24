@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { FOOTER_NAV_LINKS, FOOTER_LEGAL_LINKS } from '@/lib/data';
 import ReelXpressWordmark from '@/components/ui/ReelXpressWordmark';
 
-// Shared website footer with branding, internal navigation, legal links, and copyright
 export default function Footer() {
   return (
     <footer className="bg-[#080808] text-primary full-width border-t border-white/10 relative z-20 overflow-hidden">
@@ -18,9 +17,7 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Navigation, Career & Legal Links Columns */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 sm:gap-10 md:gap-14 w-full sm:w-auto">
-            {/* Navigation Column */}
             <div>
               <div className="text-label-sm font-bold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary-container" />
@@ -42,7 +39,6 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Career Column */}
             <div>
               <div className="text-label-sm font-bold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary-container" />
@@ -65,7 +61,6 @@ export default function Footer() {
                 </Link>
               </div>
 
-              {/* On narrow screens (< 640px), show Connect & Legal stacked inside right column */}
               <div className="block sm:hidden mt-6">
                 <div className="text-label-sm font-bold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary-container" />
@@ -88,7 +83,6 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Connect / Legal Links Column (Desktop & Tablet >= 640px) */}
             <div className="hidden sm:block">
               <div className="text-label-sm font-bold text-text-primary uppercase tracking-wider mb-4 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary-container" />
@@ -113,7 +107,6 @@ export default function Footer() {
         </div>
 
 
-        {/* Copyright Notice */}
         <div className="pt-4 border-t border-border-specular/40 flex justify-center items-center text-center text-body-sm font-body-sm text-text-muted">
           <div>
             Copyright © 2026 by ReelXpress. All rights reserved.
@@ -122,7 +115,6 @@ export default function Footer() {
 
       </div>
 
-      {/* Large Subtle Watermark Background Signature */}
       <div
         className="w-full overflow-hidden flex justify-center items-center pointer-events-none select-none pb-2 sm:pb-3 md:pb-4 -mb-1 sm:-mb-3 md:-mb-6 pt-4 relative z-0"
         aria-hidden="true"

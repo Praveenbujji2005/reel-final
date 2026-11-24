@@ -2,8 +2,6 @@
 
 import { useEffect } from 'react';
 
-// Top hardware-accelerated progress bar tracking page scroll depth
-// Uses direct DOM transform updates to eliminate 120Hz React state re-renders during mobile scrolling
 export default function ScrollProgress() {
   useEffect(() => {
     const el = document.getElementById('scroll-progress');

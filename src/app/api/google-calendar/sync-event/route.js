@@ -21,7 +21,6 @@ export async function POST(request) {
       );
     }
 
-    // 1. Fetch complete enquiry document from server cache or Firestore
     let enquiry = getServerEnquiryById(enquiryId);
 
     if (!enquiry) {
@@ -40,7 +39,6 @@ export async function POST(request) {
       );
     }
 
-    // 2. Requirement 3: Missing shoot date validation
     const eventDate = enquiry.eventDate || enquiry.date;
     if (!eventDate || !String(eventDate).trim()) {
       return NextResponse.json(
@@ -54,7 +52,6 @@ export async function POST(request) {
       );
     }
 
-    // Validate date format
     const dateCheck = parseShootDateTime(eventDate, enquiry.eventTime, enquiry.message || enquiry.enquiryMessage);
     if (!dateCheck.isValid) {
       return NextResponse.json(
@@ -67,7 +64,6 @@ export async function POST(request) {
       );
     }
 
-    // 3. Requirement 3: Prevent duplicate calendar events
     if (enquiry.googleCalendarEventId && enquiry.googleCalendarSyncStatus === 'synced' && !force) {
       return NextResponse.json({
         success: true,
@@ -78,14 +74,12 @@ export async function POST(request) {
       });
     }
 
-    // 4. Create event via Google Calendar API
     let calendarResult;
     try {
       calendarResult = await createGoogleCalendarEvent(enquiry);
     } catch (apiErr) {
       const errMsg = apiErr.message || String(apiErr);
 
-      // Record failed sync status in storage
       try {
         updateServerEnquiryFields(enquiryId, {
           googleCalendarSyncStatus: 'failed',
@@ -129,7 +123,6 @@ export async function POST(request) {
       );
     }
 
-    // 5. Requirement 3 & 6: Store event ID and sync status in Firestore & server store
     const syncedAt = new Date().toISOString();
     const syncData = {
       googleCalendarEventId: calendarResult.eventId,

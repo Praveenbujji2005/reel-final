@@ -15,7 +15,6 @@ async function handleProxy(request) {
       }
     });
 
-    // Ensure x-device-id reaches backend from header or cookie
     const deviceId =
       request.headers.get('x-device-id') ||
       request.cookies.get('deviceId')?.value ||
@@ -66,7 +65,6 @@ async function handleProxy(request) {
       headers: resHeaders,
     });
   } catch {
-    // Return graceful fallback so client extension / script never crashes
     return NextResponse.json(
       { success: true, proxy: 'delivery-sdk', status: 'ready' },
       {

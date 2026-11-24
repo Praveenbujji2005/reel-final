@@ -3,12 +3,6 @@
 import { useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 
-/**
- * BookingModal Component
- *
- * Appears only after a successful form submission.
- * Unmounted from DOM when closed or on initial page load.
- */
 export default function BookingModal({ isOpen, bookingDetails, onClose }) {
   const modalRef = useRef(null);
   const doneButtonRef = useRef(null);
@@ -16,7 +10,6 @@ export default function BookingModal({ isOpen, bookingDetails, onClose }) {
   useEffect(() => {
     if (!isOpen) return;
 
-    // Trigger festive gold and orange confetti burst
     try {
       confetti({
         particleCount: 80,
@@ -25,14 +18,11 @@ export default function BookingModal({ isOpen, bookingDetails, onClose }) {
         colors: ['#F28C3C', '#ffd700', '#ffffff', '#ffb599'],
       });
     } catch {
-      // Fallback gracefully if canvas blocked
     }
 
-    // Lock body scroll while modal is active
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    // Focus primary action on open
     setTimeout(() => {
       doneButtonRef.current?.focus();
     }, 50);
@@ -44,7 +34,6 @@ export default function BookingModal({ isOpen, bookingDetails, onClose }) {
         return;
       }
 
-      // Accessible Tab focus trap
       if (e.key === 'Tab' && modalRef.current) {
         const focusables = modalRef.current.querySelectorAll(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -71,7 +60,6 @@ export default function BookingModal({ isOpen, bookingDetails, onClose }) {
     };
   }, [isOpen, onClose]);
 
-  // Unmount completely when not open
   if (!isOpen) return null;
 
   const clientName = bookingDetails?.name?.trim();
@@ -108,7 +96,6 @@ export default function BookingModal({ isOpen, bookingDetails, onClose }) {
         ref={modalRef}
         className="relative w-full max-w-md rounded-3xl bg-[#151215] border border-white/10 p-6 sm:p-8 text-center shadow-[0_30px_100px_rgba(242,140,60,0.3)] animate-fadeIn"
       >
-        {/* Brand Icon */}
         <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(242,140,60,0.35)] p-3">
           <img
             src="/brand/icon-gold.png"
@@ -117,12 +104,10 @@ export default function BookingModal({ isOpen, bookingDetails, onClose }) {
           />
         </div>
 
-        {/* Title */}
         <h3 id="booking-modal-title" className="text-2xl font-extrabold text-white mb-2 tracking-tight">
           Request received
         </h3>
 
-        {/* Name Greeting & Body Copy */}
         <p className="text-sm text-text-muted mb-6 leading-relaxed">
           {clientName ? (
             <>
@@ -134,7 +119,6 @@ export default function BookingModal({ isOpen, bookingDetails, onClose }) {
           Our Bengaluru coordinator will WhatsApp you shortly to confirm your slot.
         </p>
 
-        {/* Booking Details Card */}
         <div className="p-4 rounded-xl bg-[#1E1B1F] border border-white/10 text-left mb-6 space-y-2 text-xs text-text-muted">
           <div className="flex justify-between items-center">
             <span className="text-white/80">Status:</span>
@@ -154,7 +138,6 @@ export default function BookingModal({ isOpen, bookingDetails, onClose }) {
           </div>
         </div>
 
-        {/* Close Button */}
         <button
           ref={doneButtonRef}
           type="button"

@@ -41,19 +41,15 @@ export default function CookiePolicyView() {
 
   return (
     <>
-      {/* Top Navbar */}
       <Navbar onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
 
-      {/* Mobile Drawer */}
       <MobileMenu
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
       />
 
       <main className="relative z-10 flex-1">
-        {/* HERO SECTION */}
         <header className="relative pt-0 md:pt-20 pb-12 px-6 md:px-margin max-w-5xl mx-auto text-center flex flex-col items-center">
-          {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-glass-tinted border border-border-amber text-primary text-label-md font-label-md backdrop-blur-md mb-6 shadow-[0_0_20px_rgba(255,109,41,0.25)]">
             <span className="material-symbols-outlined text-lg">cookie</span>
             <span className="font-semibold tracking-wide">Cookie Policy</span>
@@ -74,11 +70,9 @@ export default function CookiePolicyView() {
           </div>
         </header>
 
-        {/* COOKIE DOCUMENT CONTENT */}
         <section className="px-4 sm:px-6 md:px-margin max-w-5xl mx-auto pb-20">
           <div className="rounded-3xl bg-surface-glass border border-border-specular backdrop-blur-2xl p-6 sm:p-10 md:p-14 shadow-[0_20px_70px_rgba(0,0,0,0.65)] space-y-10">
             
-            {/* 1. ROLE OF COOKIES ON THE PLATFORM */}
             <article className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -112,7 +106,6 @@ export default function CookiePolicyView() {
               </div>
             </article>
 
-            {/* 2. DEFINITION OF COOKIES */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -127,7 +120,6 @@ export default function CookiePolicyView() {
               </p>
             </article>
 
-            {/* 3. TYPES OF COOKIES USED */}
             <article className="space-y-6 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -140,7 +132,6 @@ export default function CookiePolicyView() {
 
               <div className="pl-0 sm:pl-13 grid grid-cols-1 md:grid-cols-2 gap-4">
                 
-                {/* A. Essential Cookies */}
                 <div className="p-6 rounded-2xl bg-surface-deep/80 border border-border-specular space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-primary font-bold text-title-md">
@@ -170,7 +161,6 @@ export default function CookiePolicyView() {
                   </ul>
                 </div>
 
-                {/* B. Analytics Cookies */}
                 <div className="p-6 rounded-2xl bg-surface-deep/80 border border-border-specular space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-primary font-bold text-title-md">
@@ -200,7 +190,6 @@ export default function CookiePolicyView() {
                   </ul>
                 </div>
 
-                {/* C. Functional Cookies */}
                 <div className="p-6 rounded-2xl bg-surface-deep/80 border border-border-specular space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-primary font-bold text-title-md">
@@ -230,7 +219,6 @@ export default function CookiePolicyView() {
                   </ul>
                 </div>
 
-                {/* D. Marketing Cookies */}
                 <div className="p-6 rounded-2xl bg-surface-deep/80 border border-border-specular space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-primary font-bold text-title-md">
@@ -263,7 +251,6 @@ export default function CookiePolicyView() {
               </div>
             </article>
 
-            {/* 4. USER CONTROL AND COOKIE MANAGEMENT */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -296,7 +283,6 @@ export default function CookiePolicyView() {
               </div>
             </article>
 
-            {/* 5. BROWSER-BASED COOKIE SETTINGS */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -313,7 +299,6 @@ export default function CookiePolicyView() {
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Google Chrome */}
                   <div className="p-5 rounded-2xl bg-surface-deep/90 border border-border-specular space-y-1.5">
                     <div className="text-title-sm font-bold text-text-primary flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-primary-container" />
@@ -324,7 +309,6 @@ export default function CookiePolicyView() {
                     </p>
                   </div>
 
-                  {/* Mozilla Firefox */}
                   <div className="p-5 rounded-2xl bg-surface-deep/90 border border-border-specular space-y-1.5">
                     <div className="text-title-sm font-bold text-text-primary flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-primary-container" />
@@ -335,7 +319,6 @@ export default function CookiePolicyView() {
                     </p>
                   </div>
 
-                  {/* Apple Safari */}
                   <div className="p-5 rounded-2xl bg-surface-deep/90 border border-border-specular space-y-1.5">
                     <div className="text-title-sm font-bold text-text-primary flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-primary-container" />
@@ -349,7 +332,6 @@ export default function CookiePolicyView() {
               </div>
             </article>
 
-            {/* 6. CHANGES TO THIS COOKIE POLICY */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -367,14 +349,11 @@ export default function CookiePolicyView() {
           </div>
         </section>
 
-        {/* FAQ Section */}
         <FaqSection />
       </main>
 
-      {/* Footer */}
       <Footer />
 
-      {/* System Toast Notification */}
       <ToastNotification toast={toast} />
     </>
   );

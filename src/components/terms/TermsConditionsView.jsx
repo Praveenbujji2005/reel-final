@@ -44,19 +44,15 @@ export default function TermsConditionsView() {
 
   return (
     <>
-      {/* Top Navbar */}
       <Navbar onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
 
-      {/* Mobile Drawer */}
       <MobileMenu
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
       />
 
       <main className="relative z-10 flex-1">
-        {/* HERO SECTION */}
         <header className="relative pt-0 md:pt-20 pb-12 px-6 md:px-margin max-w-5xl mx-auto text-center flex flex-col items-center">
-          {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-glass-tinted border border-border-amber text-primary text-label-md font-label-md backdrop-blur-md mb-6 shadow-[0_0_20px_rgba(255,109,41,0.25)]">
             <span className="material-symbols-outlined text-lg">gavel</span>
             <span className="font-semibold tracking-wide">Legal Documentation</span>
@@ -77,11 +73,9 @@ export default function TermsConditionsView() {
           </div>
         </header>
 
-        {/* TERMS CONTENT DOCUMENT */}
         <section className="px-4 sm:px-6 md:px-margin max-w-5xl mx-auto pb-20">
           <div className="rounded-3xl bg-surface-glass border border-border-specular backdrop-blur-2xl p-6 sm:p-10 md:p-14 shadow-[0_20px_70px_rgba(0,0,0,0.65)] space-y-10">
             
-            {/* Introduction */}
             <article className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary shrink-0 shadow-[0_0_15px_rgba(255,109,41,0.3)]">
@@ -100,7 +94,6 @@ export default function TermsConditionsView() {
               </p>
             </article>
 
-            {/* 1. Entire Agreement */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -120,7 +113,6 @@ export default function TermsConditionsView() {
               </div>
             </article>
 
-            {/* 2. Definitions */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -154,7 +146,6 @@ export default function TermsConditionsView() {
               </div>
             </article>
 
-            {/* 3. Eligibility & Children Policy */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -180,7 +171,6 @@ export default function TermsConditionsView() {
               </div>
             </article>
 
-            {/* 4. Platform Nature & Disclaimer */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -200,7 +190,6 @@ export default function TermsConditionsView() {
               </div>
             </article>
 
-            {/* 5. User Warranties & Representations */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -252,7 +241,6 @@ export default function TermsConditionsView() {
               </div>
             </article>
 
-            {/* 6. Intellectual Property */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -278,7 +266,6 @@ export default function TermsConditionsView() {
               </div>
             </article>
 
-            {/* 7. Bookings, Payments & Refunds */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -298,7 +285,6 @@ export default function TermsConditionsView() {
               </div>
             </article>
 
-            {/* 8. Technical Disclaimer & Force Majeure */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -321,7 +307,6 @@ export default function TermsConditionsView() {
               </div>
             </article>
 
-            {/* 9. Third-Party Links & Advertisements */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -345,7 +330,6 @@ export default function TermsConditionsView() {
               </div>
             </article>
 
-            {/* 10. Limitation of Liability */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -364,7 +348,6 @@ export default function TermsConditionsView() {
               </div>
             </article>
 
-            {/* 11. Indemnity */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -389,7 +372,6 @@ export default function TermsConditionsView() {
               </div>
             </article>
 
-            {/* 12. Electronic Communication Consent */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -404,7 +386,6 @@ export default function TermsConditionsView() {
               </p>
             </article>
 
-            {/* 13. Termination */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -424,7 +405,6 @@ export default function TermsConditionsView() {
               </div>
             </article>
 
-            {/* 14. Waiver */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -439,7 +419,6 @@ export default function TermsConditionsView() {
               </p>
             </article>
 
-            {/* 15. Severability */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -454,7 +433,6 @@ export default function TermsConditionsView() {
               </p>
             </article>
 
-            {/* 16. Governing Law & Jurisdiction */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-surface-container border border-border-specular flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -469,7 +447,6 @@ export default function TermsConditionsView() {
               </p>
             </article>
 
-            {/* 17. Support & Grievance */}
             <article className="space-y-4 pt-8 border-t border-border-specular/40">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-primary-container/20 border border-border-amber flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -481,7 +458,6 @@ export default function TermsConditionsView() {
               </div>
 
               <div className="pl-0 sm:pl-11 grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Office */}
                 <div className="p-5 rounded-2xl bg-surface-deep/90 border border-border-specular space-y-1.5">
                   <div className="text-label-sm font-bold text-primary uppercase tracking-wider">
                     Registered Office
@@ -491,7 +467,6 @@ export default function TermsConditionsView() {
                   </p>
                 </div>
 
-                {/* Email */}
                 <div className="p-5 rounded-2xl bg-surface-deep/90 border border-border-specular space-y-1.5 flex flex-col justify-between">
                   <div>
                     <div className="text-label-sm font-bold text-primary uppercase tracking-wider mb-1">
@@ -514,7 +489,6 @@ export default function TermsConditionsView() {
                   </button>
                 </div>
 
-                {/* Contact */}
                 <div className="p-5 rounded-2xl bg-surface-deep/90 border border-border-specular space-y-1.5 flex flex-col justify-between">
                   <div>
                     <div className="text-label-sm font-bold text-primary uppercase tracking-wider mb-1">
@@ -542,14 +516,11 @@ export default function TermsConditionsView() {
           </div>
         </section>
 
-        {/* FAQ Section */}
         <FaqSection />
       </main>
 
-      {/* Footer */}
       <Footer />
 
-      {/* System Toast Notification */}
       <ToastNotification toast={toast} />
     </>
   );

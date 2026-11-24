@@ -19,7 +19,6 @@ export default function AdminTestimonialsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Prevent background scrolling while modal is open
   useEffect(() => {
     if (editingTestimonial || testimonialToDelete) {
       const originalOverflow = document.body.style.overflow;
@@ -133,7 +132,6 @@ export default function AdminTestimonialsPage() {
         </div>
       )}
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -153,7 +151,6 @@ export default function AdminTestimonialsPage() {
         </button>
       </div>
 
-      {/* Grid */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((n) => (
@@ -196,7 +193,6 @@ export default function AdminTestimonialsPage() {
               }`}
             >
               <div>
-                {/* Author Info */}
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 rounded-full overflow-hidden bg-black/60 border border-white/20 shrink-0">
                     <img src={t.avatar} alt={t.name} className="w-full h-full object-cover" />
@@ -207,7 +203,6 @@ export default function AdminTestimonialsPage() {
                   </div>
                 </div>
 
-                {/* Rating Stars */}
                 <div className="flex items-center gap-1 mb-3 text-amber-400">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <span
@@ -224,13 +219,11 @@ export default function AdminTestimonialsPage() {
                   </span>
                 </div>
 
-                {/* Review Text */}
                 <p className="text-xs text-white/80 leading-relaxed italic line-clamp-4">
                   &quot;{t.review || t.quote}&quot;
                 </p>
               </div>
 
-              {/* Controls */}
               <div className="pt-4 mt-6 border-t border-white/10 flex items-center justify-between">
                 <span
                   className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
@@ -260,7 +253,6 @@ export default function AdminTestimonialsPage() {
         </div>
       )}
 
-      {/* Edit / Create Modal */}
       {editingTestimonial && (
         <div
           data-lenis-prevent
@@ -347,7 +339,6 @@ export default function AdminTestimonialsPage() {
                 />
               </div>
 
-              {/* Avatar Upload & URL Picker */}
               <div>
                 <label className="block text-xs uppercase tracking-wider font-bold text-text-muted mb-1.5">
                   Profile Avatar Image
@@ -387,7 +378,6 @@ export default function AdminTestimonialsPage() {
                       </label>
                     </div>
 
-                    {/* Quick Avatar Presets */}
                     <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] text-text-muted">
                       <span>Presets:</span>
                       <button
@@ -473,7 +463,6 @@ export default function AdminTestimonialsPage() {
         </div>
       )}
 
-      {/* Delete Confirmation */}
       {testimonialToDelete && (
         <div
           data-lenis-prevent

@@ -18,7 +18,6 @@ export default function AdminPricingPage() {
   const [toastMessage, setToastMessage] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Prevent background scrolling while modal is open
   useEffect(() => {
     if (editingPlan || planToDelete) {
       const originalOverflow = document.body.style.overflow;
@@ -35,7 +34,6 @@ export default function AdminPricingPage() {
     }
   }, [editingPlan, planToDelete]);
 
-  // Temporary feature text for adding to inclusions
   const [newFeatureText, setNewFeatureText] = useState('');
 
   const fetchPlans = async () => {
@@ -135,7 +133,6 @@ export default function AdminPricingPage() {
 
   return (
     <div className="space-y-6 select-none">
-      {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-6 right-6 z-[100050] px-5 py-3 rounded-2xl bg-emerald-950/95 border border-emerald-500/50 text-white text-sm shadow-[0_15px_40px_rgba(0,0,0,0.8)] flex items-center gap-2.5 animate-fadeIn">
           <span className="material-symbols-outlined text-emerald-400">check_circle</span>
@@ -143,7 +140,6 @@ export default function AdminPricingPage() {
         </div>
       )}
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -163,13 +159,13 @@ export default function AdminPricingPage() {
         </button>
       </div>
 
-      {/* Category Tabs */}
       <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-[#151215] border border-white/10 w-fit">
         {[
           { id: 'all', label: 'All Packages' },
           { id: 'instant', label: 'Instant Packages' },
           { id: 'business', label: 'Business Packages' },
-          { id: 'wedding', label: 'Wedding & Luxe' },
+          { id: 'wedding', label: 'Wedding Packages' },
+          { id: 'luxe', label: 'ReelXpress Luxe' },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -185,7 +181,6 @@ export default function AdminPricingPage() {
         ))}
       </div>
 
-      {/* Plans Grid */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((n) => (
@@ -236,7 +231,6 @@ export default function AdminPricingPage() {
               }`}
             >
               <div>
-                {/* Top Badges */}
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#F28C3C]">
                     {plan.tag || plan.category}
@@ -253,13 +247,11 @@ export default function AdminPricingPage() {
                   {plan.description}
                 </p>
 
-                {/* Price Display */}
                 <div className="my-4 pb-4 border-b border-white/10">
                   <span className="text-2xl font-black text-white">{plan.price}</span>
                   <span className="text-xs text-text-muted ml-1.5">{plan.priceSuffix}</span>
                 </div>
 
-                {/* Features List */}
                 <div className="space-y-2 mb-6">
                   {(plan.inclusions || []).slice(0, 5).map((inc, i) => (
                     <div key={i} className="flex items-start gap-2 text-xs text-white/80">
@@ -277,7 +269,6 @@ export default function AdminPricingPage() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="pt-4 border-t border-white/10 flex items-center justify-between">
                 <span
                   className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
@@ -309,9 +300,6 @@ export default function AdminPricingPage() {
         </div>
       )}
 
-      {/* =========================================================================
-          EDIT / CREATE PLAN MODAL
-         ========================================================================= */}
       {editingPlan && (
         <div
           data-lenis-prevent
@@ -347,7 +335,8 @@ export default function AdminPricingPage() {
                   >
                     <option value="instant">Instant Packages</option>
                     <option value="business">Business Packages</option>
-                    <option value="wedding">Wedding &amp; Luxe</option>
+                    <option value="wedding">Wedding Packages</option>
+                    <option value="luxe">ReelXpress Luxe</option>
                   </select>
                 </div>
 
@@ -408,7 +397,6 @@ export default function AdminPricingPage() {
                 />
               </div>
 
-              {/* Inclusions Builder */}
               <div>
                 <label className="block text-xs uppercase tracking-wider font-bold text-text-muted mb-1.5">
                   Package Inclusions / Features
@@ -507,7 +495,6 @@ export default function AdminPricingPage() {
         </div>
       )}
 
-      {/* Delete Confirmation */}
       {planToDelete && (
         <div
           data-lenis-prevent

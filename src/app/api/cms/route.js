@@ -40,10 +40,6 @@ function getDefaultItems(type) {
   return [];
 }
 
-/**
- * GET /api/cms?type=hero|pricing|testimonials|faqs|activity
- * Fetches fresh CMS records directly from Firestore with zero caching
- */
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -91,7 +87,6 @@ export async function GET(request) {
       }
     }
 
-    // Baseline fallback if Firestore collection is not yet populated
     const fallbackData = getDefaultItems(type);
     return NextResponse.json(
       { success: true, type, count: fallbackData.length, data: fallbackData, source: 'defaults' },
@@ -110,10 +105,6 @@ export async function GET(request) {
   }
 }
 
-/**
- * POST /api/cms
- * Saves or updates a CMS item directly in Firestore and revalidates live website routes
- */
 export async function POST(request) {
   try {
     const body = await request.json();
@@ -160,7 +151,6 @@ export async function POST(request) {
       updatedBy: adminEmail || 'admin@reelxpress.com',
     };
 
-    // 1. Await Firestore write - NEVER return success unless the write succeeds
     try {
       await setDoc(doc(db, colName, itemId), payload, { merge: true });
     } catch (writeErr) {
@@ -175,7 +165,6 @@ export async function POST(request) {
       );
     }
 
-    // 2. Record audit log in Firestore
     try {
       await addDoc(collection(db, 'activity_logs'), {
         action: isNew ? `Created ${normalizedType} item` : `Updated ${normalizedType} item`,
@@ -187,7 +176,6 @@ export async function POST(request) {
       console.warn('[API /api/cms POST] Activity log notice:', auditErr?.message);
     }
 
-    // 3. Revalidate Next.js cache so the live site reflects changes instantly
     try {
       revalidatePath('/', 'layout');
       revalidatePath('/');
@@ -211,10 +199,6 @@ export async function POST(request) {
   }
 }
 
-/**
- * DELETE /api/cms?type=...&id=...
- * Deletes a CMS item from Firestore and revalidates live website routes
- */
 export async function DELETE(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -251,15 +235,12 @@ export async function DELETE(request) {
     const colName = getCollectionName(type);
     const targetId = String(id);
 
-    // 1. Await Firestore write/delete
     try {
-      // Soft-delete for sync listeners and audit trail
       await setDoc(
         doc(db, colName, targetId),
         { _deleted: true, updatedAt: new Date().toISOString(), updatedBy: adminEmail },
         { merge: true }
       );
-      // Hard delete
       await deleteDoc(doc(db, colName, targetId));
     } catch (delErr) {
       console.error(`[API /api/cms DELETE] Firestore deleteDoc failed for ${colName}/${targetId}:`, delErr);
@@ -273,7 +254,6 @@ export async function DELETE(request) {
       );
     }
 
-    // 2. Record audit log
     try {
       await addDoc(collection(db, 'activity_logs'), {
         action: `Deleted ${type} item`,
@@ -285,7 +265,6 @@ export async function DELETE(request) {
       console.warn('[API /api/cms DELETE] Activity log notice:', auditErr?.message);
     }
 
-    // 3. Revalidate Next.js cache
     try {
       revalidatePath('/', 'layout');
       revalidatePath('/');

@@ -3,36 +3,21 @@
 import { useEffect, useRef } from 'react';
 import Lenis from 'lenis';
 
-/**
- * Smooth scrolling provider using Lenis for an inertia-style fluid scrolling experience.
- *
- * CRITICAL FIXES FOR IPHONE SAFARI & MOBILE FREEZING:
- * 1. Sets history.scrollRestoration = 'manual' to prevent mobile Safari from restoring scroll
- *    before layout and images have calculated heights.
- * 2. Clears any stuck document.body overflow styles on mount/unmount.
- * 3. On mobile touch devices (iPhone/Android with touch pointer or screens < 768px):
- *    Completely bypasses Lenis virtual scroll & continuous RAF loops so native iOS 120Hz ProMotion
- *    momentum scrolling runs with zero JavaScript contention and zero dropped compositor frames.
- * 4. On desktop: initializes Lenis for smooth fluid scrolling and anchors.
- */
 export default function SmoothScrollProvider({ children }) {
   const lenisRef = useRef(null);
 
   useEffect(() => {
-    // 1. Enforce manual scroll restoration so browser does not jump before DOM hydrates
     if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
       try {
         window.history.scrollRestoration = 'manual';
       } catch {}
     }
 
-    // Safety clear any stuck body scroll-locks on initial mount (unless full-screen loader is active)
     if (typeof document !== 'undefined' && !document.getElementById('reelxpress-pro-loader')) {
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
     }
 
-    // 2. Check if user prefers reduced motion or is on mobile touch device
     const prefersReducedMotion =
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -41,7 +26,6 @@ export default function SmoothScrollProvider({ children }) {
       typeof window !== 'undefined' &&
       (window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768);
 
-    // Anchor click handler for smooth in-page navigation (#pricing, #showcase, etc.)
     function handleAnchorClick(e) {
       const link = e.target.closest('a[href*="#"]');
       if (!link) return;
@@ -91,9 +75,7 @@ export default function SmoothScrollProvider({ children }) {
 
     document.addEventListener('click', handleAnchorClick);
 
-    // If on mobile touch device or reduced motion, do not spin up Lenis RAF loop
     if (prefersReducedMotion || isTouchDevice) {
-      // Safe fallback stub so any external window.lenis calls don't crash
       window.lenis = {
         scrollTo: (target, opts) => {
           const el = typeof target === 'string' ? document.querySelector(target) : target;
@@ -118,7 +100,6 @@ export default function SmoothScrollProvider({ children }) {
       };
     }
 
-    // 3. Desktop: Initialize Lenis instance
     const lenis = new Lenis({
       duration: 1.15,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -131,7 +112,6 @@ export default function SmoothScrollProvider({ children }) {
     lenisRef.current = lenis;
     window.lenis = lenis;
 
-    // 4. Connect Lenis to requestAnimationFrame loop
     let rafId;
     let isRunning = true;
     function raf(time) {
@@ -141,7 +121,6 @@ export default function SmoothScrollProvider({ children }) {
     }
     rafId = requestAnimationFrame(raf);
 
-    // 5. Refresh Lenis height calculations after window fully loads and after resize
     const handleWindowLoad = () => {
       lenis.resize();
     };

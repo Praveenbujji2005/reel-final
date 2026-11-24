@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { BLOG_POSTS } from '@/data/blogPosts';
 import Icon from '@/components/ui/Icon';
 
-// Blog preview section with direct links to real article pages
 export default function BlogSection() {
   return (
     <section className="py-16 md:py-space-2xl px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28" id="blog">

@@ -63,7 +63,6 @@ export default async function BlogPostPage({ params }) {
     notFound();
   }
 
-  // Article Structured Data (JSON-LD)
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -101,7 +100,6 @@ export default async function BlogPostPage({ params }) {
       <Navbar />
 
       <main className="relative z-10 pt-28 sm:pt-36 pb-20 px-4 sm:px-6 md:px-margin max-w-4xl mx-auto min-h-screen">
-        {/* Breadcrumbs */}
         <nav aria-label="Breadcrumb" className="mb-6 sm:mb-8">
           <ol className="flex items-center gap-2 text-xs sm:text-sm text-text-muted flex-wrap">
             <li>
@@ -122,7 +120,6 @@ export default async function BlogPostPage({ params }) {
           </ol>
         </nav>
 
-        {/* Article Header */}
         <header className="mb-10 sm:mb-12 border-b border-white/10 pb-8 sm:pb-10">
           <div className="flex items-center justify-between gap-4 mb-5 flex-wrap">
             <div className="flex items-center gap-3">
@@ -136,12 +133,10 @@ export default async function BlogPostPage({ params }) {
             <ShareButton title={post.title} slug={post.slug} />
           </div>
 
-          {/* Single H1 on page */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.2] mb-6">
             {post.title}
           </h1>
 
-          {/* Intro paragraph from verified editorial text */}
           {post.intro && (
             <p className="text-base sm:text-xl text-white/90 leading-relaxed font-normal">
               {post.intro}
@@ -149,7 +144,6 @@ export default async function BlogPostPage({ params }) {
           )}
         </header>
 
-        {/* Key Takeaways Section */}
         {post.takeaways && post.takeaways.length > 0 && (
           <section className="p-6 sm:p-8 rounded-2xl bg-[#1E1B1F] border border-white/10 mb-12 shadow-lg">
             <h2 className="text-lg sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -167,7 +161,6 @@ export default async function BlogPostPage({ params }) {
           </section>
         )}
 
-        {/* Full Editorial Body Content */}
         {post.sections && post.sections.length > 0 && (
           <div className="space-y-12 mb-16">
             {post.sections.map((section, sIdx) => (
@@ -187,7 +180,6 @@ export default async function BlogPostPage({ params }) {
                   </p>
                 ))}
 
-                {/* Pricing Tiers Grid for Package Breakdowns */}
                 {section.pricingTiers && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 my-8">
                     {section.pricingTiers.map((tier, tIdx) => (
@@ -224,7 +216,6 @@ export default async function BlogPostPage({ params }) {
                   </div>
                 )}
 
-                {/* Bullet Points with Label & Text */}
                 {section.bullets && (
                   <ul className="space-y-3.5 my-6 p-6 rounded-2xl bg-[#151217] border border-white/10">
                     {section.bullets.map((b, bIdx) => (
@@ -239,7 +230,6 @@ export default async function BlogPostPage({ params }) {
                   </ul>
                 )}
 
-                {/* 10 Numbered Trends Display */}
                 {section.numberedTrends && (
                   <div className="space-y-5 my-8">
                     {section.numberedTrends.map((trend, trIdx) => (
@@ -274,7 +264,6 @@ export default async function BlogPostPage({ params }) {
                   </p>
                 ))}
 
-                {/* Section Footer Callout with Quick Navigation Links */}
                 {section.footerCta && (
                   <div className="p-6 sm:p-7 rounded-2xl bg-[#1E1B1F] border border-border-amber/50 my-8 shadow-[0_10px_30px_rgba(255,94,30,0.15)]">
                     <p className="text-sm sm:text-base text-white/90 leading-relaxed mb-4">
@@ -299,7 +288,6 @@ export default async function BlogPostPage({ params }) {
           </div>
         )}
 
-        {/* Primary CTA to Book */}
         <section className="p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-[#1E1B1F] to-[#110e13] border border-border-amber/40 text-center shadow-[0_20px_60px_rgba(255,94,30,0.2)] relative overflow-hidden">
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-[rgba(255,94,30,0.20)] blur-3xl pointer-events-none"

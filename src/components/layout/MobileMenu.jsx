@@ -14,14 +14,6 @@ const MENU_LINKS = [
   { label: 'Contact Us', href: '/contact' },
 ];
 
-/**
- * Full-screen Orange & Black Mobile Navigation Overlay
- * - Fixed inset-0 covering 100dvh, z-[100060] above everything
- * - Brand orange gradient (#FF8A2B to #E8590C)
- * - Black ReelXpress wordmark on top-left, 48px circular black close button on top-right
- * - Centered vertical links in #0D0D12 bold uppercase typography with 40ms stagger
- * - "Become a Partner" black pill CTA with #FF7A1A orange text
- */
 export default function MobileMenu({ isOpen, onClose }) {
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
@@ -30,15 +22,12 @@ export default function MobileMenu({ isOpen, onClose }) {
     setMounted(true);
   }, []);
 
-  // Close menu on route change
   useEffect(() => {
     if (isOpen) {
       onClose();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  // Close menu on Escape key
   useEffect(() => {
     function handleKeyDown(e) {
       if (e.key === 'Escape') onClose();
@@ -49,7 +38,6 @@ export default function MobileMenu({ isOpen, onClose }) {
     }
   }, [isOpen, onClose]);
 
-  // Lock body scroll while open
   useEffect(() => {
     if (isOpen) {
       const prevOverflow = document.body.style.overflow;
@@ -109,12 +97,6 @@ export default function MobileMenu({ isOpen, onClose }) {
         background: 'linear-gradient(160deg, #FF8A2B 0%, #FF7A1A 50%, #E8590C 100%)',
       }}
     >
-      {/* =========================================================================
-          TOP BAR (Inside Overlay)
-          - Respect safe-area-inset-top, 16-24px side padding
-          - Black ReelXpress logo on the left
-          - 48px circle black button with white X icon on the right
-         ========================================================================= */}
       <div className="w-full flex items-center justify-between px-4 sm:px-6 pt-[max(env(safe-area-inset-top),16px)] pb-4 shrink-0 z-20">
         <Link
           href="/"
@@ -122,7 +104,6 @@ export default function MobileMenu({ isOpen, onClose }) {
           className="flex items-center min-h-[48px] focus-visible:outline-none"
           aria-label="ReelXpress Home"
         >
-          {/* Black version of ReelXpress for full readability against orange background */}
           <ReelXpressWordmark
             className="h-7 w-auto align-middle"
             textColor="#0D0D12"
@@ -130,7 +111,6 @@ export default function MobileMenu({ isOpen, onClose }) {
           />
         </Link>
 
-        {/* 48px Black Circle Close Button with White X */}
         <button
           type="button"
           onClick={onClose}
@@ -151,13 +131,6 @@ export default function MobileMenu({ isOpen, onClose }) {
         </button>
       </div>
 
-      {/* =========================================================================
-          CENTERED NAVIGATION LINKS
-          - Vertically & horizontally centered
-          - In order: Home, Price, Why Us, Testimonials, Contact Us, Become a Partner
-          - Bold/extra-bold, uppercase, letter-spacing 0.08em, 26-30px, color #0D0D12
-          - 40ms stagger slide-up
-         ========================================================================= */}
       <nav
         aria-label="Mobile Navigation Links"
         className="flex-1 flex flex-col items-center justify-center gap-6 sm:gap-7 px-6 my-auto"
@@ -182,7 +155,6 @@ export default function MobileMenu({ isOpen, onClose }) {
           </div>
         ))}
 
-        {/* 6. Become a Creator CTA Pill Button */}
         <div
           className={`transition-all duration-300 ease-out transform ${
             isOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
@@ -201,7 +173,6 @@ export default function MobileMenu({ isOpen, onClose }) {
         </div>
       </nav>
 
-      {/* Bottom spacer respecting safe-area-inset-bottom */}
       <div className="pb-[max(env(safe-area-inset-bottom),16px)] shrink-0" aria-hidden="true" />
     </div>,
     document.body

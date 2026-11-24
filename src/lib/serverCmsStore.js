@@ -70,7 +70,6 @@ export function getServerCmsItems(rawType) {
   const store = readServerStore();
   const list = Array.isArray(store[type]) ? store[type] : [];
 
-  // Filter out soft-deleted items
   const active = list.filter((item) => !item._deleted);
 
   if (type === 'activity') {
@@ -105,7 +104,6 @@ export function saveServerCmsItem(rawType, item, adminEmail) {
     list.push(payload);
   }
 
-  // Record audit activity log
   const activityList = Array.isArray(store.activity) ? [...store.activity] : [];
   activityList.unshift({
     id: `act_${Date.now()}`,

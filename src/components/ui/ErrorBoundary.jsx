@@ -2,13 +2,6 @@
 
 import React from 'react';
 
-/**
- * Global React Error Boundary
- *
- * Prevents a localized component crash or unhandled render error from unmounting
- * or breaking the entire website layout. Renders a graceful fallback while keeping
- * the rest of the application fully functional.
- */
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);

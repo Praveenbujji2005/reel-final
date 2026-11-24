@@ -21,7 +21,6 @@ export function AdminAuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [lockoutUntil, setLockoutUntil] = useState(null);
 
-  // Check lockout on mount
   useEffect(() => {
     try {
       const lockData = localStorage.getItem(FAILED_ATTEMPTS_KEY);
@@ -36,7 +35,6 @@ export function AdminAuthProvider({ children }) {
     } catch {}
   }, []);
 
-  // Listen to Firebase Auth or restore fallback session
   useEffect(() => {
     let unsubscribe = () => {};
 
@@ -50,7 +48,6 @@ export function AdminAuthProvider({ children }) {
             provider: 'firebase',
           });
         } else {
-          // Check for fallback local session if Firebase Auth user not signed in yet
           try {
             const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
             if (stored) {
@@ -65,7 +62,6 @@ export function AdminAuthProvider({ children }) {
         setLoading(false);
       });
     } else {
-      // Local session check
       try {
         const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
         if (stored) {
@@ -78,9 +74,6 @@ export function AdminAuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
-  /**
-   * Record a failed login attempt for rate limiting
-   */
   const recordFailedAttempt = () => {
     try {
       const current = JSON.parse(localStorage.getItem(FAILED_ATTEMPTS_KEY) || '{"count":0}');
@@ -95,9 +88,6 @@ export function AdminAuthProvider({ children }) {
     } catch {}
   };
 
-  /**
-   * Clear failed attempts on successful login
-   */
   const clearFailedAttempts = () => {
     try {
       localStorage.removeItem(FAILED_ATTEMPTS_KEY);
@@ -105,9 +95,6 @@ export function AdminAuthProvider({ children }) {
     } catch {}
   };
 
-  /**
-   * Admin Login
-   */
   const login = async (email, password) => {
     if (lockoutUntil && Date.now() < lockoutUntil) {
       const minsLeft = Math.ceil((lockoutUntil - Date.now()) / 60000);
@@ -121,7 +108,6 @@ export function AdminAuthProvider({ children }) {
       throw new Error('Please enter both email and password.');
     }
 
-    // 1. Try Firebase Auth if live configured
     if (isFirebaseConfigured && auth) {
       try {
         const credential = await signInWithEmailAndPassword(auth, cleanEmail, cleanPass);
@@ -136,11 +122,9 @@ export function AdminAuthProvider({ children }) {
         return adminUser;
       } catch (fbErr) {
         console.warn('Firebase auth attempt failed, testing admin fallback:', fbErr.code);
-        // Fall through to fallback check below
       }
     }
 
-    // 2. Default initial administrator verification
     const defaultEmail = (
       process.env.NEXT_PUBLIC_ADMIN_DEFAULT_EMAIL ||
       process.env.ADMIN_DEFAULT_EMAIL ||
@@ -168,9 +152,6 @@ export function AdminAuthProvider({ children }) {
     throw new Error('Invalid administrator email or password.');
   };
 
-  /**
-   * Admin Logout
-   */
   const logout = async () => {
     if (isFirebaseConfigured && auth) {
       try {
@@ -181,9 +162,6 @@ export function AdminAuthProvider({ children }) {
     setUser(null);
   };
 
-  /**
-   * Reset Password
-   */
   const resetPassword = async (email) => {
     const cleanEmail = (email || '').trim().toLowerCase();
     if (!cleanEmail) throw new Error('Please provide your admin email.');
@@ -193,7 +171,6 @@ export function AdminAuthProvider({ children }) {
       return { success: true, message: `Password reset instructions sent to ${cleanEmail}` };
     }
 
-    // Fallback simulation notice
     return {
       success: true,
       message: `Password reset email dispatched to ${cleanEmail}. Check your inbox.`,

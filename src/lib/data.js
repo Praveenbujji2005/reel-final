@@ -1,5 +1,3 @@
-// Centralized content and structured data for reelXpress
-// Official copy matching Bengaluru's First Quick Content Service specifications
 
 export const SITE_METADATA = {
   title: "reelXpress | India's 1st Quick Content Service",
@@ -8,7 +6,6 @@ export const SITE_METADATA = {
   url: "https://www.reelxpress.com",
 };
 
-// Main navigation links used across header and mobile menu (Home removed)
 export const NAV_LINKS = [
   { label: "Why us", href: "/#why-us" },
   { label: "Pricing", href: "/#pricing" },
@@ -19,7 +16,6 @@ export const NAV_LINKS = [
   { label: "Blog", href: "/#blog" },
 ];
 
-// Footer navigation, career & legal links
 export const FOOTER_NAV_LINKS = [
   { label: "Home page", href: "/" },
   { label: "Pricing", href: "/#pricing" },
@@ -39,7 +35,6 @@ export const FOOTER_LEGAL_LINKS = [
   { label: "Cookies", href: "/cookies" },
 ];
 
-// Hero Value Badges matching the official design
 export const HERO_VALUE_BADGES = [
   { icon: "star", text: "5-Star Rated (100+ Reviews)" },
   { icon: "military_tech", text: "1000+ Projects Delivered" },
@@ -48,14 +43,12 @@ export const HERO_VALUE_BADGES = [
   { icon: "currency_rupee", text: "Starting at ₹2,200" },
 ];
 
-// Shoot Category Cards
 export const SHOOT_CATEGORIES = [
   { label: "Quick Shoot", icon: "bolt", href: "/#booking" },
   { label: "Wedding Shoot", icon: "favorite", href: "/#booking" },
   { label: "Vehicle Shoot", icon: "directions_car", href: "/#booking" },
 ];
 
-// Hero metrics stats row
 export const HERO_STATS = [
   { value: "1000+", label: "Reels Delivered" },
   { value: "4.9/5", label: "Client Rating", isStar: true },
@@ -65,7 +58,6 @@ export const HERO_STATS = [
 
 export const INSTAGRAM_PAGE_URL = "https://www.instagram.com/reelxpress___";
 
-// Showcase Reel portfolio items matching "THE REAL WORK"
 export const REEL_PORTFOLIO = [
   {
     id: 0,
@@ -76,7 +68,7 @@ export const REEL_PORTFOLIO = [
     title: "Bridal & Wedding Shoot",
     subtitle: "Captured & Edited in Minutes",
     creator: "Aditya S.",
-    views: "240K", // TODO: [Confirm follower/view metric source]
+    views: "240K",
     likes: "18.5K",
     aspectRatio: "9/16",
     instagramUrl: "https://www.instagram.com/reelxpress___",
@@ -92,7 +84,7 @@ export const REEL_PORTFOLIO = [
     title: "Model Shoot on iPhone",
     subtitle: "Captured & Edited in Minutes",
     creator: "Priya M.",
-    views: "420K", // TODO: [Confirm follower/view metric source]
+    views: "420K",
     likes: "32.8K",
     aspectRatio: "9/16",
     instagramUrl: "https://www.instagram.com/reelxpress___",
@@ -105,11 +97,10 @@ export const REEL_PORTFOLIO = [
     videoSrc: "https://firebasestorage.googleapis.com/v0/b/reelxpress-a862c.firebasestorage.app/o/hero-03.MP4?alt=media&token=65b2ef89-e6b2-4393-a7ba-02ea1d0979e4",
     poster: "/thumbnails/hero-video-3.jpg",
     category: "Luxe Celebrity",
-    // TODO: [Confirm SIIMA written permission]
     title: "Red Carpet Event Reel",
     subtitle: "Captured & Edited in Minutes",
     creator: "Arvind K.",
-    views: "890K", // TODO: [Confirm follower/view metric source]
+    views: "890K",
     likes: "74.1K",
     aspectRatio: "9/16",
     instagramUrl: "https://www.instagram.com/reelxpress___",
@@ -121,9 +112,7 @@ export const REEL_PORTFOLIO = [
     videoUrl: "https://firebasestorage.googleapis.com/v0/b/reelxpress-a862c.firebasestorage.app/o/hero-04.MP4?alt=media&token=57243f0f-8cc2-4b2c-89cd-97cfd27321b6",
     videoSrc: "https://firebasestorage.googleapis.com/v0/b/reelxpress-a862c.firebasestorage.app/o/hero-04.MP4?alt=media&token=57243f0f-8cc2-4b2c-89cd-97cfd27321b6",
     poster: "/thumbnails/hero-video-4.jpg",
-    // TODO: [Confirm official creator credentials]
     category: "Event Coverage",
-    // TODO: [Confirm SIIMA written permission]
     title: "Awards Night Coverage",
     subtitle: "Captured & Edited in Minutes",
     creator: "Sneha D.",
@@ -184,7 +173,6 @@ export const REEL_PORTFOLIO = [
   },
 ];
 
-// "Why ReelXpress? The high-speed edge for your vertical storytelling."
 export const WHY_REELXPRESS_DATA = [
   {
     badge: "ELITE QUALITY",
@@ -236,7 +224,6 @@ export const WHY_REELXPRESS_DATA = [
   },
 ];
 
-// Explore Packages Tier Cards
 export const EXPLORE_PACKAGES = [
   {
     id: "hourly",
@@ -264,10 +251,8 @@ export const EXPLORE_PACKAGES = [
   },
 ];
 
-// Wedding Packages Tier Inclusions
 export const WEDDING_TIERS = ["Single Basic", "Three Silver", "Four Gold", "Complete Platinum"];
 
-// Business & Personal Package Inclusions
 export const BUSINESS_PACKAGE_INCLUSIONS = [
   "Cinematic visuals for any event",
   "Quick turnaround Cut, Polish, Launch",
@@ -277,7 +262,6 @@ export const BUSINESS_PACKAGE_INCLUSIONS = [
   "Elevate your content with polished visual storytelling",
 ];
 
-// Client Brands / Marquee Ticker
 export const CLIENT_BRANDS = [
   "NIKE",
   "RED BULL",
@@ -288,7 +272,6 @@ export const CLIENT_BRANDS = [
   "VOGUE",
 ];
 
-// Marquee Client Testimonials (Split into dual continuous scrolling rows)
 export const MARQUEE_TESTIMONIALS = [
   {
     id: 1,
@@ -346,21 +329,18 @@ export const MARQUEE_TESTIMONIALS = [
   },
 ];
 
-// Row 1: Testimonials 1, 3, 5
 export const ROW_1_TESTIMONIALS = [
-  MARQUEE_TESTIMONIALS[0], // Krishna D.
-  MARQUEE_TESTIMONIALS[2], // Radhika P.
-  MARQUEE_TESTIMONIALS[4], // Arjun S.
+  MARQUEE_TESTIMONIALS[0],
+  MARQUEE_TESTIMONIALS[2],
+  MARQUEE_TESTIMONIALS[4],
 ];
 
-// Row 2: Testimonials 2, 4, 6
 export const ROW_2_TESTIMONIALS = [
-  MARQUEE_TESTIMONIALS[1], // Padma M.
-  MARQUEE_TESTIMONIALS[3], // Harish G.
-  MARQUEE_TESTIMONIALS[5], // Sravanthi R.
+  MARQUEE_TESTIMONIALS[1],
+  MARQUEE_TESTIMONIALS[3],
+  MARQUEE_TESTIMONIALS[5],
 ];
 
-// Client Testimonials
 export const TESTIMONIALS_DATA = [
   {
     name: "Dheeraj",
@@ -404,7 +384,6 @@ export const TESTIMONIALS_DATA = [
   },
 ];
 
-// Articles from the Blog
 export const BLOG_POSTS = [
   {
     id: 1,
@@ -453,7 +432,6 @@ export const BLOG_POSTS = [
   },
 ];
 
-// FAQ Data
 export const FAQ_DATA = [
   {
     question: "What is reelXpress and how does it work?",
@@ -487,7 +465,6 @@ export const FAQ_DATA = [
   },
 ];
 
-// Structured shoot type categories matching the pricing section packages
 export const SHOOT_TYPE_CATEGORIES = [
   {
     group: '⚡ Instant Packages (Minutes Delivery)',
@@ -524,8 +501,6 @@ export const SHOOT_TYPE_CATEGORIES = [
   },
 ];
 
-// Flat occasions list for backwards-compatibility and dropdowns
 export const OCCASIONS_LIST = SHOOT_TYPE_CATEGORIES.flatMap((c) => c.options);
 
-// Re-export centralized WhatsApp configuration
 export { WHATSAPP_CONFIG, getWhatsAppUrl, openWhatsApp } from '@/config/whatsapp';

@@ -3,7 +3,6 @@
 import { HOW_IT_WORKS_STEPS } from '@/lib/data';
 import ReelXpressWordmark from '@/components/ui/ReelXpressWordmark';
 
-// 5-step frictionless workflow from booking to instant delivery with animated energy line
 export default function HowItWorksSection() {
   return (
     <section className="py-16 md:py-space-2xl px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto">
@@ -22,7 +21,6 @@ export default function HowItWorksSection() {
       </div>
 
       <div className="relative">
-        {/* Connecting Energy Beam for Desktop */}
         <div className="hidden lg:block absolute top-1/2 left-8 right-8 h-[2px] bg-border-specular/30 -translate-y-1/2 z-0 overflow-hidden pointer-events-none">
           <div className="energy-beam" />
         </div>

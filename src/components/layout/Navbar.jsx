@@ -6,47 +6,31 @@ import QuickContactModal from '@/components/ui/QuickContactModal';
 import { SITE_CONFIG } from '@/config/site';
 import ReelXpressWordmark from '@/components/ui/ReelXpressWordmark';
 
-/**
- * Responsive Navbar Component
- *
- * - Compact pill footprint (w-fit mx-auto)
- * - 100% solid matte dark pill background with crisp border
- * - Left links: Pricing, ReelXpress
- * - Center: Official orange 'X' logo mark
- * - Right links: Real work, Contact
- * - Mobile responsive: perfectly centered logo with accessible hamburger drawer trigger
- */
 export default function Navbar({ onOpenMobileMenu, isMobileMenuOpen = false }) {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isHeroVisible, setIsHeroVisible] = useState(true);
 
-  // Listen for global custom events to open the contact modal
   useEffect(() => {
     const handleOpen = () => setIsContactModalOpen(true);
     window.addEventListener('open-contact-modal', handleOpen);
     return () => window.removeEventListener('open-contact-modal', handleOpen);
   }, []);
 
-  // Hero-only visibility: Disappear completely once the Hero section exits the viewport
   useEffect(() => {
     const heroEl = document.getElementById('hero');
     if (!heroEl) {
-      // Subpages without #hero keep navbar visible at top
       setIsHeroVisible(true);
       return;
     }
 
     const checkHeroVisibility = () => {
       const rect = heroEl.getBoundingClientRect();
-      // Hero is considered active as long as its main content hasn't exited the top viewport
       const inView = rect.bottom > 160;
       setIsHeroVisible(inView);
     };
 
-    // Run initial check
     checkHeroVisibility();
 
-    // IntersectionObserver for efficient viewport monitoring
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -58,7 +42,6 @@ export default function Navbar({ onOpenMobileMenu, isMobileMenuOpen = false }) {
 
     observer.observe(heroEl);
 
-    // Passive scroll listener for instantaneous response on high-frequency mobile fling gestures
     window.addEventListener('scroll', checkHeroVisibility, { passive: true });
     window.addEventListener('resize', checkHeroVisibility, { passive: true });
 
@@ -86,11 +69,7 @@ export default function Navbar({ onOpenMobileMenu, isMobileMenuOpen = false }) {
           role="navigation"
           aria-label="Main Navigation"
         >
-          {/* =====================================================================
-              LEFT WING: Desktop Links (Pricing, Services) / Mobile Spacer
-             ===================================================================== */}
           <div className="flex items-center">
-            {/* Desktop Left Nav Links */}
             <nav className="hidden md:flex items-center gap-6 sm:gap-7 text-xs sm:text-[13px] font-semibold text-white/85">
               <Link
                 href="/#pricing"
@@ -106,13 +85,9 @@ export default function Navbar({ onOpenMobileMenu, isMobileMenuOpen = false }) {
               </Link>
             </nav>
 
-            {/* Mobile Left Spacer to keep center logo perfectly balanced (matching hamburger button footprint) */}
             <div className="w-10 h-10 min-w-[40px] md:hidden opacity-0 pointer-events-none shrink-0" aria-hidden="true" />
           </div>
 
-          {/* =====================================================================
-              CENTER: Official Brand Wordmark (Crisp Text + Orange 'X' Icon)
-             ===================================================================== */}
           <div className="shrink-0 flex items-center justify-center px-1 sm:px-3">
             <Link
               href="/"
@@ -123,11 +98,7 @@ export default function Navbar({ onOpenMobileMenu, isMobileMenuOpen = false }) {
             </Link>
           </div>
 
-          {/* =====================================================================
-              RIGHT WING: Desktop Links (Real work, Contact) / Mobile Hamburger
-             ===================================================================== */}
           <div className="flex items-center">
-            {/* Desktop Right Nav Links */}
             <nav className="hidden md:flex items-center gap-6 sm:gap-7 text-xs sm:text-[13px] font-semibold text-white/85">
               <Link
                 href="/#showcase"
@@ -143,7 +114,6 @@ export default function Navbar({ onOpenMobileMenu, isMobileMenuOpen = false }) {
               </Link>
             </nav>
 
-            {/* Mobile Hamburger Trigger */}
             <button
               type="button"
               onClick={onOpenMobileMenu}
@@ -166,7 +136,6 @@ export default function Navbar({ onOpenMobileMenu, isMobileMenuOpen = false }) {
         </div>
       </header>
 
-      {/* Quick Contact Form Modal */}
       <QuickContactModal
         isOpen={isContactModalOpen}
         onClose={() => setIsContactModalOpen(false)}

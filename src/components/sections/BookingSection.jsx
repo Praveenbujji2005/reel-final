@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-// Subject / Shoot Type Dropdown Options matching pricing packages + custom
 const SUBJECT_OPTIONS = [
   'Hourly Plan (₹2,200) - Single Event',
   'Vehicle Shoot (₹3,999 onwards) - Automotive',
   'Half Day (₹8,500) - Four Hours',
   'Full Day (₹15,000) - Eight Hours',
+  'ReelXpress Luxe (Starts at ₹19,999)',
   'Wedding / Reception Reel Shoot',
   'Brand Launch / Corporate Event',
   'Custom / Other',
@@ -23,8 +23,10 @@ export default function BookingSection({ onBookingSuccess }) {
     phone: '',
     subject: SUBJECT_OPTIONS[0],
     eventDate: '',
+    city: 'Bengaluru',
+    locality: '',
     message: '',
-    website_trap: '', // Anti-spam honeypot
+    website_trap: '',
   });
 
   const [formErrors, setFormErrors] = useState({});
@@ -38,7 +40,6 @@ export default function BookingSection({ onBookingSuccess }) {
     setMounted(true);
   }, []);
 
-  // Auto-select shoot type if triggered from external CTA (e.g., pricing cards)
   useEffect(() => {
     const handleSelectType = (e) => {
       if (e.detail?.type) {
@@ -100,7 +101,6 @@ export default function BookingSection({ onBookingSuccess }) {
     e.preventDefault();
     if (!validate()) return;
 
-    // Check honeypot trap
     if (formData.website_trap) {
       setSubmitSuccess(true);
       return;
@@ -121,9 +121,10 @@ export default function BookingSection({ onBookingSuccess }) {
       package: formData.subject.trim(),
       eventDate: formData.eventDate,
       date: formData.eventDate,
+      city: formData.city.trim() || 'Bengaluru',
+      locality: formData.locality.trim(),
       enquiryMessage: formData.message.trim() || 'No additional notes provided.',
       message: formData.message.trim() || 'No additional notes provided.',
-      city: 'Bengaluru',
       website_trap: formData.website_trap,
       sourcePage: 'Website Contact Section',
       source: 'enquiry_form',
@@ -151,7 +152,6 @@ export default function BookingSection({ onBookingSuccess }) {
         type: payload.selectedService,
       });
 
-      // Reset form fields
       setFormData({
         fullName: '',
         email: '',
@@ -178,11 +178,9 @@ export default function BookingSection({ onBookingSuccess }) {
 
   return (
     <section className="py-16 md:py-space-2xl px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28" id="booking">
-      {/* Express Network Banner */}
       <div className="reveal-scale-on-scroll rounded-3xl bg-[#110e13] border border-border-amber p-5 sm:p-8 md:p-14 shadow-[0_20px_80px_rgba(255,94,30,0.2)] mb-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           
-          {/* LEFT COLUMN: Contact Details & Express Network Info */}
           <div>
             <h2 className="text-2xl sm:text-3xl md:text-headline-lg font-headline-lg text-text-primary mb-4 leading-tight">
               The fastest creative community for modern creators.
@@ -191,7 +189,6 @@ export default function BookingSection({ onBookingSuccess }) {
               We Shoot • Edit • Deliver Reels in Minutes. Book certified mobile videographers or reach our production desk today.
             </p>
 
-            {/* Direct Contact Info */}
             <div className="space-y-4 pt-6 border-t border-border-specular">
               <a
                 href="tel:+919988338180"
@@ -222,10 +219,8 @@ export default function BookingSection({ onBookingSuccess }) {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Original "Send Us a Message" Form */}
           <div id="booking-form" className="w-full rounded-2xl bg-[#0d0b0f] border border-white/10 p-6 sm:p-8 md:p-10 shadow-xl spotlight-card">
             
-            {/* Form Title & Subtitle */}
             <div className="mb-6">
               <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight mb-1.5">
                 Send Us a Message
@@ -235,7 +230,6 @@ export default function BookingSection({ onBookingSuccess }) {
               </p>
             </div>
 
-            {/* SUCCESS STATE */}
             {submitSuccess ? (
               <div className="py-8 text-center space-y-5 animate-fadeIn">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#FF5E1E] to-[#FF8800] text-white flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(255,94,30,0.6)]">
@@ -264,7 +258,6 @@ export default function BookingSection({ onBookingSuccess }) {
               </div>
             ) : (
               <>
-                {/* Error Banner */}
                 {submitError && (
                   <div className="mb-5 p-4 rounded-xl bg-red-950/70 border border-red-500/50 text-red-200 text-xs sm:text-sm flex items-start gap-2.5 animate-fadeIn shadow-lg">
                     <span className="material-symbols-outlined text-red-400 text-lg shrink-0 mt-0.5">error</span>
@@ -275,7 +268,6 @@ export default function BookingSection({ onBookingSuccess }) {
                   </div>
                 )}
 
-                {/* Skeleton during initial client-mount to prevent SSR extension mismatches */}
                 {!mounted ? (
                   <div className="space-y-4 py-2 animate-pulse" aria-hidden="true">
                     <div className="h-12 rounded-xl bg-surface-base border border-border-specular/40" />
@@ -289,7 +281,6 @@ export default function BookingSection({ onBookingSuccess }) {
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-                    {/* Anti-spam honeypot */}
                     <input
                       type="text"
                       name="website_trap"
@@ -301,7 +292,6 @@ export default function BookingSection({ onBookingSuccess }) {
                       aria-hidden="true"
                     />
 
-                    {/* Field 1: Full Name */}
                     <div>
                       <label htmlFor="booking-fullName" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
                         Full Name <span className="text-primary-container">*</span>
@@ -323,7 +313,6 @@ export default function BookingSection({ onBookingSuccess }) {
                       )}
                     </div>
 
-                    {/* Fields 2 & 3: Email Address & Phone Number */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="booking-email" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
@@ -368,7 +357,6 @@ export default function BookingSection({ onBookingSuccess }) {
                       </div>
                     </div>
 
-                    {/* Fields 4 & 5: Selected Package & Event Date */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="booking-subject" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
@@ -414,7 +402,43 @@ export default function BookingSection({ onBookingSuccess }) {
                       </div>
                     </div>
 
-                    {/* Field 6: Message / Notes (Optional) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="booking-city" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
+                          Select City <span className="text-primary-container">*</span>
+                        </label>
+                        <select
+                          id="booking-city"
+                          name="city"
+                          value={formData.city}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 rounded-xl bg-[#09080b] border border-white/15 text-white text-sm focus:outline-none focus:border-primary-container transition-colors cursor-pointer"
+                          required
+                        >
+                          <option value="Bengaluru">Bengaluru (Default)</option>
+                          <option value="Chennai">Chennai</option>
+                          <option value="Hyderabad">Hyderabad</option>
+                          <option value="Vizag">Vizag</option>
+                          <option value="Mumbai">Mumbai</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label htmlFor="booking-locality" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
+                          Locality / Area
+                        </label>
+                        <input
+                          id="booking-locality"
+                          type="text"
+                          name="locality"
+                          value={formData.locality}
+                          onChange={handleChange}
+                          placeholder="e.g. Indiranagar, Koramangala, Anna Nagar..."
+                          className="w-full px-4 py-3 rounded-xl bg-[#09080b] border border-white/15 focus:border-primary-container text-white placeholder:text-text-muted/40 text-sm focus:outline-none transition-colors"
+                        />
+                      </div>
+                    </div>
+
                     <div>
                       <label htmlFor="booking-message" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5">
                         Message / Notes <span className="text-text-muted/60 lowercase font-normal">(optional)</span>
@@ -430,7 +454,6 @@ export default function BookingSection({ onBookingSuccess }) {
                       />
                     </div>
 
-                    {/* Submit Button */}
                     <div className="pt-2">
                       <button
                         type="submit"
