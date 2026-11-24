@@ -55,7 +55,7 @@ export default function PrivacyPolicyView() {
 
       <main className="relative z-10 flex-1">
         {/* HERO SECTION */}
-        <header className="relative pt-12 md:pt-20 pb-12 px-6 md:px-margin max-w-5xl mx-auto text-center flex flex-col items-center">
+        <header className="relative pt-0 md:pt-20 pb-12 px-6 md:px-margin max-w-5xl mx-auto text-center flex flex-col items-center">
           <h1 className="text-display-md sm:text-display-lg md:text-display-xl font-display-xl font-extrabold tracking-tight text-text-primary mb-4">
             Privacy Policy
           </h1>

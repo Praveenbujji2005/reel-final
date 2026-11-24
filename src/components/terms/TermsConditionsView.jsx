@@ -55,7 +55,7 @@ export default function TermsConditionsView() {
 
       <main className="relative z-10 flex-1">
         {/* HERO SECTION */}
-        <header className="relative pt-12 md:pt-20 pb-12 px-6 md:px-margin max-w-5xl mx-auto text-center flex flex-col items-center">
+        <header className="relative pt-0 md:pt-20 pb-12 px-6 md:px-margin max-w-5xl mx-auto text-center flex flex-col items-center">
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-glass-tinted border border-border-amber text-primary text-label-md font-label-md backdrop-blur-md mb-6 shadow-[0_0_20px_rgba(255,109,41,0.25)]">
             <span className="material-symbols-outlined text-lg">gavel</span>
