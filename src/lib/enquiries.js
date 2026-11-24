@@ -179,6 +179,7 @@ export async function createEnquiry(enquiryData) {
   const selectedService = (enquiryData.selectedService || enquiryData.serviceType || enquiryData.type || 'General Shoot').trim();
   const enquiryMessage = (enquiryData.enquiryMessage || enquiryData.message || enquiryData.notes || '').trim() || 'No message provided.';
   const city = (enquiryData.city || 'Bengaluru').trim();
+  const locality = (enquiryData.locality || enquiryData.area || '').trim();
   const eventDate = enquiryData.eventDate || enquiryData.date || '';
   const sourcePage = enquiryData.sourcePage || enquiryData.source || 'Booking Section';
   const createdAt = new Date().toISOString();

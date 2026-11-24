@@ -3,20 +3,47 @@ import path from 'path';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const FILE_PATH = path.join(DATA_DIR, 'enquiries.json');
+const TMP_DIR = path.join('/tmp', 'reelexpress_data');
+const TMP_FILE_PATH = path.join(TMP_DIR, 'enquiries.json');
 
-function ensureFile() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+function safeWrite(content) {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(FILE_PATH, content, 'utf-8');
+    return true;
+  } catch {
+    try {
+      if (!fs.existsSync(TMP_DIR)) {
+        fs.mkdirSync(TMP_DIR, { recursive: true });
+      }
+      fs.writeFileSync(TMP_FILE_PATH, content, 'utf-8');
+      return true;
+    } catch {
+      return false;
+    }
   }
-  if (!fs.existsSync(FILE_PATH)) {
-    fs.writeFileSync(FILE_PATH, JSON.stringify([], null, 2), 'utf-8');
-  }
+}
+
+function safeRead() {
+  try {
+    if (fs.existsSync(FILE_PATH)) {
+      return fs.readFileSync(FILE_PATH, 'utf-8');
+    }
+  } catch {}
+  try {
+    if (fs.existsSync(TMP_FILE_PATH)) {
+      return fs.readFileSync(TMP_FILE_PATH, 'utf-8');
+    }
+  } catch {}
+  return null;
 }
 
 export function readServerEnquiries() {
   try {
-    ensureFile();
-    const raw = fs.readFileSync(FILE_PATH, 'utf-8');
+    const raw = safeRead();
+    if (!raw) return [];
     const data = JSON.parse(raw);
     return Array.isArray(data) ? data : [];
   } catch (err) {
@@ -27,9 +54,7 @@ export function readServerEnquiries() {
 
 export function writeServerEnquiries(list) {
   try {
-    ensureFile();
-    fs.writeFileSync(FILE_PATH, JSON.stringify(list, null, 2), 'utf-8');
-    return true;
+    return safeWrite(JSON.stringify(list, null, 2));
   } catch (err) {
     console.error('[ServerEnquiriesStore] Write error:', err.message);
     return false;
