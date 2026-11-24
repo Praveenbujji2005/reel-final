@@ -35,14 +35,19 @@ function parseDateSafe(val) {
   const s = val.trim();
   if (!s) return null;
 
-  const ymd = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-  if (ymd) {
-    return new Date(parseInt(ymd[1], 10), parseInt(ymd[2], 10) - 1, parseInt(ymd[3], 10));
+  if (s.includes('T') || s.includes(':')) {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) return d;
   }
 
-  const dmy = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
-  if (dmy) {
-    return new Date(parseInt(dmy[3], 10), parseInt(dmy[2], 10) - 1, parseInt(dmy[1], 10));
+  const ymdOnly = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (ymdOnly) {
+    return new Date(parseInt(ymdOnly[1], 10), parseInt(ymdOnly[2], 10) - 1, parseInt(ymdOnly[3], 10));
+  }
+
+  const dmyOnly = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (dmyOnly) {
+    return new Date(parseInt(dmyOnly[3], 10), parseInt(dmyOnly[2], 10) - 1, parseInt(dmyOnly[1], 10));
   }
 
   const d = new Date(s);
@@ -51,13 +56,6 @@ function parseDateSafe(val) {
 
 function isSameDay(d1, d2) {
   if (!d1 || !d2) return false;
-  if (
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate()
-  ) {
-    return true;
-  }
   try {
     const fmt = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Asia/Kolkata',
@@ -65,11 +63,78 @@ function isSameDay(d1, d2) {
       month: '2-digit',
       day: '2-digit',
     });
-    if (fmt.format(d1) === fmt.format(d2)) {
-      return true;
+    return fmt.format(d1) === fmt.format(d2);
+  } catch {
+    return (
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate()
+    );
+  }
+}
+
+export function formatEnquiryDateTime(inq) {
+  if (!inq) return 'Recent';
+  let dateObj = null;
+  const candidates = [
+    inq.timestampDate,
+    inq.timestamp,
+    inq.createdAt,
+    inq.updatedAt,
+  ];
+
+  for (const c of candidates) {
+    if (!c) continue;
+    if (c instanceof Date && !isNaN(c.getTime())) {
+      dateObj = c;
+      break;
     }
-  } catch {}
-  return false;
+    if (typeof c === 'object' && typeof c.toDate === 'function') {
+      try {
+        const d = c.toDate();
+        if (!isNaN(d.getTime())) {
+          dateObj = d;
+          break;
+        }
+      } catch {}
+    }
+    if (typeof c === 'object' && c.seconds) {
+      const d = new Date(c.seconds * 1000);
+      if (!isNaN(d.getTime())) {
+        dateObj = d;
+        break;
+      }
+    }
+    if (typeof c === 'string' || typeof c === 'number') {
+      const d = new Date(c);
+      if (!isNaN(d.getTime())) {
+        dateObj = d;
+        break;
+      }
+    }
+  }
+
+  if (dateObj) {
+    const datePart = dateObj.toLocaleDateString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+    const timePart = dateObj.toLocaleTimeString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+    return `${datePart} at ${timePart}`;
+  }
+
+  if (inq.formattedDate && inq.formattedTime) {
+    return `${inq.formattedDate} at ${inq.formattedTime}`;
+  }
+
+  return inq.formattedDate || inq.createdAt || 'Recent';
 }
 
 export default function AdminInquiriesPage() {
@@ -257,11 +322,7 @@ export default function AdminInquiriesPage() {
     const status = inq.status || 'New';
     const source = inq.sourcePage || inq.source || 'Website';
     const message = inq.enquiryMessage || inq.message || inq.notes || 'None';
-    const received = inq.formattedDate
-      ? `${inq.formattedDate} at ${inq.formattedTime}`
-      : inq.createdAt
-      ? new Date(inq.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
-      : '';
+    const received = formatEnquiryDateTime(inq);
 
     const detailsText = [
       `📋 REELXPRESS ENQUIRY DETAILS`,
@@ -502,7 +563,7 @@ export default function AdminInquiriesPage() {
       `"${(inq.city || 'Bengaluru').replace(/"/g, '""')}"`,
       `"${(inq.locality || '').replace(/"/g, '""')}"`,
       `"${(inq.status || 'New').replace(/"/g, '""')}"`,
-      `"${(inq.createdAt || inq.formattedDate || '').replace(/"/g, '""')}"`,
+      `"${formatEnquiryDateTime(inq).replace(/"/g, '""')}"`,
       `"${(inq.googleCalendarSyncStatus || 'not_synced').replace(/"/g, '""')}"`,
       `"${(inq.googleCalendarEventUrl || '').replace(/"/g, '""')}"`,
       `"${(inq.enquiryMessage || inq.message || '').replace(/"/g, '""')}"`,
@@ -825,8 +886,9 @@ export default function AdminInquiriesPage() {
                             🏢 {inq.companyName}
                           </div>
                         )}
-                        <div className="text-[11px] text-text-muted mt-0.5">
-                          {inq.formattedDate ? `${inq.formattedDate} at ${inq.formattedTime}` : inq.createdAt ? new Date(inq.createdAt).toLocaleString() : 'Recent'}
+                        <div className="text-[11px] text-text-muted mt-0.5 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[13px] text-text-muted shrink-0">schedule</span>
+                          <span>{formatEnquiryDateTime(inq)}</span>
                         </div>
                         {inq.cloudSynced ? (
                           <div className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-semibold mt-1">
@@ -1122,6 +1184,16 @@ export default function AdminInquiriesPage() {
                   </span>
                   <span className="text-white font-semibold">
                     {selectedInquiry.locality ? `${selectedInquiry.locality}, ` : ''}{selectedInquiry.city || 'Bengaluru'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[11px] uppercase tracking-wider text-text-muted font-bold block mb-1">
+                    Enquiry Received (IST)
+                  </span>
+                  <span className="text-white font-semibold flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-sm text-[#F28C3C]">schedule</span>
+                    <span>{formatEnquiryDateTime(selectedInquiry)}</span>
                   </span>
                 </div>
 

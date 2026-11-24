@@ -67,19 +67,25 @@ export function normalizeCreatorQuery(id, raw = {}) {
     timestampDate = new Date(raw.timestamp.seconds * 1000);
   } else if (typeof raw.timestamp === 'string' || typeof raw.timestamp === 'number') {
     timestampDate = new Date(raw.timestamp);
-  } else {
-    timestampDate = new Date(createdAt);
+  }
+
+  if (!timestampDate || isNaN(timestampDate.getTime())) {
+    const d = createdAt ? new Date(createdAt) : new Date();
+    timestampDate = !isNaN(d.getTime()) ? d : new Date();
   }
 
   const formattedDate = timestampDate.toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   });
 
   const formattedTime = timestampDate.toLocaleTimeString('en-IN', {
+    timeZone: 'Asia/Kolkata',
     hour: '2-digit',
     minute: '2-digit',
+    hour12: true,
   });
 
   return {

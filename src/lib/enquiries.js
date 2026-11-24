@@ -61,26 +61,37 @@ export function normalizeEnquiry(id, raw = {}) {
 
   let timestampDate = null;
   if (raw.timestamp?.toDate && typeof raw.timestamp.toDate === 'function') {
-    timestampDate = raw.timestamp.toDate();
-  } else if (raw.timestamp instanceof Date) {
+    try {
+      const d = raw.timestamp.toDate();
+      if (!isNaN(d.getTime())) timestampDate = d;
+    } catch {}
+  } else if (raw.timestamp instanceof Date && !isNaN(raw.timestamp.getTime())) {
     timestampDate = raw.timestamp;
   } else if (raw.timestamp && typeof raw.timestamp === 'object' && raw.timestamp.seconds) {
-    timestampDate = new Date(raw.timestamp.seconds * 1000);
+    const d = new Date(raw.timestamp.seconds * 1000);
+    if (!isNaN(d.getTime())) timestampDate = d;
   } else if (typeof raw.timestamp === 'string' || typeof raw.timestamp === 'number') {
-    timestampDate = new Date(raw.timestamp);
-  } else {
-    timestampDate = new Date(createdAt);
+    const d = new Date(raw.timestamp);
+    if (!isNaN(d.getTime())) timestampDate = d;
+  }
+
+  if (!timestampDate || isNaN(timestampDate.getTime())) {
+    const d = raw.createdAt ? new Date(raw.createdAt) : new Date();
+    timestampDate = !isNaN(d.getTime()) ? d : new Date();
   }
 
   const formattedDate = timestampDate.toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   });
 
   const formattedTime = timestampDate.toLocaleTimeString('en-IN', {
+    timeZone: 'Asia/Kolkata',
     hour: '2-digit',
     minute: '2-digit',
+    hour12: true,
   });
 
   const googleCalendarEventId = raw.googleCalendarEventId || null;

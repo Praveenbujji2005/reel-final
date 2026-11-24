@@ -535,7 +535,7 @@ export default function AdminDashboardPage() {
                   <div key={log.id ?? `log-${idx}`} className="text-xs pb-3 border-b border-white/5 last:border-b-0">
                     <div className="text-white font-medium">{log.action}</div>
                     <div className="text-text-muted text-[11px] mt-0.5">
-                      {log.userEmail} · {new Date(log.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {log.userEmail} · {new Date(log.timestamp || Date.now()).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true })}
                     </div>
                   </div>
                 ))}
