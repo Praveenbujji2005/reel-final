@@ -37,21 +37,6 @@ export default function AdminLoginPage() {
     }
   };
 
-  const handleDemoLogin = async () => {
-    setEmail('admin@reelxpress.com');
-    setPassword('ReelXpress@Admin2026!');
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    try {
-      await login('admin@reelxpress.com', 'ReelXpress@Admin2026!');
-      router.push('/admin');
-    } catch (err) {
-      setErrorMessage(err?.message || 'Demo login failed.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const isLocked = lockoutUntil && Date.now() < lockoutUntil;
 
   return (
@@ -178,21 +163,6 @@ export default function AdminLoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Helper */}
-          <div className="mt-6 pt-5 border-t border-white/10 text-center">
-            <p className="text-xs text-text-muted mb-2.5">
-              Testing credentials available: <span className="text-white font-mono">admin@reelxpress.com</span>
-            </p>
-            <button
-              type="button"
-              onClick={handleDemoLogin}
-              disabled={isSubmitting}
-              className="w-full py-2.5 px-4 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-xs font-semibold text-white/90 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2"
-            >
-              <span className="material-symbols-outlined text-sm text-[#F28C3C]">key</span>
-              <span>1-Click Demo Admin Login</span>
-            </button>
-          </div>
         </div>
 
         {/* Return to Site */}
