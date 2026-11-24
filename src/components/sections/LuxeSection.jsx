@@ -11,9 +11,9 @@ const DEFAULT_LUXE_DATA = {
   headline: 'Our Most Exclusive Experience.',
   description:
     'Our premium tier — handpicked creators, cinematic shooting, and an experience built for the finest events.',
-  price: '19,999',
-  priceSuffix: 'per event',
-  shootType: 'ReelXpress Luxe (Starts at ₹19,999)',
+  price: '20,000',
+  priceSuffix: '',
+  shootType: 'ReelXpress Luxe (Starts at ₹20,000)',
   features: [
     'iPhone 16/17 Pro only',
     'Top 1% creators',
@@ -38,7 +38,7 @@ export default function LuxeSection() {
           p.enabled !== false
       );
       if (found) {
-        const rawPrice = (found.price || '19,999').replace(/[^0-9,]/g, '') || '19,999';
+        const rawPrice = (found.price || '20,000').replace(/[^0-9,]/g, '') || '20,000';
         setLuxeData((prev) => ({
           ...prev,
           ...found,
@@ -74,7 +74,7 @@ export default function LuxeSection() {
 
   const handleBookLuxe = (e) => {
     e.preventDefault();
-    const shootType = luxeData.shootType || 'ReelXpress Luxe (Starts at ₹19,999)';
+    const shootType = luxeData.shootType || 'ReelXpress Luxe (Starts at ₹20,000)';
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       window.location.href = `/contact?service=${encodeURIComponent(shootType)}`;
       return;
@@ -99,36 +99,6 @@ export default function LuxeSection() {
       className="relative w-full py-16 sm:py-20 md:py-28 px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto select-none scroll-mt-20 md:scroll-mt-28 bg-transparent"
     >
       <style jsx>{`
-        .luxe-glass-card {
-          background: radial-gradient(
-            ellipse 95% 85% at 18% 30%,
-            #462514 0%,
-            #2e150d 30%,
-            #1e0d08 60%,
-            #100604 100%
-          );
-          backdrop-filter: blur(24px);
-          -webkit-backdrop-filter: blur(24px);
-          border: 1px solid rgba(212, 175, 55, 0.28);
-          box-shadow:
-            inset 0 1px 2px 0 rgba(255, 235, 180, 0.16),
-            inset 0 0 45px 0 rgba(212, 175, 55, 0.08),
-            0 25px 80px -15px rgba(0, 0, 0, 0.95);
-        }
-
-        .luxe-gold-glow {
-          background: radial-gradient(
-            ellipse 80% 65% at 25% 45%,
-            rgba(242, 140, 60, 0.16) 0%,
-            rgba(212, 175, 55, 0.12) 40%,
-            transparent 75%
-          );
-        }
-
-        .luxe-card-noise {
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
-        }
-
         .luxe-gold-text {
           background: linear-gradient(135deg, #F9E27D 0%, #D4AF37 45%, #B8860B 100%);
           -webkit-background-clip: text;
@@ -217,35 +187,12 @@ export default function LuxeSection() {
         }
       `}</style>
 
-      {/* Ambient Lighting Orbs - Seamless with page */}
-      <div
-        className="luxe-gold-glow absolute inset-0 max-w-[1280px] mx-auto pointer-events-none z-0"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute -top-12 -left-12 w-80 h-80 rounded-full bg-[radial-gradient(circle,rgba(242,140,60,0.12)_0%,transparent_70%)] blur-3xl pointer-events-none"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute -bottom-16 -right-16 w-96 h-96 rounded-full bg-[radial-gradient(circle,rgba(212,175,55,0.14)_0%,transparent_70%)] blur-3xl pointer-events-none"
-        aria-hidden="true"
-      />
-
-      {/* Main Glassmorphic Luxe Card */}
-      <article className="luxe-glass-card relative z-10 rounded-[28px] p-6 sm:p-10 md:p-14 lg:p-16 overflow-hidden">
-        {/* Inner subtle film-grain texture scoped strictly within card */}
-        <div className="luxe-card-noise absolute inset-0 pointer-events-none z-0" aria-hidden="true" />
-
-        {/* Ambient Top-Left Warm Lighting Flare */}
-        <div
-          className="absolute -top-24 -left-24 w-96 h-96 bg-[radial-gradient(circle,rgba(242,140,60,0.22)_0%,rgba(70,37,20,0.1)_50%,transparent_70%)] blur-2xl pointer-events-none"
-          aria-hidden="true"
-        />
-
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
+      {/* Direct Content Grid - Seamlessly blended into page background */}
+      <div className="relative z-10 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
           {/* Left Column: Brand, Headline, Subtext, Price & CTA */}
           <div className="lg:col-span-7 flex flex-col items-start text-left space-y-5 sm:space-y-6">
-            {/* Reduced Logo: Refined luxury proportion */}
+            {/* Logo: ReelXpress LUXE */}
             <div className="flex items-center">
               <img
                 src="/brand/reelxpress-luxe-logo-transparent.png"
@@ -267,7 +214,7 @@ export default function LuxeSection() {
 
             {/* Price & CTA Button Container */}
             <div className="pt-2 sm:pt-3 w-full flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-7">
-              {/* Price Block: Starts at ₹19,999 per event */}
+              {/* Price Block: Starts at ₹20,000 */}
               <div className="flex items-baseline gap-2">
                 <span className="text-[11px] sm:text-xs uppercase tracking-widest font-bold text-[#F9E27D]">
                   Starts at
@@ -278,12 +225,9 @@ export default function LuxeSection() {
                 <span className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight">
                   {luxeData.price}
                 </span>
-                <span className="text-xs sm:text-sm text-zinc-400 font-medium ml-1">
-                  {luxeData.priceSuffix || 'per event'}
-                </span>
               </div>
 
-              {/* Gold Gradient CTA Button: See Luxe → with Bulletproof Full-Sweep Shine */}
+              {/* Gold Gradient CTA Button: See Luxe → */}
               <a
                 href="#booking"
                 onClick={handleBookLuxe}
@@ -337,7 +281,7 @@ export default function LuxeSection() {
             </ul>
           </div>
         </div>
-      </article>
+      </div>
     </section>
   );
 }
