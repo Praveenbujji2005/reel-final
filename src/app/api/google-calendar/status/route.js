@@ -1,8 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getCalendarConnectionStatus } from '@/lib/googleCalendarService';
+import { isRequestAdmin } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(request) {
   try {
+    if (!isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required.' },
+        { status: 401 }
+      );
+    }
+
     const status = await getCalendarConnectionStatus();
     return NextResponse.json({
       success: true,
@@ -10,7 +18,7 @@ export async function GET() {
     });
   } catch (err) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Failed to get Google Calendar status.' },
+      { success: false, error: 'Failed to get Google Calendar status.' },
       { status: 500 }
     );
   }

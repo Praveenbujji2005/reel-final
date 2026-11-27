@@ -135,23 +135,25 @@ export default function JsonLd() {
     ],
   };
 
+  const safeJsonLd = (obj) => JSON.stringify(obj).replace(/</g, '\\u003c');
+
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(organizationSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(localBusinessSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqPageSchema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqPageSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(servicesCatalogSchema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(servicesCatalogSchema) }}
       />
     </>
   );

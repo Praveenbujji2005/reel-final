@@ -15,9 +15,20 @@ export default function AdminLoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
 
+  const getSafeRedirect = () => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('redirect');
+      if (redirect && redirect.startsWith('/admin') && !redirect.startsWith('/admin/login') && !redirect.startsWith('//')) {
+        return redirect;
+      }
+    }
+    return '/admin';
+  };
+
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      router.push('/admin');
+      router.push(getSafeRedirect());
     }
   }, [loading, isAuthenticated, router]);
 
@@ -28,7 +39,7 @@ export default function AdminLoginPage() {
 
     try {
       await login(email, password);
-      router.push('/admin');
+      router.push(getSafeRedirect());
     } catch (err) {
       setErrorMessage(err?.message || 'Login failed. Please check your credentials.');
     } finally {

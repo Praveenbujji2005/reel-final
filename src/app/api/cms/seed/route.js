@@ -3,12 +3,28 @@ import { db, isFirebaseConfigured } from '@/lib/firebase';
 import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
 import { INITIAL_TESTIMONIALS, INITIAL_PRICING_PLANS } from '@/lib/cmsServices';
 import { REEL_PORTFOLIO, FAQ_DATA } from '@/lib/data';
+import { isRequestAdmin } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function POST(request) {
   try {
+    // Disable in production unless explicitly enabled via environment variable
+    if (process.env.NODE_ENV === 'production' && !process.env.ENABLE_CMS_SEED) {
+      return NextResponse.json(
+        { success: false, error: 'Database seed endpoint is disabled in production environments.' },
+        { status: 403 }
+      );
+    }
+
+    if (!isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required.' },
+        { status: 401 }
+      );
+    }
+
     if (!isFirebaseConfigured || !db) {
       return NextResponse.json(
         { success: false, error: 'Firebase Firestore is not configured in environment variables.' },

@@ -12,6 +12,8 @@ import {
   updateServerCreatorQueryStatus,
   deleteServerCreatorQuery,
 } from '@/lib/serverCreatorQueriesStore';
+import { isRequestAdmin } from '@/lib/auth';
+import { sanitizeString, validateEmail, validatePhone } from '@/lib/sanitize';
 
 const rateLimitMap = new Map();
 
@@ -49,8 +51,9 @@ export async function POST(request) {
       );
     }
 
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
 
+    // Honeypot spam defense
     if (body.website_trap || body.bot_honey) {
       return NextResponse.json({
         success: true,
@@ -58,28 +61,18 @@ export async function POST(request) {
       });
     }
 
-    const validation = validateCreatorQueryData(body);
-    if (!validation.isValid) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: validation.errors.join(' '),
-        },
-        { status: 400 }
-      );
-    }
-
-    const fullName = (body.fullName || body.name || '').trim();
-    const email = (body.email || '').trim().toLowerCase();
-    const mobileNumber = (body.mobileNumber || body.phone || '').trim();
-    const cityArea = (body.cityArea || body.city || 'Bengaluru').trim();
-    const instagramLink = (body.instagramLink || body.instagram || '').trim();
-    const phoneModel = (body.phoneModel || body.device || '').trim();
-    const reason = (body.reason || body.message || '').trim() || 'No reason provided.';
-    const sourcePage = body.sourcePage || '/creators';
+    // Input sanitization
+    const fullName = sanitizeString(body.fullName || body.name || '', 100);
+    const email = sanitizeString(body.email || '', 120).toLowerCase();
+    const mobileNumber = sanitizeString(body.mobileNumber || body.phone || '', 30);
+    const cityArea = sanitizeString(body.cityArea || body.city || 'Bengaluru', 80);
+    const instagramLink = sanitizeString(body.instagramLink || body.instagram || '', 200);
+    const phoneModel = sanitizeString(body.phoneModel || body.device || '', 100);
+    const reason = sanitizeString(body.reason || body.message || 'No reason provided.', 1500);
+    const sourcePage = sanitizeString(body.sourcePage || '/creators', 100);
     const createdAt = new Date().toISOString();
 
-    const payload = {
+    const sanitizedPayload = {
       fullName,
       name: fullName,
       email,
@@ -98,15 +91,42 @@ export async function POST(request) {
       createdAt,
     };
 
+    const validation = validateCreatorQueryData(sanitizedPayload);
+    if (!validation.isValid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: validation.errors.join(' '),
+        },
+        { status: 400 }
+      );
+    }
+
+    if (email && !validateEmail(email)) {
+      return NextResponse.json(
+        { success: false, error: 'Please enter a valid email address.' },
+        { status: 400 }
+      );
+    }
+
+    if (mobileNumber && !validatePhone(mobileNumber)) {
+      return NextResponse.json(
+        { success: false, error: 'Please enter a valid 10-digit mobile number.' },
+        { status: 400 }
+      );
+    }
+
     let firestoreResult = null;
     try {
-      firestoreResult = await createCreatorQuery(payload);
+      firestoreResult = await createCreatorQuery(sanitizedPayload);
     } catch (fireErr) {
-      console.warn('[API /api/creators] Firestore write notice:', fireErr.message);
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[API /api/creators] Firestore write notice:', fireErr.message);
+      }
     }
 
     const serverSaved = saveServerCreatorQuery({
-      ...payload,
+      ...sanitizedPayload,
       id: firestoreResult?.id || `creator_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       cloudSynced: Boolean(firestoreResult?.cloudSynced || firestoreResult?.id),
     });
@@ -114,12 +134,17 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       message: 'Creator application submitted successfully!',
-      creatorQuery: serverSaved,
+      creatorQuery: {
+        id: serverSaved.id,
+        fullName: serverSaved.fullName,
+        cityArea: serverSaved.cityArea,
+        createdAt: serverSaved.createdAt,
+      },
     });
   } catch (err) {
-    console.error('[API /api/creators POST] Unhandled error:', err);
+    console.error('[API /api/creators POST] Unhandled error:', err.message);
     return NextResponse.json(
-      { success: false, error: err.message || 'Failed to submit creator application.' },
+      { success: false, error: 'Failed to submit creator application.' },
       { status: 500 }
     );
   }
@@ -127,15 +152,24 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
+    if (!isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required.' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
-    const statusFilter = (searchParams.get('status') || 'all').toLowerCase();
-    const searchQuery = (searchParams.get('search') || '').toLowerCase().trim();
+    const statusFilter = sanitizeString(searchParams.get('status') || 'all', 30).toLowerCase();
+    const searchQuery = sanitizeString(searchParams.get('search') || '', 100).toLowerCase().trim();
 
     let cloudItems = [];
     try {
       cloudItems = await getCreatorQueriesFromFirestore();
     } catch (err) {
-      console.warn('[API /api/creators GET] Firestore read notice:', err.message);
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[API /api/creators GET] Firestore read notice:', err.message);
+      }
     }
 
     const localItems = readServerCreatorQueries();
@@ -183,9 +217,9 @@ export async function GET(request) {
       creatorQueries: allItems,
     });
   } catch (err) {
-    console.error('[API /api/creators GET] Error:', err);
+    console.error('[API /api/creators GET] Error:', err.message);
     return NextResponse.json(
-      { success: false, error: err.message || 'Failed to retrieve creator applications.' },
+      { success: false, error: 'Failed to retrieve creator applications.' },
       { status: 500 }
     );
   }
@@ -193,8 +227,17 @@ export async function GET(request) {
 
 export async function PATCH(request) {
   try {
-    const body = await request.json();
-    const { id, status, adminEmail } = body;
+    if (!isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required.' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const id = sanitizeString(body.id || '', 100);
+    const status = sanitizeString(body.status || '', 50);
+    const adminEmail = sanitizeString(body.adminEmail || 'admin@reelxpress.com', 120);
 
     if (!id || !status) {
       return NextResponse.json(
@@ -205,9 +248,7 @@ export async function PATCH(request) {
 
     try {
       await updateCreatorQueryStatusInFirestore(id, status, adminEmail);
-    } catch (fireErr) {
-      console.warn('[API /api/creators PATCH] Firestore notice:', fireErr.message);
-    }
+    } catch {}
 
     const updated = updateServerCreatorQueryStatus(id, status, adminEmail);
 
@@ -217,9 +258,9 @@ export async function PATCH(request) {
       item: updated || { id, status },
     });
   } catch (err) {
-    console.error('[API /api/creators PATCH] Error:', err);
+    console.error('[API /api/creators PATCH] Error:', err.message);
     return NextResponse.json(
-      { success: false, error: err.message || 'Failed to update status.' },
+      { success: false, error: 'Failed to update status.' },
       { status: 500 }
     );
   }
@@ -227,9 +268,16 @@ export async function PATCH(request) {
 
 export async function DELETE(request) {
   try {
+    if (!isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required.' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    const adminEmail = searchParams.get('adminEmail') || 'admin@reelxpress.com';
+    const id = sanitizeString(searchParams.get('id') || '', 100);
+    const adminEmail = sanitizeString(searchParams.get('adminEmail') || 'admin@reelxpress.com', 120);
 
     if (!id) {
       return NextResponse.json(
@@ -240,9 +288,7 @@ export async function DELETE(request) {
 
     try {
       await deleteCreatorQueryFromFirestore(id, adminEmail);
-    } catch (fireErr) {
-      console.warn('[API /api/creators DELETE] Firestore notice:', fireErr.message);
-    }
+    } catch {}
 
     deleteServerCreatorQuery(id);
 
@@ -252,9 +298,9 @@ export async function DELETE(request) {
       message: 'Creator application deleted successfully.',
     });
   } catch (err) {
-    console.error('[API /api/creators DELETE] Error:', err);
+    console.error('[API /api/creators DELETE] Error:', err.message);
     return NextResponse.json(
-      { success: false, error: err.message || 'Failed to delete creator application.' },
+      { success: false, error: 'Failed to delete creator application.' },
       { status: 500 }
     );
   }

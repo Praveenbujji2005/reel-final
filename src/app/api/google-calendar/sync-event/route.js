@@ -8,9 +8,16 @@ import {
   getEnquiriesFromFirestore,
   updateEnquiryCalendarSyncInFirestore,
 } from '@/lib/enquiries';
+import { isRequestAdmin } from '@/lib/auth';
 
 export async function POST(request) {
   try {
+    if (!isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required.' },
+        { status: 401 }
+      );
+    }
     const body = await request.json();
     const { enquiryId, force = false } = body;
 

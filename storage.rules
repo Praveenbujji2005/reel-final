@@ -2,53 +2,58 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     
+    // Check if the request is from an authenticated administrator
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
     // Helper function to validate media file uploads (images & videos up to 100MB)
     function isValidMedia() {
       return request.resource.size < 100 * 1024 * 1024 &&
              (request.resource.contentType.matches('image/.*') ||
-              request.resource.contentType.matches('video/.*') ||
-              request.resource.contentType == 'application/octet-stream');
+              request.resource.contentType.matches('video/.*'));
     }
 
     // =========================================================================
     // Public Website Assets & Uploaded CMS Media:
-    // - Public visitors can READ/STREAM images and videos
-    // - Uploads are allowed for media files under 100MB
+    // - Public visitors can READ and stream videos/images
+    // - Authenticated Administrators ONLY can upload valid media or delete assets
     // =========================================================================
     match /uploads/{allPaths=**} {
       allow read: if true;
-      allow write: if isValidMedia();
-      allow delete: if true;
+      allow write: if isAuthenticated() && isValidMedia();
+      allow delete: if isAuthenticated();
     }
 
     match /hero-videos/{allPaths=**} {
       allow read: if true;
-      allow write: if isValidMedia();
-      allow delete: if true;
+      allow write: if isAuthenticated() && isValidMedia();
+      allow delete: if isAuthenticated();
     }
 
     match /hero/{allPaths=**} {
       allow read: if true;
-      allow write: if isValidMedia();
-      allow delete: if true;
+      allow write: if isAuthenticated() && isValidMedia();
+      allow delete: if isAuthenticated();
     }
 
     match /videos/{allPaths=**} {
       allow read: if true;
-      allow write: if isValidMedia();
-      allow delete: if true;
+      allow write: if isAuthenticated() && isValidMedia();
+      allow delete: if isAuthenticated();
     }
 
     match /testimonials/{allPaths=**} {
       allow read: if true;
-      allow write: if isValidMedia();
-      allow delete: if true;
+      allow write: if isAuthenticated() && isValidMedia();
+      allow delete: if isAuthenticated();
     }
 
-    // General fallback
+    // Default Deny Fallback
     match /{allPaths=**} {
       allow read: if true;
-      allow write: if isValidMedia();
+      allow write: if isAuthenticated() && isValidMedia();
+      allow delete: if isAuthenticated();
     }
   }
 }

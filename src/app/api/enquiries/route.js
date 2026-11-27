@@ -14,6 +14,8 @@ import {
   updateServerEnquiryStatus,
   deleteServerEnquiry,
 } from '@/lib/serverEnquiriesStore';
+import { isRequestAdmin } from '@/lib/auth';
+import { sanitizeString, validateEmail, validatePhone } from '@/lib/sanitize';
 
 const rateLimitMap = new Map();
 
@@ -51,8 +53,9 @@ export async function POST(request) {
       );
     }
 
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
 
+    // Honeypot spam defense
     if (body.website_trap || body.bot_honey) {
       return NextResponse.json({
         success: true,
@@ -60,30 +63,20 @@ export async function POST(request) {
       });
     }
 
-    const validation = validateEnquiryData(body);
-    if (!validation.isValid) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: validation.errors.join(' '),
-        },
-        { status: 400 }
-      );
-    }
-
-    const customerName = body.customerName || body.fullName || body.name || '';
-    const email = body.email || '';
-    const phone = body.phone || '';
-    const companyName = body.companyName || body.company || '';
-    const selectedService = body.selectedService || body.serviceType || body.type || 'General Shoot';
-    const enquiryMessage = body.enquiryMessage || body.message || body.notes || '';
-    const city = body.city || 'Bengaluru';
-    const locality = (body.locality || body.area || '').trim();
-    const eventDate = body.eventDate || body.date || '';
-    const sourcePage = body.sourcePage || body.source || 'Website Booking Form';
+    // Input Sanitization
+    const customerName = sanitizeString(body.customerName || body.fullName || body.name || '', 100);
+    const email = sanitizeString(body.email || '', 120).toLowerCase();
+    const phone = sanitizeString(body.phone || body.mobile || '', 30);
+    const companyName = sanitizeString(body.companyName || body.company || '', 120);
+    const selectedService = sanitizeString(body.selectedService || body.serviceType || body.type || 'General Shoot', 120);
+    const enquiryMessage = sanitizeString(body.enquiryMessage || body.message || body.notes || '', 1500);
+    const city = sanitizeString(body.city || 'Bengaluru', 60);
+    const locality = sanitizeString(body.locality || body.area || '', 100);
+    const eventDate = sanitizeString(body.eventDate || body.date || '', 30);
+    const sourcePage = sanitizeString(body.sourcePage || body.source || 'Website Booking Form', 100);
     const createdAt = new Date().toISOString();
 
-    const enquiryPayload = {
+    const sanitizedPayload = {
       customerName,
       fullName: customerName,
       email,
@@ -101,21 +94,45 @@ export async function POST(request) {
       createdAt,
     };
 
+    const validation = validateEnquiryData(sanitizedPayload);
+    if (!validation.isValid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: validation.errors.join(' '),
+        },
+        { status: 400 }
+      );
+    }
+
+    if (email && !validateEmail(email)) {
+      return NextResponse.json(
+        { success: false, error: 'Please provide a valid email address.' },
+        { status: 400 }
+      );
+    }
+
+    if (phone && !validatePhone(phone)) {
+      return NextResponse.json(
+        { success: false, error: 'Please provide a valid 10-digit mobile number.' },
+        { status: 400 }
+      );
+    }
+
     let savedEnquiry = null;
     let cloudSynced = false;
-    let syncErrorNotice = null;
 
     try {
-      savedEnquiry = await createEnquiry(enquiryPayload);
+      savedEnquiry = await createEnquiry(sanitizedPayload);
       cloudSynced = true;
-      console.log('[API /api/enquiries] Saved to Cloud Firestore:', savedEnquiry.id);
     } catch (firestoreErr) {
-      console.warn('[API /api/enquiries] Cloud Firestore notice:', firestoreErr.message);
-      syncErrorNotice = firestoreErr.message;
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[API /api/enquiries] Cloud Firestore notice:', firestoreErr.message);
+      }
     }
 
     const serverRecord = saveServerEnquiry({
-      ...(savedEnquiry || enquiryPayload),
+      ...(savedEnquiry || sanitizedPayload),
       cloudSynced,
     });
 
@@ -126,18 +143,22 @@ export async function POST(request) {
         success: true,
         message:
           'Your shoot slot has been locked! Our Bengaluru coordinator will connect via WhatsApp / Call within minutes.',
-        enquiry: responseEnquiry,
+        enquiry: {
+          id: responseEnquiry.id,
+          customerName: responseEnquiry.customerName,
+          selectedService: responseEnquiry.selectedService,
+          createdAt: responseEnquiry.createdAt,
+        },
         cloudSynced,
-        warning: syncErrorNotice ? 'Enquiry stored securely on server. Cloud Firestore sync pending.' : undefined,
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error('[API /api/enquiries] General error:', error);
+    console.error('[API /api/enquiries] Submission error:', error.message);
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'An error occurred while processing your enquiry. Please try again.',
+        error: 'An error occurred while processing your enquiry. Please try again.',
       },
       { status: 500 }
     );
@@ -146,10 +167,17 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
+    if (!isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required.' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search') || '';
-    const status = searchParams.get('status') || 'all';
-    const sortBy = searchParams.get('sortBy') || 'newest';
+    const search = sanitizeString(searchParams.get('search') || '', 100);
+    const status = sanitizeString(searchParams.get('status') || 'all', 30);
+    const sortBy = sanitizeString(searchParams.get('sortBy') || 'newest', 20);
 
     let firestoreList = [];
     let firestoreError = null;
@@ -206,7 +234,7 @@ export async function GET(request) {
       firestoreError,
     });
   } catch (error) {
-    console.error('[API /api/enquiries] Fetch error:', error);
+    console.error('[API /api/enquiries] Fetch error:', error.message);
     return NextResponse.json(
       { success: false, error: 'Failed to retrieve enquiries.' },
       { status: 500 }
@@ -214,8 +242,15 @@ export async function GET(request) {
   }
 }
 
-export async function PUT() {
+export async function PUT(request) {
   try {
+    if (!isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required.' },
+        { status: 401 }
+      );
+    }
+
     const list = readServerEnquiries();
     const unsynced = list.filter((item) => !item.cloudSynced);
     let syncedCount = 0;
@@ -240,15 +275,25 @@ export async function PUT() {
       errors,
     });
   } catch (err) {
-    console.error('[API /api/enquiries] Sync error:', err);
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    console.error('[API /api/enquiries] Sync error:', err.message);
+    return NextResponse.json({ success: false, error: 'Enquiry synchronization failed.' }, { status: 500 });
   }
 }
 
 export async function PATCH(request) {
   try {
-    const body = await request.json();
-    const { id, status, adminEmail } = body;
+    if (!isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required.' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const id = sanitizeString(body.id || '', 100);
+    const status = sanitizeString(body.status || '', 50);
+    const adminEmail = sanitizeString(body.adminEmail || 'admin@reelxpress.com', 120);
+
     if (!id || !status) {
       return NextResponse.json(
         { success: false, error: 'Missing enquiry ID or status.' },
@@ -264,9 +309,9 @@ export async function PATCH(request) {
 
     return NextResponse.json({ success: true, id, status });
   } catch (error) {
-    console.error('[API /api/enquiries] Update error:', error);
+    console.error('[API /api/enquiries] Update error:', error.message);
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to update enquiry status.' },
+      { success: false, error: 'Failed to update enquiry status.' },
       { status: 500 }
     );
   }
@@ -274,8 +319,15 @@ export async function PATCH(request) {
 
 export async function DELETE(request) {
   try {
+    if (!isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required.' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const id = sanitizeString(searchParams.get('id') || '', 100);
     if (!id) {
       return NextResponse.json(
         { success: false, error: 'Missing enquiry ID.' },
@@ -291,9 +343,9 @@ export async function DELETE(request) {
 
     return NextResponse.json({ success: true, id });
   } catch (error) {
-    console.error('[API /api/enquiries] Delete error:', error);
+    console.error('[API /api/enquiries] Delete error:', error.message);
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to delete enquiry.' },
+      { success: false, error: 'Failed to delete enquiry.' },
       { status: 500 }
     );
   }

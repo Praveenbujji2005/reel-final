@@ -90,11 +90,13 @@ export default async function BlogPostPage({ params }) {
     },
   };
 
+  const safeJsonLd = (obj) => JSON.stringify(obj).replace(/</g, '\\u003c');
+
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(articleSchema) }}
       />
 
       <Navbar />

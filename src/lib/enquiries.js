@@ -232,7 +232,6 @@ export async function createEnquiry(enquiryData) {
       if (restRes.ok) {
         const docData = await restRes.json();
         savedDocId = docData.name?.split('/').pop();
-        console.log(`[Firestore] Successfully created enquiry document via REST API: ${savedDocId}`);
       } else {
         const errJson = await restRes.json().catch(() => ({}));
         const status = restRes.status;
@@ -269,7 +268,6 @@ export async function createEnquiry(enquiryData) {
         'Firestore addDoc'
       );
       savedDocId = docRef.id;
-      console.log(`[Firestore] Successfully created enquiry document via Client SDK: ${savedDocId}`);
     } catch (sdkErr) {
       console.error('[Firestore] Client SDK write error:', sdkErr);
       if (sdkErr.code === 'not-found' || sdkErr.message?.includes('NOT_FOUND')) {

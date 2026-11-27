@@ -11,7 +11,6 @@ import {
 
 const AdminAuthContext = createContext(null);
 
-const SESSION_STORAGE_KEY = 'reelxpress_admin_session';
 const FAILED_ATTEMPTS_KEY = 'reelxpress_admin_failed_attempts';
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
@@ -35,43 +34,53 @@ export function AdminAuthProvider({ children }) {
     } catch {}
   }, []);
 
+  // Check server session on mount
   useEffect(() => {
-    let unsubscribe = () => {};
+    let isMounted = true;
 
-    if (isFirebaseConfigured && auth) {
-      unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-        if (firebaseUser) {
-          setUser({
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName || 'Administrator',
-            provider: 'firebase',
-          });
-        } else {
-          try {
-            const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
-            if (stored) {
-              setUser(JSON.parse(stored));
-            } else {
-              setUser(null);
-            }
-          } catch {
-            setUser(null);
+    async function checkServerSession() {
+      try {
+        const res = await fetch('/api/admin/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated && data.user && isMounted) {
+            setUser(data.user);
+            setLoading(false);
+            return;
           }
         }
-        setLoading(false);
-      });
-    } else {
-      try {
-        const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
-        if (stored) {
-          setUser(JSON.parse(stored));
-        }
       } catch {}
-      setLoading(false);
+
+      // Fallback: check Firebase auth state if configured
+      if (isFirebaseConfigured && auth) {
+        const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+          if (!isMounted) return;
+          if (fbUser) {
+            setUser({
+              uid: fbUser.uid,
+              email: fbUser.email,
+              displayName: fbUser.displayName || 'Administrator',
+              provider: 'firebase',
+            });
+          } else {
+            setUser(null);
+          }
+          setLoading(false);
+        });
+        return () => unsubscribe();
+      } else {
+        if (isMounted) {
+          setUser(null);
+          setLoading(false);
+        }
+      }
     }
 
-    return () => unsubscribe();
+    checkServerSession();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const recordFailedAttempt = () => {
@@ -108,58 +117,47 @@ export function AdminAuthProvider({ children }) {
       throw new Error('Please enter both email and password.');
     }
 
+    // Optional Firebase Client Auth sync
     if (isFirebaseConfigured && auth) {
       try {
-        const credential = await signInWithEmailAndPassword(auth, cleanEmail, cleanPass);
-        const adminUser = {
-          uid: credential.user.uid,
-          email: credential.user.email,
-          displayName: credential.user.displayName || 'Administrator',
-          provider: 'firebase',
-        };
-        setUser(adminUser);
-        clearFailedAttempts();
-        return adminUser;
-      } catch (fbErr) {
-        console.warn('Firebase auth attempt failed, testing admin fallback:', fbErr.code);
-      }
+        await signInWithEmailAndPassword(auth, cleanEmail, cleanPass);
+      } catch {}
     }
 
-    const defaultEmail = (
-      process.env.NEXT_PUBLIC_ADMIN_DEFAULT_EMAIL ||
-      process.env.ADMIN_DEFAULT_EMAIL ||
-      'admin@reelxpress.com'
-    ).toLowerCase();
-    const defaultPass =
-      process.env.NEXT_PUBLIC_ADMIN_DEFAULT_PASSWORD ||
-      process.env.ADMIN_DEFAULT_PASSWORD ||
-      'ReelXpress@Admin2026!';
+    // Call server-side authentication endpoint
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: cleanEmail, password: cleanPass }),
+    });
 
-    if (cleanEmail === defaultEmail && cleanPass === defaultPass) {
-      const adminUser = {
-        uid: 'adm_default_01',
-        email: cleanEmail,
-        displayName: 'reelXpress Lead Administrator',
-        provider: 'local_secure',
-      };
-      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(adminUser));
-      setUser(adminUser);
-      clearFailedAttempts();
-      return adminUser;
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data.success) {
+      recordFailedAttempt();
+      throw new Error(data.error || 'Invalid administrator email or password.');
     }
 
-    recordFailedAttempt();
-    throw new Error('Invalid administrator email or password.');
+    clearFailedAttempts();
+    setUser(data.user);
+    return data.user;
   };
 
   const logout = async () => {
+    try {
+      await fetch('/api/admin/logout', { method: 'POST' });
+    } catch {}
+
     if (isFirebaseConfigured && auth) {
       try {
         await firebaseSignOut(auth);
       } catch {}
     }
-    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+
     setUser(null);
+    if (typeof window !== 'undefined') {
+      window.location.href = '/admin/login';
+    }
   };
 
   const resetPassword = async (email) => {
@@ -173,7 +171,7 @@ export function AdminAuthProvider({ children }) {
 
     return {
       success: true,
-      message: `Password reset email dispatched to ${cleanEmail}. Check your inbox.`,
+      message: `If an admin account exists for ${cleanEmail}, password reset instructions have been sent.`,
     };
   };
 

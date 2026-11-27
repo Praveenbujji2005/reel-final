@@ -1,8 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getGoogleCalendarConfig, saveGoogleCalendarConfig } from '@/lib/googleCalendarService';
+import { isRequestAdmin } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(request) {
   try {
+    if (!isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required.' },
+        { status: 401 }
+      );
+    }
+
     const config = await getGoogleCalendarConfig();
     return NextResponse.json({
       success: true,
@@ -13,7 +21,7 @@ export async function GET() {
     });
   } catch (err) {
     return NextResponse.json(
-      { success: false, error: err.message },
+      { success: false, error: 'Failed to retrieve configuration.' },
       { status: 500 }
     );
   }
@@ -21,7 +29,14 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const body = await request.json();
+    if (!isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required.' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
     const { clientId, clientSecret, redirectUri } = body;
 
     if (!clientId || !clientSecret) {
@@ -39,7 +54,7 @@ export async function POST(request) {
     });
   } catch (err) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Failed to save configuration.' },
+      { success: false, error: 'Failed to save configuration.' },
       { status: 500 }
     );
   }

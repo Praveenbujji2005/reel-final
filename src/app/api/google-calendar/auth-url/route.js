@@ -1,8 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getGoogleAuthUrl, getGoogleCalendarConfig } from '@/lib/googleCalendarService';
+import { isRequestAdmin } from '@/lib/auth';
 
 export async function GET(request) {
   try {
+    if (!isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required.' },
+        { status: 401 }
+      );
+    }
+
     const config = await getGoogleCalendarConfig();
     if (!config.clientId) {
       return NextResponse.json(
@@ -25,7 +33,7 @@ export async function GET(request) {
     });
   } catch (err) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Failed to generate Google Auth URL.' },
+      { success: false, error: 'Failed to generate Google Auth URL.' },
       { status: 500 }
     );
   }

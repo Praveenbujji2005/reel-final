@@ -1675,7 +1675,6 @@ export async function deleteStorageFile(storagePathOrUrl) {
       fileRef = ref(storage, storagePathOrUrl);
     }
     await deleteObject(fileRef);
-    console.log('[deleteStorageFile] Deleted old storage file:', storagePathOrUrl);
     return true;
   } catch (err) {
     console.warn('[deleteStorageFile] Storage file deletion notice (benign):', err?.message || err);

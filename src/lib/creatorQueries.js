@@ -223,7 +223,6 @@ export async function createCreatorQuery(queryData) {
       if (restRes.ok) {
         const docData = await restRes.json();
         savedDocId = docData.name?.split('/').pop();
-        console.log(`[Firestore] Successfully created creator query via REST API: ${savedDocId}`);
       } else {
         const errJson = await restRes.json().catch(() => ({}));
         const status = restRes.status;
@@ -256,7 +255,6 @@ export async function createCreatorQuery(queryData) {
         timestamp: serverTimestamp(),
       });
       savedDocId = docRef.id;
-      console.log(`[Firestore] Successfully created creator query via Client SDK: ${savedDocId}`);
     } catch (sdkErr) {
       console.warn('[Firestore] Client SDK write notice:', sdkErr?.message || sdkErr);
       lastError = sdkErr;

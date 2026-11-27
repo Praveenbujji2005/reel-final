@@ -2,12 +2,29 @@ import { NextResponse } from 'next/server';
 
 const TARGET_BASE = 'https://api.liner.com/lkdd/api/v1/display/sdk';
 
+const ALLOWED_ORIGINS = new Set([
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://reelxpress.in',
+  'https://www.reelxpress.in',
+  'https://reel-xpress.vercel.app',
+]);
+
+function getCorsOrigin(request) {
+  const origin = request.headers.get('origin');
+  if (origin && ALLOWED_ORIGINS.has(origin)) return origin;
+  const host = request.headers.get('host');
+  if (host && origin && (origin === `http://${host}` || origin === `https://${host}`)) return origin;
+  return process.env.NEXT_PUBLIC_SITE_URL || 'https://reelxpress.in';
+}
+
 async function handleProxy(request, context) {
   try {
     const params = await context?.params;
     const slug = params?.slug ? (Array.isArray(params.slug) ? params.slug.join('/') : params.slug) : '';
     const url = new URL(request.url);
     const targetUrl = new URL(TARGET_BASE + (slug ? `/${slug}` : '') + url.search);
+    const allowedOrigin = getCorsOrigin(request);
 
     const headers = new Headers();
     request.headers.forEach((value, key) => {
@@ -44,9 +61,9 @@ async function handleProxy(request, context) {
         {
           status: 200,
           headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
-            'Access-Control-Allow-Headers': '*',
+            'Access-Control-Allow-Origin': allowedOrigin,
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, x-device-id',
           },
         }
       );
@@ -58,23 +75,24 @@ async function handleProxy(request, context) {
     response.headers.forEach((val, key) => {
       resHeaders.set(key, val);
     });
-    resHeaders.set('Access-Control-Allow-Origin', '*');
-    resHeaders.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-    resHeaders.set('Access-Control-Allow-Headers', '*');
+    resHeaders.set('Access-Control-Allow-Origin', allowedOrigin);
+    resHeaders.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    resHeaders.set('Access-Control-Allow-Headers', 'Content-Type, x-device-id');
 
     return new NextResponse(data, {
       status: response.status,
       headers: resHeaders,
     });
   } catch {
+    const allowedOrigin = getCorsOrigin(request);
     return NextResponse.json(
       { success: true, proxy: 'delivery-sdk', status: 'ready' },
       {
         status: 200,
         headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
-          'Access-Control-Allow-Headers': '*',
+          'Access-Control-Allow-Origin': allowedOrigin,
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, x-device-id',
         },
       }
     );
@@ -89,13 +107,14 @@ export async function POST(request, context) {
   return handleProxy(request, context);
 }
 
-export async function OPTIONS() {
+export async function OPTIONS(request) {
+  const allowedOrigin = getCorsOrigin(request);
   return new NextResponse(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
-      'Access-Control-Allow-Headers': '*',
+      'Access-Control-Allow-Origin': allowedOrigin,
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, x-device-id',
     },
   });
 }

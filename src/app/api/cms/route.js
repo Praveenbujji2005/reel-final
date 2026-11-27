@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { INITIAL_TESTIMONIALS, INITIAL_PRICING_PLANS } from '@/lib/cmsServices';
 import { REEL_PORTFOLIO, FAQ_DATA } from '@/lib/data';
+import { isRequestAdmin } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -44,6 +45,13 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const type = (searchParams.get('type') || 'testimonials').toLowerCase().trim();
+
+    if (type === 'activity' && !isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required to view activity logs.' },
+        { status: 401 }
+      );
+    }
 
     if (!ALL_CMS_TYPES.includes(type)) {
       return NextResponse.json(
@@ -107,6 +115,12 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    if (!isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required to modify CMS content.' },
+        { status: 401 }
+      );
+    }
     const body = await request.json();
     const { type, item, adminEmail } = body;
 
@@ -201,6 +215,12 @@ export async function POST(request) {
 
 export async function DELETE(request) {
   try {
+    if (!isRequestAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin privileges required to delete CMS content.' },
+        { status: 401 }
+      );
+    }
     const { searchParams } = new URL(request.url);
     const rawType = searchParams.get('type');
     const id = searchParams.get('id');

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { exchangeCodeForTokens } from '@/lib/googleCalendarService';
+import { escapeHtml } from '@/lib/sanitize';
 
 export async function GET(request) {
   const url = new URL(request.url);
@@ -7,6 +8,7 @@ export async function GET(request) {
   const error = url.searchParams.get('error');
 
   if (error) {
+    const safeError = escapeHtml(error);
     const errorHtml = `
       <!DOCTYPE html>
       <html>
@@ -23,12 +25,12 @@ export async function GET(request) {
         <body>
           <div class="card">
             <h2>Connection Cancelled</h2>
-            <p>Google authorization was not completed: ${error}</p>
+            <p>Google authorization was not completed: ${safeError}</p>
             <a href="/admin/inquiries" class="btn" onclick="window.close();">Close Window</a>
           </div>
           <script>
             if (window.opener) {
-              window.opener.postMessage({ type: 'GOOGLE_CALENDAR_ERROR', error: '${error}' }, '*');
+              window.opener.postMessage({ type: 'GOOGLE_CALENDAR_ERROR', error: ${JSON.stringify(error)} }, window.location.origin);
               setTimeout(() => window.close(), 2500);
             }
           </script>
@@ -45,6 +47,7 @@ export async function GET(request) {
   try {
     const { origin } = url;
     const result = await exchangeCodeForTokens(code, origin);
+    const safeEmail = escapeHtml(result.email || 'Google Account');
 
     const successHtml = `
       <!DOCTYPE html>
@@ -70,7 +73,7 @@ export async function GET(request) {
             </div>
             <h2>Google Calendar Connected!</h2>
             <p>Your Google account has been securely connected for reelXpress enquiry event syncing.</p>
-            <div class="email-badge">${result.email || 'Google Account'}</div>
+            <div class="email-badge">${safeEmail}</div>
             <div>
               <a href="/admin/inquiries?calendar_connected=true" class="btn" onclick="if(window.opener){window.close();return false;}">Return to Dashboard</a>
             </div>
@@ -80,8 +83,8 @@ export async function GET(request) {
               window.opener.postMessage({
                 type: 'GOOGLE_CALENDAR_CONNECTED',
                 success: true,
-                email: '${result.email || ''}'
-              }, '*');
+                email: ${JSON.stringify(result.email || '')}
+              }, window.location.origin);
               setTimeout(() => {
                 window.close();
               }, 1200);
@@ -99,6 +102,7 @@ export async function GET(request) {
       headers: { 'Content-Type': 'text/html' },
     });
   } catch (err) {
+    const safeError = escapeHtml(err.message || 'Failed to authenticate with Google.');
     const errorHtml = `
       <!DOCTYPE html>
       <html>
@@ -115,7 +119,7 @@ export async function GET(request) {
         <body>
           <div class="card">
             <h2>Connection Error</h2>
-            <p>${err.message || 'Failed to authenticate with Google.'}</p>
+            <p>${safeError}</p>
             <a href="/admin/inquiries" class="btn">Back to Inquiries</a>
           </div>
         </body>
