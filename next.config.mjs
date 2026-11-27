@@ -1,4 +1,3 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   devIndicators: false,
@@ -31,7 +30,6 @@ const nextConfig = {
 
     return [
       {
-        // Cache static brand assets, thumbnails, fonts, and videos for 1 year
         source: '/(brand|thumbnails|assets|fonts)/:all*',
         headers: [
           {
@@ -41,7 +39,6 @@ const nextConfig = {
         ],
       },
       {
-        // Security headers across all routes
         source: '/:path*',
         headers: [
           {

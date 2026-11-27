@@ -2,16 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Check if the request is from an authenticated user (Firebase Auth)
     function isAuthenticated() {
       return request.auth != null;
     }
     
-    // =========================================================================
-    // Dynamic Website Content (CMS: Hero Slides, Pricing, FAQs, Testimonials):
-    // - Public visitors can READ published website content
-    // - Authenticated Administrators ONLY can CREATE, UPDATE, or DELETE content
-    // =========================================================================
     match /cms_hero/{slideId} {
       allow read: if true;
       allow write: if isAuthenticated();
@@ -32,11 +26,6 @@ service cloud.firestore {
       allow write: if isAuthenticated();
     }
 
-    // =========================================================================
-    // Customer Booking Enquiries & Creator Applications:
-    // - Public visitors can ONLY create (submit) their enquiry or creator query
-    // - Authenticated Administrators ONLY can read, update, or delete records
-    // =========================================================================
     match /enquiries/{enquiryId} {
       allow create: if true;
       allow read, update, delete: if isAuthenticated();
@@ -52,20 +41,11 @@ service cloud.firestore {
       allow read, update, delete: if isAuthenticated();
     }
 
-    // =========================================================================
-    // Admin Activity Audit Logs:
-    // - Authenticated Administrators ONLY can read or append
-    // - Immutable audit log: NO updates or deletions allowed
-    // =========================================================================
     match /activity_logs/{logId} {
       allow read, create: if isAuthenticated();
       allow update, delete: if false;
     }
 
-    // =========================================================================
-    // Default Deny Rule:
-    // Any unspecified document path is completely private to authenticated users
-    // =========================================================================
     match /{document=**} {
       allow read, write: if isAuthenticated();
     }

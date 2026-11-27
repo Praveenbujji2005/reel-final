@@ -6,9 +6,6 @@ function getSecret() {
   return process.env.ADMIN_SECRET_KEY || process.env.NEXT_PUBLIC_ADMIN_SECRET_KEY || DEFAULT_SECRET;
 }
 
-/**
- * Edge-compatible HMAC-SHA256 token verification using standard Web Crypto API.
- */
 async function verifySessionTokenEdge(token) {
   if (!token || typeof token !== 'string') return null;
   const parts = token.split('.');
@@ -26,7 +23,6 @@ async function verifySessionTokenEdge(token) {
       ['verify']
     );
 
-    // Decode base64url signature to binary Uint8Array
     const base64Sig = sigB64.replace(/-/g, '+').replace(/_/g, '/');
     const padSig = base64Sig.padEnd(base64Sig.length + ((4 - (base64Sig.length % 4)) % 4), '=');
     const binarySig = atob(padSig);
@@ -44,14 +40,13 @@ async function verifySessionTokenEdge(token) {
 
     if (!isValid) return null;
 
-    // Decode payload
     const base64Payload = payloadB64.replace(/-/g, '+').replace(/_/g, '/');
     const padPayload = base64Payload.padEnd(base64Payload.length + ((4 - (base64Payload.length % 4)) % 4), '=');
     const payload = JSON.parse(atob(padPayload));
 
     const now = Math.floor(Date.now() / 1000);
     if (payload.exp && payload.exp < now) {
-      return null; // Expired
+      return null;
     }
 
     return payload;
@@ -60,11 +55,7 @@ async function verifySessionTokenEdge(token) {
   }
 }
 
-/**
- * Checks whether the request is authorized as admin (via session cookie or Authorization header).
- */
 async function checkAdminAuth(request) {
-  // 1. Check Bearer Authorization Header
   const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.slice(7).trim();
@@ -75,7 +66,6 @@ async function checkAdminAuth(request) {
     if (verified) return verified;
   }
 
-  // 2. Check HttpOnly cookie
   const cookie = request.cookies.get('admin_session')?.value;
   if (cookie) {
     const verified = await verifySessionTokenEdge(cookie);
@@ -85,7 +75,6 @@ async function checkAdminAuth(request) {
   return null;
 }
 
-// Allowed CORS origins list
 const ALLOWED_ORIGINS = new Set([
   'http://localhost:3000',
   'http://localhost:3001',
@@ -107,13 +96,11 @@ export async function middleware(request) {
   const method = request.method.toUpperCase();
   const origin = request.headers.get('origin');
 
-  // 1. CORS Preflight & Origin Validation
   let corsOrigin = null;
   if (origin) {
     if (ALLOWED_ORIGINS.has(origin)) {
       corsOrigin = origin;
     } else {
-      // Allow exact match with request host
       const host = request.headers.get('host');
       if (host && (origin === `http://${host}` || origin === `https://${host}`)) {
         corsOrigin = origin;
@@ -133,7 +120,6 @@ export async function middleware(request) {
     return preflight;
   }
 
-  // 2. Protect Admin Frontend Routes (/admin/*)
   if (pathname.startsWith('/admin')) {
     const isPublicAdminRoute =
       pathname === '/admin/login' ||
@@ -149,27 +135,20 @@ export async function middleware(request) {
     }
   }
 
-  // 3. Protect Admin API Endpoints
-  // - Enquiry write/read management (GET, PUT, PATCH, DELETE)
   const isEnquiryAdminMethod =
     (pathname === '/api/enquiries' || pathname === '/api/inquiries') &&
     ['GET', 'PUT', 'PATCH', 'DELETE'].includes(method);
 
-  // - Creator queries management (GET, PATCH, DELETE)
   const isCreatorAdminMethod =
     (pathname === '/api/creators' || pathname === '/api/creator-queries') &&
     ['GET', 'PATCH', 'DELETE'].includes(method);
 
-  // - CMS content mutations (POST, PUT, DELETE)
   const isCmsMutation = pathname === '/api/cms' && ['POST', 'PUT', 'DELETE'].includes(method);
 
-  // - CMS seed route (always restricted to admin)
   const isCmsSeed = pathname === '/api/cms/seed';
 
-  // - File uploads (always restricted to admin)
   const isUpload = pathname === '/api/upload';
 
-  // - Google Calendar administrative management
   const isGoogleCalendarAdmin =
     pathname.startsWith('/api/google-calendar') &&
     pathname !== '/api/google-calendar/callback';
@@ -194,10 +173,8 @@ export async function middleware(request) {
     }
   }
 
-  // 4. Construct Response and Attach Robust Security Headers
   const response = NextResponse.next();
 
-  // CORS headers for API routes
   if (corsOrigin) {
     response.headers.set('Access-Control-Allow-Origin', corsOrigin);
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
@@ -205,7 +182,6 @@ export async function middleware(request) {
     response.headers.set('Access-Control-Allow-Credentials', 'true');
   }
 
-  // Strict Content-Security-Policy (CSP)
   const cspHeader = `
     default-src 'self';
     script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://www.gstatic.com;
@@ -230,12 +206,10 @@ export async function middleware(request) {
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), browsing-topics=()');
   response.headers.set('X-XSS-Protection', '1; mode=block');
 
-  // Enforce HSTS in production
   if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
     response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   }
 
-  // Robots indexing policy for preview deployments
   if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'production') {
     response.headers.set('X-Robots-Tag', 'noindex, nofollow');
   }

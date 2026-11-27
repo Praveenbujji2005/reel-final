@@ -2,11 +2,8 @@ import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 
 const BCRYPT_SALT_ROUNDS = 12;
-const DEFAULT_SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7; // 7 days
+const DEFAULT_SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7;
 
-/**
- * Returns the secret key used for signing session tokens and internal API calls.
- */
 export function getAdminSecretKey() {
   const secret = process.env.ADMIN_SECRET_KEY || process.env.NEXT_PUBLIC_ADMIN_SECRET_KEY;
   if (!secret) {
@@ -18,11 +15,6 @@ export function getAdminSecretKey() {
   return secret;
 }
 
-/**
- * Hashes a plain-text password using bcrypt.
- * @param {string} password 
- * @returns {Promise<string>}
- */
 export async function hashPassword(password) {
   if (!password || typeof password !== 'string') {
     throw new Error('Invalid password provided for hashing.');
@@ -30,12 +22,6 @@ export async function hashPassword(password) {
   return bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 }
 
-/**
- * Compares a plain password against a bcrypt hash, or securely against a plain secret in dev.
- * @param {string} password 
- * @param {string} storedHashOrPlain 
- * @returns {Promise<boolean>}
- */
 export async function verifyPassword(password, storedHashOrPlain) {
   if (!password || !storedHashOrPlain) return false;
 
@@ -51,7 +37,6 @@ export async function verifyPassword(password, storedHashOrPlain) {
     }
   }
 
-  // If stored as plain-text (legacy), compare using timing-safe buffer comparison to prevent timing attacks
   try {
     const pBuf = Buffer.from(String(password));
     const sBuf = Buffer.from(String(storedHashOrPlain));
@@ -62,10 +47,6 @@ export async function verifyPassword(password, storedHashOrPlain) {
   }
 }
 
-/**
- * Creates a cryptographically signed HMAC-SHA256 session token.
- * Format: base64url(payload).signature
- */
 export function createSessionToken(payload, expiresInSeconds = DEFAULT_SESSION_DURATION_SECONDS) {
   const secret = getAdminSecretKey();
   const exp = Math.floor(Date.now() / 1000) + expiresInSeconds;
@@ -84,11 +65,6 @@ export function createSessionToken(payload, expiresInSeconds = DEFAULT_SESSION_D
   return `${payloadB64}.${signature}`;
 }
 
-/**
- * Verifies and decodes an HMAC-SHA256 session token.
- * @param {string} token 
- * @returns {object|null}
- */
 export function verifySessionToken(token) {
   if (!token || typeof token !== 'string') return null;
   const parts = token.split('.');
@@ -113,7 +89,7 @@ export function verifySessionToken(token) {
     const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString('utf-8'));
     const now = Math.floor(Date.now() / 1000);
     if (payload.exp && payload.exp < now) {
-      return null; // Expired token
+      return null;
     }
     return payload;
   } catch {
@@ -121,30 +97,20 @@ export function verifySessionToken(token) {
   }
 }
 
-/**
- * Extracts and verifies admin authentication from an incoming Next.js Request.
- * Supports HttpOnly cookie `admin_session` or `Authorization: Bearer <token|secret>`.
- * @param {Request} request 
- * @returns {object|null}
- */
 export function getAdminAuthFromRequest(request) {
-  // 1. Check Bearer Authorization Header
   const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.slice(7).trim();
-    // Check if token is the master ADMIN_SECRET_KEY
     const secret = getAdminSecretKey();
     if (token === secret) {
       return { sub: 'admin', role: 'admin', authType: 'api_secret' };
     }
-    // Check if it is a signed session token
     const decoded = verifySessionToken(token);
     if (decoded) {
       return { ...decoded, authType: 'bearer_token' };
     }
   }
 
-  // 2. Check HttpOnly Cookie `admin_session`
   const cookieHeader = request.headers.get('cookie') || '';
   const match = cookieHeader.match(/(?:^|;\s*)admin_session=([^;]+)/);
   if (match) {
@@ -158,11 +124,6 @@ export function getAdminAuthFromRequest(request) {
   return null;
 }
 
-/**
- * Helper to check if request is authenticated as admin.
- * @param {Request} request 
- * @returns {boolean}
- */
 export function isRequestAdmin(request) {
   return Boolean(getAdminAuthFromRequest(request));
 }

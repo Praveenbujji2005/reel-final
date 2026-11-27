@@ -187,12 +187,9 @@ export default function LuxeSection() {
         }
       `}</style>
 
-      {/* Direct Content Grid - Seamlessly blended into page background */}
       <div className="relative z-10 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
-          {/* Left Column: Brand, Headline, Subtext, Price & CTA */}
           <div className="lg:col-span-7 flex flex-col items-start text-left space-y-5 sm:space-y-6">
-            {/* Logo: ReelXpress LUXE */}
             <div className="flex items-center">
               <img
                 src="/brand/reelxpress-luxe-logo-transparent.png"
@@ -202,19 +199,15 @@ export default function LuxeSection() {
               />
             </div>
 
-            {/* Headline: "Our Most Exclusive Experience." */}
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[52px] font-extrabold text-white tracking-tight leading-[1.12]">
               Our Most Exclusive <span className="luxe-gold-text">Experience.</span>
             </h2>
 
-            {/* Subtext */}
             <p className="text-sm sm:text-base md:text-lg text-white/80 font-normal leading-relaxed max-w-xl">
               {luxeData.description}
             </p>
 
-            {/* Price & CTA Button Container */}
             <div className="pt-2 sm:pt-3 w-full flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-7">
-              {/* Price Block: Starts at ₹20,000 */}
               <div className="flex items-baseline gap-2">
                 <span className="text-[11px] sm:text-xs uppercase tracking-widest font-bold text-[#F9E27D]">
                   Starts at
@@ -227,7 +220,6 @@ export default function LuxeSection() {
                 </span>
               </div>
 
-              {/* Gold Gradient CTA Button: See Luxe → */}
               <a
                 href="#booking"
                 onClick={handleBookLuxe}
@@ -253,7 +245,6 @@ export default function LuxeSection() {
             </div>
           </div>
 
-          {/* Right Column: Feature List Pills */}
           <div className="lg:col-span-5 flex flex-col gap-3 sm:gap-3.5 w-full">
             <ul className="flex flex-col gap-3 sm:gap-3.5 w-full m-0 p-0 list-none">
               {luxeData.features.map((feature, idx) => (
@@ -263,7 +254,6 @@ export default function LuxeSection() {
                   className="luxe-feature-row rounded-xl sm:rounded-2xl px-5 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between text-sm sm:text-[15px] font-semibold text-zinc-100 shadow-sm"
                 >
                   <span className="tracking-wide">{feature}</span>
-                  {/* Small Gold Sparkle / Diamond Icon */}
                   <span
                     className="w-6 h-6 rounded-full bg-[#D4AF37]/15 border border-[#D4AF37]/35 text-[#F9E27D] flex items-center justify-center shrink-0 ml-3"
                     aria-hidden="true"

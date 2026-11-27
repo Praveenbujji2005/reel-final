@@ -10,8 +10,8 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
-const MAX_IMAGE_SIZE = 15 * 1024 * 1024;  // 15MB
+const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 15 * 1024 * 1024;
 
 const ALLOWED_IMAGE_MIMES = new Set([
   'image/jpeg',
@@ -41,7 +41,6 @@ const ALLOWED_EXTENSIONS = new Set([
 
 export async function POST(request) {
   try {
-    // 1. Verify administrative authorization
     if (!isRequestAdmin(request)) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized: Admin privileges required to upload media.' },
@@ -63,7 +62,6 @@ export async function POST(request) {
     const rawExt = path.extname(file.name || '').toLowerCase();
     const mimeType = (file.type || '').toLowerCase();
 
-    // 2. Validate extension
     if (!ALLOWED_EXTENSIONS.has(rawExt)) {
       return NextResponse.json(
         {
@@ -74,7 +72,6 @@ export async function POST(request) {
       );
     }
 
-    // 3. Validate MIME type
     const isImage = ALLOWED_IMAGE_MIMES.has(mimeType);
     const isVideo = ALLOWED_VIDEO_MIMES.has(mimeType);
 
@@ -88,7 +85,6 @@ export async function POST(request) {
       );
     }
 
-    // 4. Validate file size
     const maxAllowed = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
     if (file.size > maxAllowed) {
       return NextResponse.json(
@@ -100,7 +96,6 @@ export async function POST(request) {
       );
     }
 
-    // 5. Sanitize target folder & file name
     let targetFolder = isVideo ? 'hero-videos' : 'images';
     if (customFolder && typeof customFolder === 'string' && /^[a-zA-Z0-9_-]{1,30}$/.test(customFolder)) {
       targetFolder = customFolder;
@@ -114,7 +109,6 @@ export async function POST(request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // 6. Upload to Firebase Storage
     if (isFirebaseConfigured && storage) {
       try {
         const storageRef = ref(storage, storagePath);
@@ -152,7 +146,6 @@ export async function POST(request) {
       }
     }
 
-    // 7. Local development fallback
     if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
       const uploadsDir = path.join(process.cwd(), 'public', 'uploads', targetFolder);
       await mkdir(uploadsDir, { recursive: true });

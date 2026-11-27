@@ -55,7 +55,6 @@ export async function POST(request) {
 
     const body = await request.json().catch(() => ({}));
 
-    // Honeypot spam defense
     if (body.website_trap || body.bot_honey) {
       return NextResponse.json({
         success: true,
@@ -63,7 +62,6 @@ export async function POST(request) {
       });
     }
 
-    // Input Sanitization
     const customerName = sanitizeString(body.customerName || body.fullName || body.name || '', 100);
     const email = sanitizeString(body.email || '', 120).toLowerCase();
     const phone = sanitizeString(body.phone || body.mobile || '', 30);

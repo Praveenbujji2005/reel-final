@@ -34,7 +34,6 @@ export function AdminAuthProvider({ children }) {
     } catch {}
   }, []);
 
-  // Check server session on mount
   useEffect(() => {
     let isMounted = true;
 
@@ -51,7 +50,6 @@ export function AdminAuthProvider({ children }) {
         }
       } catch {}
 
-      // Fallback: check Firebase auth state if configured
       if (isFirebaseConfigured && auth) {
         const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
           if (!isMounted) return;
@@ -117,14 +115,12 @@ export function AdminAuthProvider({ children }) {
       throw new Error('Please enter both email and password.');
     }
 
-    // Optional Firebase Client Auth sync
     if (isFirebaseConfigured && auth) {
       try {
         await signInWithEmailAndPassword(auth, cleanEmail, cleanPass);
       } catch {}
     }
 
-    // Call server-side authentication endpoint
     const res = await fetch('/api/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

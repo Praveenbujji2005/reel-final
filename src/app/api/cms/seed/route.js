@@ -10,7 +10,6 @@ export const revalidate = 0;
 
 export async function POST(request) {
   try {
-    // Disable in production unless explicitly enabled via environment variable
     if (process.env.NODE_ENV === 'production' && !process.env.ENABLE_CMS_SEED) {
       return NextResponse.json(
         { success: false, error: 'Database seed endpoint is disabled in production environments.' },
