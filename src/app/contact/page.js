@@ -1,4 +1,5 @@
 import ContactPageView from '@/components/contact/ContactPageView';
+import MetaPixel from '@/components/analytics/MetaPixel';
 
 export const metadata = {
   title: 'Contact Us | reelXpress - Quick Content Video Production',
@@ -26,5 +27,10 @@ export const metadata = {
 };
 
 export default function ContactPage() {
-  return <ContactPageView />;
+  return (
+    <>
+      <MetaPixel />
+      <ContactPageView />
+    </>
+  );
 }

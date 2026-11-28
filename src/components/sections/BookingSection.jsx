@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { trackEnquiryConversion } from '@/lib/metaPixel';
 
 const SUBJECT_OPTIONS = [
   'Hourly Plan (₹2,200) - Single Event',
@@ -144,6 +145,7 @@ export default function BookingSection({ onBookingSuccess }) {
       }
 
       setSubmitSuccess(true);
+      trackEnquiryConversion({ source: 'home_booking_form', service: payload.selectedService });
       const generatedId = data.enquiry?.id || 'RX-' + Math.floor(100000 + Math.random() * 900000);
       setReferenceId(generatedId);
 

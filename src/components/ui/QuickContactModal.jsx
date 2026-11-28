@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { OCCASIONS_LIST, SHOOT_TYPE_CATEGORIES } from '@/lib/data';
 import ReelXpressWordmark from '@/components/ui/ReelXpressWordmark';
+import { trackEnquiryConversion } from '@/lib/metaPixel';
 
 export default function QuickContactModal({ isOpen, onClose }) {
   const [mounted, setMounted] = useState(false);
@@ -85,6 +86,7 @@ export default function QuickContactModal({ isOpen, onClose }) {
       }
 
       setIsSuccess(true);
+      trackEnquiryConversion({ source: 'quick_contact_modal', service: payload.selectedService });
       try {
         confetti({
           particleCount: 70,

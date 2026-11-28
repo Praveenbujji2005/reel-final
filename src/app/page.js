@@ -19,6 +19,7 @@ import BookingSection from '@/components/sections/BookingSection';
 
 import BookingModal from '@/components/ui/BookingModal';
 import ToastNotification from '@/components/ui/ToastNotification';
+import MetaPixel from '@/components/analytics/MetaPixel';
 
 export default function HomePage() {
   useScrollReveal();
@@ -54,6 +55,8 @@ export default function HomePage() {
 
   return (
     <>
+      <MetaPixel viewContentId="pricing" />
+
       <Navbar
         onOpenMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
         isMobileMenuOpen={isMobileMenuOpen}

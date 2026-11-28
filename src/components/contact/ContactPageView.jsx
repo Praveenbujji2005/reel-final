@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { trackEnquiryConversion } from '@/lib/metaPixel';
 import Navbar from '@/components/layout/Navbar';
 import MobileMenu from '@/components/layout/MobileMenu';
 import Footer from '@/components/layout/Footer';
@@ -124,6 +125,7 @@ export default function ContactPageView() {
       }
 
       setSubmitSuccess(true);
+      trackEnquiryConversion({ source: 'contact_page_form', service: payload.selectedService });
       setReferenceId(data.enquiry?.id || 'RX-' + Math.floor(100000 + Math.random() * 900000));
     } catch (err) {
       console.error('[ContactPage] Submission failed:', err);

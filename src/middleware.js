@@ -184,12 +184,12 @@ export async function middleware(request) {
 
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://www.gstatic.com;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://www.gstatic.com https://connect.facebook.net;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     font-src 'self' https://fonts.gstatic.com data:;
     img-src 'self' data: blob: https: res.cloudinary.com https://firebasestorage.googleapis.com;
     media-src 'self' blob: data: https://firebasestorage.googleapis.com https://res.cloudinary.com;
-    connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.firebaseapp.com https://firebasestorage.googleapis.com https://api.liner.com https://api.cloudinary.com;
+    connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.firebaseapp.com https://firebasestorage.googleapis.com https://api.liner.com https://api.cloudinary.com https://www.facebook.com https://connect.facebook.net;
     frame-src 'self' https://accounts.google.com https://www.google.com;
     frame-ancestors 'self';
     object-src 'none';
