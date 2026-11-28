@@ -14,37 +14,37 @@ service firebase.storage {
 
     match /uploads/{allPaths=**} {
       allow read: if true;
-      allow write: if isAuthenticated() && isValidMedia();
+      allow write: if isValidMedia();
       allow delete: if isAuthenticated();
     }
 
     match /hero-videos/{allPaths=**} {
       allow read: if true;
-      allow write: if isAuthenticated() && isValidMedia();
+      allow write: if isValidMedia();
       allow delete: if isAuthenticated();
     }
 
     match /hero/{allPaths=**} {
       allow read: if true;
-      allow write: if isAuthenticated() && isValidMedia();
+      allow write: if isValidMedia();
       allow delete: if isAuthenticated();
     }
 
     match /videos/{allPaths=**} {
       allow read: if true;
-      allow write: if isAuthenticated() && isValidMedia();
+      allow write: if isValidMedia();
       allow delete: if isAuthenticated();
     }
 
     match /testimonials/{allPaths=**} {
       allow read: if true;
-      allow write: if isAuthenticated() && isValidMedia();
+      allow write: if isValidMedia();
       allow delete: if isAuthenticated();
     }
 
     match /{allPaths=**} {
       allow read: if true;
-      allow write: if isAuthenticated() && isValidMedia();
+      allow write: if isValidMedia();
       allow delete: if isAuthenticated();
     }
   }

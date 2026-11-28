@@ -1730,9 +1730,13 @@ export async function uploadHeroVideo(file, onProgress) {
           },
           (error) => {
             console.error('[uploadHeroVideo] Firebase Storage upload error:', error);
-            uploadViaServerApi(file, onProgress, storagePath)
-              .then(resolve)
-              .catch(() => reject(new Error(`Firebase Storage upload failed: ${error.message || 'Permission denied'}`)));
+            if (file.size <= 4.5 * 1024 * 1024) {
+              uploadViaServerApi(file, onProgress, storagePath)
+                .then(resolve)
+                .catch(() => reject(new Error(`Firebase Storage upload failed: ${error.message || 'Permission denied'}`)));
+            } else {
+              reject(new Error(`Firebase Storage upload failed: ${error.message || 'Permission denied'}. Please check storage permissions or paste a direct video URL.`));
+            }
           },
           async () => {
             try {
@@ -1754,17 +1758,28 @@ export async function uploadHeroVideo(file, onProgress) {
           }
         );
       } catch (err) {
-        uploadViaServerApi(file, onProgress, storagePath)
-          .then(resolve)
-          .catch(reject);
+        if (file.size <= 4.5 * 1024 * 1024) {
+          uploadViaServerApi(file, onProgress, storagePath)
+            .then(resolve)
+            .catch(reject);
+        } else {
+          reject(new Error(`Direct storage upload initialization failed: ${err.message}`));
+        }
       }
     });
+  }
+
+  if (file.size > 4.5 * 1024 * 1024) {
+    throw new Error(`Firebase Storage is not initialized. Files over 4.5MB cannot be uploaded via serverless functions. Please configure Firebase Storage or paste a direct video URL.`);
   }
 
   return uploadViaServerApi(file, onProgress, storagePath);
 }
 
 async function uploadViaServerApi(file, onProgress, storagePath) {
+  if (file.size > 4.5 * 1024 * 1024) {
+    throw new Error(`File size exceeds serverless limit (4.5MB). Please use direct Firebase Storage upload or paste a video URL.`);
+  }
   if (typeof onProgress === 'function') onProgress(10);
   const formData = new FormData();
   formData.append('file', file);
