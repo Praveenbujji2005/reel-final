@@ -7,7 +7,7 @@ import { useAdminAuth } from '@/context/AdminAuthContext';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { login, isAuthenticated, loading, lockoutUntil } = useAdminAuth();
+  const { login, isAuthenticated, loading, lockoutUntil, clearFailedAttempts } = useAdminAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -82,11 +82,20 @@ export default function AdminLoginPage() {
           )}
 
           {isLocked && (
-            <div className="mb-5 p-4 rounded-xl bg-amber-950/70 border border-amber-500/40 text-amber-200 text-xs sm:text-sm flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-amber-400 text-lg shrink-0 mt-0.5">
-                lock_clock
-              </span>
-              <span>Security Lockout: Too many failed attempts. Try again later.</span>
+            <div className="mb-5 p-4 rounded-xl bg-amber-950/70 border border-amber-500/40 text-amber-200 text-xs sm:text-sm flex flex-col gap-2.5 animate-fadeIn">
+              <div className="flex items-start gap-2.5">
+                <span className="material-symbols-outlined text-amber-400 text-lg shrink-0 mt-0.5">
+                  lock_clock
+                </span>
+                <span>Security Lockout: Too many failed attempts. Try again later.</span>
+              </div>
+              <button
+                type="button"
+                onClick={clearFailedAttempts}
+                className="self-start px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold transition-colors cursor-pointer"
+              >
+                Reset Lockout &amp; Try Again
+              </button>
             </div>
           )}
 
@@ -97,7 +106,7 @@ export default function AdminLoginPage() {
               </label>
               <div className="relative">
                 <input
-                  type="email"
+                  type="text"
                   required
                   disabled={isLocked || isSubmitting}
                   placeholder="admin@reelxpress.com"

@@ -179,6 +179,7 @@ export function AdminAuthProvider({ children }) {
     login,
     logout,
     resetPassword,
+    clearFailedAttempts,
   };
 
   return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
