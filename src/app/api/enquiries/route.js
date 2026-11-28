@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import {
   createEnquiry,
   getEnquiriesFromFirestore,
@@ -16,6 +16,7 @@ import {
 } from '@/lib/serverEnquiriesStore';
 import { isRequestAdmin } from '@/lib/auth';
 import { sanitizeString, validateEmail, validatePhone } from '@/lib/sanitize';
+import { sendLeadToGoogleSheet } from '@/lib/googleSheetsLeads';
 
 const rateLimitMap = new Map();
 
@@ -135,6 +136,8 @@ export async function POST(request) {
     });
 
     const responseEnquiry = savedEnquiry || serverRecord;
+
+    after(() => sendLeadToGoogleSheet({ ...sanitizedPayload, ...responseEnquiry }));
 
     return NextResponse.json(
       {
