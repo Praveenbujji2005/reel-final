@@ -52,6 +52,27 @@ export default function FaqSection() {
     setOpenIndex((prev) => (prev === idx ? null : idx));
   };
 
+  const handleBookEvent = (e) => {
+    e.preventDefault();
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      window.location.href = '/contact';
+      return;
+    }
+    const bookingEl =
+      document.getElementById('booking-form') ||
+      document.getElementById('booking');
+
+    if (bookingEl) {
+      if (typeof window !== 'undefined' && window.lenis) {
+        window.lenis.scrollTo(bookingEl, { offset: -60, duration: 1.2 });
+      } else {
+        bookingEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      window.location.href = '/contact';
+    }
+  };
+
   const displayedFaqs = showAll ? faqs : faqs.slice(0, 6);
 
   return (
@@ -77,8 +98,9 @@ export default function FaqSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
-            <a
-              href="#booking"
+            <Link
+              href="/contact"
+              onClick={handleBookEvent}
               className="btn-glow-orange btn-shine-sweep inline-flex items-center justify-between sm:justify-center gap-3 px-7 py-3.5 rounded-full font-bold text-white text-sm transition-all shadow-md group cursor-pointer"
             >
               <span>Book your event now</span>
@@ -94,7 +116,7 @@ export default function FaqSection() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </span>
-            </a>
+            </Link>
 
             <Link
               href="/creators"
