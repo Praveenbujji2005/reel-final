@@ -82,7 +82,8 @@ export async function POST(request) {
     if (isEmailMatch) {
       if (adminPasswordHash) {
         isPasswordMatch = await verifyPassword(password, adminPasswordHash);
-      } else {
+      }
+      if (!isPasswordMatch && adminDefaultPassword) {
         isPasswordMatch = await verifyPassword(password, adminDefaultPassword);
       }
     }

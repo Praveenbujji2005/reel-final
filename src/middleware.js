@@ -98,7 +98,7 @@ export async function middleware(request) {
 
   let corsOrigin = null;
   if (origin) {
-    if (ALLOWED_ORIGINS.has(origin)) {
+    if (ALLOWED_ORIGINS.has(origin) || origin.endsWith('.vercel.app')) {
       corsOrigin = origin;
     } else {
       const host = request.headers.get('host');

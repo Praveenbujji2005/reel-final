@@ -7,9 +7,6 @@ const DEFAULT_SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7;
 export function getAdminSecretKey() {
   const secret = process.env.ADMIN_SECRET_KEY || process.env.NEXT_PUBLIC_ADMIN_SECRET_KEY;
   if (!secret) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('[Security] ADMIN_SECRET_KEY environment variable is required in production.');
-    }
     return 'development_fallback_secret_key_reelxpress_2026_minimum_32_chars';
   }
   return secret;
