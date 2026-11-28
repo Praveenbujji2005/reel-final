@@ -188,7 +188,7 @@ export default function ContactPageView() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 items-start">
           
-          <div className="lg:col-span-5 space-y-6">
+          <div className="order-2 lg:order-1 lg:col-span-5 space-y-6">
             <div className="rounded-3xl bg-[#110e13] border border-white/10 p-6 sm:p-8 shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
               <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2.5">
                 <span className="w-2 h-2 rounded-full bg-primary-container" />
@@ -253,7 +253,7 @@ export default function ContactPageView() {
             </div>
           </div>
 
-          <div className="lg:col-span-7">
+          <div className="order-1 lg:order-2 lg:col-span-7">
             <div className="rounded-3xl bg-[#110e13] border border-white/10 p-6 sm:p-8 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative">
               
               {submitSuccess ? (

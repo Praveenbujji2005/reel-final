@@ -215,14 +215,13 @@ export default function Hero({ onShowToast }) {
         </div>
 
         <div className="hero-animate-5 flex flex-col items-center w-[74%] max-w-[310px] mb-8">
-          <a
-            href="#booking"
-            onClick={handleBookNow}
+          <Link
+            href="/contact"
             className="w-full h-[60px] rounded-[20px] btn-orange-lux flex items-center justify-center text-white font-black text-[15px] tracking-[0.04em] uppercase cursor-pointer select-none touch-manipulation active:scale-[0.97]"
             aria-label="Book Now"
           >
             <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">BOOK NOW</span>
-          </a>
+          </Link>
         </div>
 
         <div className="hero-animate-6 grid grid-cols-3 gap-3 w-full px-2 mb-8">

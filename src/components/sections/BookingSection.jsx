@@ -179,7 +179,7 @@ export default function BookingSection({ onBookingSuccess }) {
   };
 
   return (
-    <section className="py-16 md:py-space-2xl px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28" id="booking">
+    <section className="hidden md:block py-16 md:py-space-2xl px-4 sm:px-6 md:px-margin max-w-[1440px] mx-auto scroll-mt-20 md:scroll-mt-28" id="booking">
       <div className="reveal-scale-on-scroll rounded-3xl bg-[#110e13] border border-border-amber p-5 sm:p-8 md:p-14 shadow-[0_20px_80px_rgba(255,94,30,0.2)] mb-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           
